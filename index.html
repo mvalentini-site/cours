@@ -80,7 +80,7 @@ html,body{width:100%;height:100vh;overflow:hidden;
   display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
 .hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
 
-/* ════ ÉLÉMENTS INTERNES ════ */
+/* ════ ELEMENTS INTERNES ════ */
 .tape{display:inline-block;background:var(--tape);padding:3px 16px 3px 10px;
   font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
   margin-bottom:12px;position:relative;}
@@ -100,12 +100,12 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 .sec-num{font-size:8px;font-weight:500;padding:2px 6px;letter-spacing:1px;color:var(--paper);}
 .sec-name{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);}
 
-/* ════ CARTES — liens vers les pages ════ */
+/* ════ CARTES outils ════ */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:6px;}
 
 .card{
   display:block;border:1.5px solid var(--ink2);
-  padding:16px 32px 14px 14px; /* espace pour la flèche */
+  padding:16px 32px 14px 14px;
   background:rgba(255,255,255,.22);
   position:relative;text-decoration:none;color:inherit;
   transition:background .13s,transform .12s;
@@ -120,6 +120,13 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 .card-arrow{position:absolute;bottom:10px;right:12px;font-size:13px;color:var(--faded2);}
 .card-tag{display:inline-block;margin-top:8px;font-size:7px;color:var(--paper);padding:1px 6px;letter-spacing:1px;}
 .card .bar{position:absolute;bottom:0;left:0;right:0;height:2.5px;opacity:.55;}
+
+/* ════ ETIQUETTES CHAPITRES ════ */
+.chap-num{font-size:8px;font-weight:500;letter-spacing:1px;color:var(--faded2);margin-bottom:4px;}
+.chap-title{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--ink);
+  line-height:1.2;margin-bottom:4px;}
+.chap-partie{font-size:7px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--paper);padding:1px 6px;display:inline-block;margin-top:4px;}
 
 .empty{font-size:10px;color:var(--faded2);font-style:italic;padding:12px 0;}
 
@@ -145,7 +152,6 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
     <div id="page-wrap">
       <div class="paper" id="paper">
         <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
-        <!-- Contenu injecté par JS -->
       </div>
     </div>
   </div>
@@ -157,122 +163,98 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 
 <script>
 // ════════════════════════════════════════════════
-// CONFIGURATION — modifier ici pour personaliser
+// CONFIGURATION
 // ════════════════════════════════════════════════
 const TABS_LEFT = [
   { id:'accueil',  label:'Accueil',     color:'#3a2010' },
-  { id:'1ere-spe', label:'1ères Spé',   color:'#1c3d6e' },
+  { id:'1ere-spe', label:'1eres Spe',   color:'#1c3d6e' },
   { id:'1ere-ens', label:'Ens. Sci.',   color:'#2a5c3a' },
-  { id:'5eme',     label:'5ème',        color:'#6b3a1c' },
+  { id:'5eme',     label:'5eme',        color:'#6b3a1c' },
   { id:'outils',   label:'Outils',      color:'#3a3a1c' },
 ];
 const TABS_RIGHT = [
   { id:'postbac',  label:'Post Bac.',   color:'#3a1c6b' },
-  { id:'apropos',  label:'À propos',    color:'#1c4a4a' },
+  { id:'apropos',  label:'A propos',    color:'#1c4a4a' },
 ];
 
 // ════════════════════════════════════════════════
-// PAGES — ajouter une entrée par fichier HTML
+// SOMMAIRES — chapitres par niveau
+// ════════════════════════════════════════════════
+const SOMMAIRES = {
+  '1ere-spe': [
+    { num:'01', title:'La mole',                          partie:'Partie 1' },
+    { num:'01', title:'Dosage par etalonnage',            partie:'Partie 2' },
+    { num:'02', title:'Oxydoreduction' },
+    { num:'03', title:'Avancement' },
+    { num:'04', title:'Titrages' },
+    { num:'05', title:'De la structure a la polarite' },
+    { num:'06', title:'Cohesion de la matiere' },
+    { num:'07', title:'Structure des entites organiques' },
+    { num:'08', title:'Syntheses chimiques' },
+    { num:'09', title:'Combustions' },
+    { num:'10', title:'Interactions et champs' },
+    { num:'11', title:'Fluides au repos' },
+    { num:'12', title:'Mouvement d\'un systeme' },
+    { num:'13', title:'Energie des systemes electriques' },
+    { num:'14', title:'Energie mecanique' },
+    { num:'15', title:'Ondes mecaniques' },
+    { num:'16', title:'Lentilles minces' },
+    { num:'17', title:'Couleurs' },
+    { num:'18', title:'Lumiere, onde et particules' },
+  ],
+};
+
+// ════════════════════════════════════════════════
+// PAGES — outils interactifs
 // ════════════════════════════════════════════════
 const PAGES = {
-
-  // ── Accueil (visible dans tous les onglets) ──
-  'accueil': [],   // pas de pages spécifiques, affiche le sommaire global
-
-  // ── 1ères Spécialité ──────────────────────────
-  '1ere-spe': [
-    {
-      file:  'Outils/oscillateur-labo-a3.html',
-      title: 'Oscillateur harmonique',
-      sub:   'Masse–Ressort · Fréquence · Énergie',
-      tag:   'Mécanique',
-      color: '#1c3d6e',
-    },
-    {
-      file:  'Outils/masse-volumique-labo.html',
-      title: 'Masse volumique',
-      sub:   'ρ × V → m · Visualisation à l\'échelle',
-      tag:   'Matière',
-      color: '#2a5c3a',
-    },
-    {
-      file:  'Outils/pointage-mouvement.html',
-      title: 'Pointage de mouvement',
-      sub:   'Vidéo frame par frame · Vecteurs v et a',
-      tag:   'Cinématique',
-      color: '#3a1c6b',
-    },
-    {
-      file:  'Outils/gravite_terre_lune.html',
-      title: 'Gravité Terre–Lune',
-      sub:   'Champ gravitationnel · Force d\'attraction',
-      tag:   'Gravitation',
-      color: '#6b3a1c',
-    },
-  ],
-
-  // ── 1ère Enseignement Scientifique ────────────
-  '1ere-ens': [
-    /* ➕ Ajouter les pages ici */
-  ],
-
-  // ── 5ème ──────────────────────────────────────
-  '5eme': [
-    /* ➕ Ajouter les pages ici */
-  ],
-
-  // ── Outils ────────────────────────────────────
+  'accueil':   [],
+  '1ere-spe':  [],
+  '1ere-ens':  [],
+  '5eme':      [],
   'outils': [
     {
       file:  'Outils/oscillateur-labo-a3.html',
       title: 'Oscillateur harmonique',
-      sub:   'Masse–Ressort · Fréquence · Énergie',
-      tag:   'Mécanique',
+      sub:   'Masse-Ressort - Frequence - Energie',
+      tag:   'Mecanique',
       color: '#1c3d6e',
     },
     {
       file:  'Outils/masse-volumique-labo.html',
       title: 'Masse volumique',
-      sub:   'ρ × V → m · Visualisation à l\'échelle',
-      tag:   'Matière',
+      sub:   'p x V = m - Visualisation a l\'echelle',
+      tag:   'Matiere',
       color: '#2a5c3a',
     },
     {
       file:  'Outils/pointage-mouvement.html',
       title: 'Pointage de mouvement',
-      sub:   'Vidéo frame par frame · Vecteurs v et a',
-      tag:   'Cinématique',
+      sub:   'Video frame par frame - Vecteurs v et a',
+      tag:   'Cinematique',
       color: '#3a1c6b',
     },
     {
       file:  'Outils/gravite_terre_lune.html',
-      title: 'Gravité Terre–Lune',
-      sub:   'Champ gravitationnel · Force d\'attraction',
+      title: 'Gravite Terre-Lune',
+      sub:   'Champ gravitationnel - Force d\'attraction',
       tag:   'Gravitation',
       color: '#6b3a1c',
     },
     {
       file:  'Outils/mariotte.html',
       title: 'Loi de Mariotte',
-      sub:   'Arduino · P × V = cste · Gaz parfaits',
+      sub:   'Arduino - P x V = cste - Gaz parfaits',
       tag:   'Thermodynamique',
       color: '#5c2a2a',
     },
   ],
-
-  // ── Post Bac. ─────────────────────────────────
-  'postbac': [
-    /* ➕ Ajouter les pages ici */
-  ],
-
-  // ── À propos ──────────────────────────────────
-  'apropos': [
-    /* ➕ Ajouter les pages ici */
-  ],
+  'postbac':   [],
+  'apropos':   [],
 };
 
 // ════════════════════════════════════════════════
-// ÉTAT & RENDU
+// ETAT & RENDU
 // ════════════════════════════════════════════════
 let currentTab = 'accueil';
 
@@ -289,7 +271,7 @@ function buildTabs(){
     b.className='tab-l'+(t.id===currentTab?' active':'');
     b.style.background=t.color; b.style.color=t.color;
     b.dataset.tab=t.id;
-    b.innerHTML=`<span>${t.label}</span>`;
+    b.innerHTML='<span>'+t.label+'</span>';
     b.addEventListener('click',()=>switchTab(t.id));
     top.appendChild(b);
   });
@@ -299,7 +281,7 @@ function buildTabs(){
     b.className='tab-r'+(t.id===currentTab?' active':'');
     b.style.background=t.color; b.style.color=t.color;
     b.dataset.tab=t.id;
-    b.innerHTML=`<span>${t.label}</span>`;
+    b.innerHTML='<span>'+t.label+'</span>';
     b.addEventListener('click',()=>switchTab(t.id));
     bot.appendChild(b);
   });
@@ -318,103 +300,80 @@ function switchTab(id){
   document.getElementById('page-wrap').scrollTop=0;
 }
 
-// ── Rendu de la page centrale ──────────────────
+// ── Rendu principal ────────────────────────────
 function render(){
   const paper = document.getElementById('paper');
   const date  = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
   const ti    = tabInfo(currentTab);
-
-  let content = '';
-
-  if(currentTab==='accueil'){
-    content = renderAccueil(date);
-  } else {
-    content = renderSection(ti, date);
-  }
-
-  paper.innerHTML = `
-    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
-    ${content}
-    <div class="page-num">— ${escH(ti.label)} —</div>`;
+  const content = currentTab==='accueil' ? renderAccueil(date) : renderSection(ti, date);
+  paper.innerHTML =
+    '<div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>'
+    + content
+    + '<div class="page-num">-- '+escH(ti.label)+' --</div>';
 }
 
-// ── Page Accueil : toutes les sections ────────────
+// ── Page Accueil ───────────────────────────────
 function renderAccueil(date){
   const sections = TABS_LEFT.filter(t=>t.id!=='accueil').map((t,i)=>{
+    const chaps = (SOMMAIRES[t.id]||[]);
     const pages = PAGES[t.id]||[];
-    return `
-      <div class="sec">
-        <span class="sec-num" style="background:${t.color}">${String(i+1).padStart(2,'0')}</span>
-        <span class="sec-name">${escH(t.label)}</span>
-      </div>
-      <div class="cards">
-        ${pages.length
-          ? pages.map(p=>cardHTML(p)).join('')
-          : `<p class="empty">Aucune page pour le moment.</p>`}
-      </div>`;
+    const items = chaps.length
+      ? chaps.map(c=>chapHTML(c,t.color)).join('')
+      : pages.length
+        ? pages.map(p=>cardHTML(p)).join('')
+        : '<p class="empty">Aucune page pour le moment.</p>';
+    return '<div class="sec"><span class="sec-num" style="background:'+t.color+'">'+String(i+1).padStart(2,'0')+'</span><span class="sec-name">'+escH(t.label)+'</span></div><div class="cards">'+items+'</div>';
   }).join('');
 
-  return `
-    <div class="tape">Physique · Chimie · Lycée</div>
-    <div class="page-header">
-      <div>
-        <div class="exp-tag">Outils interactifs</div>
-        <h1>Cahier de <em>laboratoire</em></h1>
-      </div>
-      <div class="ph-right">
-        <div class="ph-date">${date}</div>
-        <div>GitHub Pages</div>
-      </div>
-    </div>
-    ${sections}
-    <div class="page-footer">
-      <span>Physique · Chimie · Lycée</span>
-      <a href="https://github.com" target="_blank">GitHub →</a>
-    </div>`;
+  return '<div class="tape">Physique - Chimie - Lycee</div>'
+    +'<div class="page-header"><div><div class="exp-tag">Outils interactifs</div><h1>Cahier de <em>laboratoire</em></h1></div>'
+    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>GitHub Pages</div></div></div>'
+    +sections
+    +'<div class="page-footer"><span>Physique - Chimie - Lycee</span><a href="https://github.com" target="_blank">GitHub</a></div>';
 }
 
-// ── Page d'un onglet spécifique ───────────────────
+// ── Page d'un onglet ───────────────────────────
 function renderSection(ti, date){
-  const pages = PAGES[ti.id]||[];
-  return `
-    <div class="tape" style="background:${ti.color}22;color:${ti.color}">${escH(ti.label)}</div>
-    <div class="page-header">
-      <div>
-        <div class="exp-tag">Physique · Chimie</div>
-        <h1>${escH(ti.label)}</h1>
-      </div>
-      <div class="ph-right">
-        <div class="ph-date">${date}</div>
-        <div>${pages.length} outil${pages.length>1?'s':''}</div>
-      </div>
-    </div>
-    <div class="sec">
-      <span class="sec-num" style="background:${ti.color}">→</span>
-      <span class="sec-name">Outils disponibles</span>
-    </div>
-    <div class="cards">
-      ${pages.length
-        ? pages.map(p=>cardHTML(p)).join('')
-        : `<p class="empty">Aucune page pour le moment.<br>
-           Ajouter une entrée dans le tableau <code>PAGES['${ti.id}']</code> de l'index.</p>`}
-    </div>
-    <div class="page-footer">
-      <span>Physique · Chimie · Lycée</span>
-      <a href="https://github.com" target="_blank">GitHub →</a>
-    </div>`;
+  const chapitres = SOMMAIRES[ti.id]||[];
+  const pages     = PAGES[ti.id]||[];
+  const nbChap    = chapitres.length;
+
+  const tocHTML = nbChap
+    ? '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">S</span><span class="sec-name">Sommaire</span></div>'
+      +'<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
+    : '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">-&gt;</span><span class="sec-name">Outils disponibles</span></div>'
+      +'<div class="cards">'+(pages.length ? pages.map(p=>cardHTML(p)).join('') : '<p class="empty">Aucune page pour le moment.</p>')+'</div>';
+
+  const count = nbChap ? nbChap+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
+
+  return '<div class="tape" style="background:'+ti.color+'22;color:'+ti.color+'">'+escH(ti.label)+'</div>'
+    +'<div class="page-header"><div><div class="exp-tag">Physique - Chimie</div><h1>'+escH(ti.label)+'</h1></div>'
+    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>'+count+'</div></div></div>'
+    +tocHTML
+    +'<div class="page-footer"><span>Physique - Chimie - Lycee</span><a href="https://github.com" target="_blank">GitHub</a></div>';
 }
 
-// ── HTML d'une carte ──────────────────────────────
+// ── Etiquette chapitre ─────────────────────────
+function chapHTML(c, color){
+  return '<div class="card" style="cursor:default;">'
+    +'<div class="card-tape">'+escH(c.num)+'</div>'
+    +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
+    +'<div class="chap-title">'+escH(c.title)+'</div>'
+    +(c.partie ? '<span class="chap-partie" style="background:'+color+'">'+escH(c.partie)+'</span>' : '')
+    +'<div class="bar" style="background:'+color+'"></div>'
+    +'</div>';
+}
+
+// ── Carte outil ────────────────────────────────
 function cardHTML(p){
-  return `
-    <a class="card" href="${escH(p.file)}">
-      <div class="card-tape">${escH(p.tag)}</div>
-      <div class="card-title">${escH(p.title)}</div>
-      <div class="card-sub">${escH(p.sub)}</div>
-      <span class="card-tag" style="background:${p.color}">${escH(p.tag)}</span>
-      <span class="card-arrow">→</span>
-      <div class="bar" style="background:${p.color}"></div>
-    </a>`;
+  return '<a class="card" href="'+escH(p.file)+'">'
+    +'<div class="card-tape">'+escH(p.tag)+'</div>'
+    +'<div class="card-title">'+escH(p.title)+'</div>'
+    +'<div class="card-sub">'+escH(p.sub)+'</div>'
+    +'<span class="card-tag" style="background:'+p.color+'">'+escH(p.tag)+'</span>'
+    +'<span class="card-arrow">-&gt;</span>'
+    +'<div class="bar" style="background:'+p.color+'"></div>'
+    +'</a>';
 }
 
 // ════════════════════════════════════════════════
