@@ -122,11 +122,14 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 .card .bar{position:absolute;bottom:0;left:0;right:0;height:2.5px;opacity:.55;}
 
 /* ════ ETIQUETTES CHAPITRES ════ */
-.chap-num{font-size:8px;font-weight:500;letter-spacing:1px;color:var(--faded2);margin-bottom:4px;}
-.chap-title{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--ink);
-  line-height:1.2;margin-bottom:4px;}
+.chap-num{font-family:var(--serif);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+.chap-title{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--faded);
+  line-height:1.3;margin-bottom:4px;}
 .chap-partie{font-size:7px;letter-spacing:2px;text-transform:uppercase;
   color:var(--paper);padding:1px 6px;display:inline-block;margin-top:4px;}
+.chap-cat{grid-column:1/-1;font-family:var(--serif);font-size:16px;font-style:italic;
+  color:var(--ink2);border-bottom:1.5px solid var(--ink2);
+  padding:18px 0 8px;margin-bottom:2px;}
 
 .empty{font-size:10px;color:var(--faded2);font-style:italic;padding:12px 0;}
 
@@ -167,7 +170,7 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 // ════════════════════════════════════════════════
 const TABS_LEFT = [
   { id:'accueil',  label:'Accueil',     color:'#3a2010' },
-  { id:'1ere-spe', label:'1eres Spe',   color:'#1c3d6e' },
+  { id:'1ere-spe', label:'1res Spe',     color:'#1c3d6e' },
   { id:'1ere-ens', label:'Ens. Sci.',   color:'#2a5c3a' },
   { id:'5eme',     label:'5eme',        color:'#6b3a1c' },
   { id:'outils',   label:'Outils',      color:'#3a3a1c' },
@@ -182,6 +185,7 @@ const TABS_RIGHT = [
 // ════════════════════════════════════════════════
 const SOMMAIRES = {
   '1ere-spe': [
+    { cat:'Organisation et transformation de la matiere' },
     { num:'01', title:'La mole',                          partie:'Partie 1' },
     { num:'01', title:'Dosage par etalonnage',            partie:'Partie 2' },
     { num:'02', title:'Oxydoreduction' },
@@ -192,11 +196,14 @@ const SOMMAIRES = {
     { num:'07', title:'Structure des entites organiques' },
     { num:'08', title:'Syntheses chimiques' },
     { num:'09', title:'Combustions' },
+    { cat:'Mouvements et interactions' },
     { num:'10', title:'Interactions et champs' },
     { num:'11', title:'Fluides au repos' },
     { num:'12', title:'Mouvement d\'un systeme' },
+    { cat:'Energie, conversions et transferts' },
     { num:'13', title:'Energie des systemes electriques' },
     { num:'14', title:'Energie mecanique' },
+    { cat:'Ondes et signaux' },
     { num:'15', title:'Ondes mecaniques' },
     { num:'16', title:'Lentilles minces' },
     { num:'17', title:'Couleurs' },
@@ -336,7 +343,7 @@ function renderAccueil(date){
 function renderSection(ti, date){
   const chapitres = SOMMAIRES[ti.id]||[];
   const pages     = PAGES[ti.id]||[];
-  const nbChap    = chapitres.length;
+  const nbChap    = chapitres.filter(c=>c.num).length;
 
   const tocHTML = nbChap
     ? '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">S</span><span class="sec-name">Sommaire</span></div>'
@@ -353,10 +360,10 @@ function renderSection(ti, date){
     +'<div class="page-footer"><span>Physique - Chimie - Lycee</span><a href="https://github.com" target="_blank">GitHub</a></div>';
 }
 
-// ── Etiquette chapitre ─────────────────────────
+// ── Etiquette chapitre ou categorie ───────────
 function chapHTML(c, color){
+  if(c.cat) return '<div class="chap-cat">'+escH(c.cat)+'</div>';
   return '<div class="card" style="cursor:default;">'
-    +'<div class="card-tape">'+escH(c.num)+'</div>'
     +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
     +'<div class="chap-title">'+escH(c.title)+'</div>'
     +(c.partie ? '<span class="chap-partie" style="background:'+color+'">'+escH(c.partie)+'</span>' : '')
