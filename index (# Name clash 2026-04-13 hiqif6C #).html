@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier de Physique-Chimie</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--paper3:#e4ddc8;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#7a6a50;--faded2:#a89070;
+  --red:#a63020;--blue:#1c3d6e;
+  --tape:rgba(220,200,150,0.62);--desk:#6a6258;
+  --gmaj:rgba(70,90,200,0.13);--gmin:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);
+  --tab-w:44px;
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+html,body{width:100%;height:100vh;overflow:hidden;
+  background:var(--desk);
+  background-image:radial-gradient(ellipse at 15% 10%,#7a7268 0%,transparent 50%),
+    radial-gradient(ellipse at 85% 90%,#5a5248 0%,transparent 50%);
+  font-family:var(--mono);}
+
+/* ════ STRUCTURE ════ */
+#app{display:grid;grid-template-columns:var(--tab-w) 1fr var(--tab-w);height:100vh;}
+
+/* ════ ONGLETS GAUCHE ════ */
+#tabs-left{display:flex;flex-direction:column;justify-content:space-between;
+  padding:20px 0;z-index:20;background:rgba(0,0,0,.12);}
+.tabs-group{display:flex;flex-direction:column;gap:3px;}
+
+.tab-l{height:76px;width:var(--tab-w);border:none;cursor:pointer;
+  border-radius:0 4px 4px 0;box-shadow:2px 2px 6px rgba(0,0,0,.3);
+  transition:width .15s,opacity .15s;opacity:.72;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;overflow:hidden;}
+.tab-l:hover{width:54px;opacity:1;}
+.tab-l.active{width:58px;opacity:1;box-shadow:3px 2px 12px rgba(0,0,0,.4);}
+.tab-l.active::after{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);
+  border-left:8px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent;}
+.tab-l span{writing-mode:vertical-rl;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.88);white-space:nowrap;pointer-events:none;}
+
+/* ════ ONGLETS DROITE ════ */
+#tabs-right{display:flex;flex-direction:column;justify-content:center;gap:3px;
+  padding:20px 0;z-index:20;background:rgba(0,0,0,.08);}
+.tab-r{height:72px;width:var(--tab-w);border:none;cursor:pointer;
+  border-radius:4px 0 0 4px;box-shadow:-2px 2px 6px rgba(0,0,0,.3);
+  transition:width .15s,opacity .15s;opacity:.68;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tab-r:hover{width:54px;opacity:1;}
+.tab-r.active{width:56px;opacity:1;}
+.tab-r span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,255,255,.85);white-space:nowrap;pointer-events:none;}
+
+/* ════ LIVRE (zone centrale) ════ */
+#book{position:relative;overflow:hidden;height:100vh;
+  box-shadow:inset 5px 0 16px rgba(0,0,0,.15),inset -5px 0 16px rgba(0,0,0,.15);}
+
+/* ════ PAGE PAPIER scrollable ════ */
+#page-wrap{height:100%;overflow-y:auto;overflow-x:hidden;}
+
+.paper{
+  min-height:100%;background:var(--paper);
+  padding:48px 52px 72px 80px;position:relative;
+}
+.paper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);}
+.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;
+  background:var(--margin);pointer-events:none;z-index:1;}
+.paper>*{position:relative;z-index:2;}
+
+.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;
+  display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
+.hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
+
+/* ════ ÉLÉMENTS INTERNES ════ */
+.tape{display:inline-block;background:var(--tape);padding:3px 16px 3px 10px;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
+  margin-bottom:12px;position:relative;}
+.tape::before,.tape::after{content:'';position:absolute;top:0;bottom:0;width:5px;background:rgba(200,180,130,.7);}
+.tape::before{left:0;}.tape::after{right:0;}
+
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:28px;padding-bottom:12px;border-bottom:1.5px solid var(--ink2);}
+.exp-tag{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
+h1{font-family:var(--serif);font-size:clamp(24px,3.5vw,42px);font-weight:700;font-style:italic;
+  color:var(--ink);line-height:1;letter-spacing:-.5px;}
+h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,.3);}
+.ph-right{text-align:right;font-size:10px;color:var(--faded);line-height:1.9;}
+.ph-date{font-family:var(--serif);font-size:13px;color:var(--blue);font-weight:600;}
+
+.sec{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:28px;}
+.sec-num{font-size:8px;font-weight:500;padding:2px 6px;letter-spacing:1px;color:var(--paper);}
+.sec-name{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);}
+
+/* ════ CARTES — liens vers les pages ════ */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:6px;}
+
+.card{
+  display:block;border:1.5px solid var(--ink2);
+  padding:16px 32px 14px 14px; /* espace pour la flèche */
+  background:rgba(255,255,255,.22);
+  position:relative;text-decoration:none;color:inherit;
+  transition:background .13s,transform .12s;
+}
+.card:hover{background:rgba(255,255,255,.48);transform:translateY(-2px);}
+.card-tape{position:absolute;top:-8px;left:10px;background:var(--tape);padding:1px 8px;
+  font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);
+  box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.card-title{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--ink);
+  margin-bottom:4px;margin-top:4px;line-height:1.2;}
+.card-sub{font-size:9px;color:var(--faded);line-height:1.6;}
+.card-arrow{position:absolute;bottom:10px;right:12px;font-size:13px;color:var(--faded2);}
+.card-tag{display:inline-block;margin-top:8px;font-size:7px;color:var(--paper);padding:1px 6px;letter-spacing:1px;}
+.card .bar{position:absolute;bottom:0;left:0;right:0;height:2.5px;opacity:.55;}
+
+.empty{font-size:10px;color:var(--faded2);font-style:italic;padding:12px 0;}
+
+/* ════ SOMMAIRE CHAPITRES ════ */
+.toc{display:flex;flex-direction:column;gap:3px;margin-bottom:28px;}
+.toc-item{display:flex;align-items:baseline;gap:10px;padding:7px 12px;
+  border-left:2.5px solid transparent;
+  transition:background .12s,border-color .12s;}
+.toc-item:hover{background:rgba(255,255,255,.35);border-left-color:var(--red);}
+.toc-num{font-family:var(--serif);font-size:11px;font-weight:600;color:var(--red);
+  min-width:28px;letter-spacing:.5px;}
+.toc-partie{font-size:7px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--faded2);background:var(--paper2);padding:1px 5px;margin-right:2px;}
+.toc-title{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--ink);line-height:1.3;}
+.toc-sep{height:1px;background:rgba(28,18,8,.08);margin:6px 0;}
+
+/* ════ PIED ════ */
+.page-footer{margin-top:44px;padding-top:14px;border-top:1px solid rgba(28,18,8,.1);
+  display:flex;justify-content:space-between;font-size:9px;color:var(--faded2);}
+.page-footer a{color:var(--faded2);text-decoration:none;}
+.page-footer a:hover{color:var(--red);}
+.page-num{position:absolute;bottom:20px;right:48px;font-size:9px;color:var(--faded2);letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ONGLETS GAUCHE -->
+  <div id="tabs-left">
+    <div class="tabs-group" id="tabs-top"></div>
+    <div class="tabs-group" id="tabs-bot"></div>
+  </div>
+
+  <!-- CONTENU -->
+  <div id="book">
+    <div id="page-wrap">
+      <div class="paper" id="paper">
+        <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+        <!-- Contenu injecté par JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLETS DROITE -->
+  <div id="tabs-right"></div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// CONFIGURATION — modifier ici pour personaliser
+// ════════════════════════════════════════════════
+const TABS_LEFT = [
+  { id:'accueil',  label:'Accueil',     color:'#3a2010' },
+  { id:'1ere-spe', label:'1ères Spé',   color:'#1c3d6e' },
+  { id:'1ere-ens', label:'Ens. Sci.',   color:'#2a5c3a' },
+  { id:'5eme',     label:'5ème',        color:'#6b3a1c' },
+  { id:'outils',   label:'Outils',      color:'#3a3a1c' },
+];
+const TABS_RIGHT = [
+  { id:'postbac',  label:'Post Bac.',   color:'#3a1c6b' },
+  { id:'apropos',  label:'À propos',    color:'#1c4a4a' },
+];
+
+// ════════════════════════════════════════════════
+// SOMMAIRES — chapitres par niveau
+// ════════════════════════════════════════════════
+const SOMMAIRES = {
+  '1ere-spe': [
+    { num:'01', title:'La mole',                        partie:'Partie 1' },
+    { num:'01', title:'Dosage par étalonnage',           partie:'Partie 2' },
+    { sep: true },
+    { num:'02', title:'Oxydoréduction' },
+    { num:'03', title:'Avancement' },
+    { num:'04', title:'Titrages' },
+    { sep: true },
+    { num:'05', title:'De la structure à la polarité' },
+    { num:'06', title:'Cohésion de la matière' },
+    { num:'07', title:'Structure des entités organiques' },
+    { num:'08', title:'Synthèses chimiques' },
+    { num:'09', title:'Combustions' },
+    { sep: true },
+    { num:'10', title:'Interactions et champs' },
+    { num:'11', title:'Fluides au repos' },
+    { num:'12', title:'Mouvement d\'un système' },
+    { num:'13', title:'Énergie des systèmes électriques' },
+    { num:'14', title:'Énergie mécanique' },
+    { num:'15', title:'Ondes mécaniques' },
+    { sep: true },
+    { num:'16', title:'Lentilles minces' },
+    { num:'17', title:'Couleurs' },
+    { num:'18', title:'Lumière, onde et particules' },
+  ],
+};
+
+// ════════════════════════════════════════════════
+// PAGES — ajouter une entrée par fichier HTML
+// ════════════════════════════════════════════════
+const PAGES = {
+
+  // ── Accueil (visible dans tous les onglets) ──
+  'accueil': [],   // pas de pages spécifiques, affiche le sommaire global
+
+  // ── 1ères Spécialité ──────────────────────────
+  '1ere-spe': [
+    {
+      file:  'Outils/oscillateur-labo-a3.html',
+      title: 'Oscillateur harmonique',
+      sub:   'Masse–Ressort · Fréquence · Énergie',
+      tag:   'Mécanique',
+      color: '#1c3d6e',
+    },
+    {
+      file:  'Outils/masse-volumique-labo.html',
+      title: 'Masse volumique',
+      sub:   'ρ × V → m · Visualisation à l\'échelle',
+      tag:   'Matière',
+      color: '#2a5c3a',
+    },
+    {
+      file:  'Outils/pointage-mouvement.html',
+      title: 'Pointage de mouvement',
+      sub:   'Vidéo frame par frame · Vecteurs v et a',
+      tag:   'Cinématique',
+      color: '#3a1c6b',
+    },
+    {
+      file:  'Outils/gravite_terre_lune.html',
+      title: 'Gravité Terre–Lune',
+      sub:   'Champ gravitationnel · Force d\'attraction',
+      tag:   'Gravitation',
+      color: '#6b3a1c',
+    },
+  ],
+
+  // ── 1ère Enseignement Scientifique ────────────
+  '1ere-ens': [
+    /* ➕ Ajouter les pages ici */
+  ],
+
+  // ── 5ème ──────────────────────────────────────
+  '5eme': [
+    /* ➕ Ajouter les pages ici */
+  ],
+
+  // ── Outils ────────────────────────────────────
+  'outils': [
+    {
+      file:  'Outils/oscillateur-labo-a3.html',
+      title: 'Oscillateur harmonique',
+      sub:   'Masse–Ressort · Fréquence · Énergie',
+      tag:   'Mécanique',
+      color: '#1c3d6e',
+    },
+    {
+      file:  'Outils/masse-volumique-labo.html',
+      title: 'Masse volumique',
+      sub:   'ρ × V → m · Visualisation à l\'échelle',
+      tag:   'Matière',
+      color: '#2a5c3a',
+    },
+    {
+      file:  'Outils/pointage-mouvement.html',
+      title: 'Pointage de mouvement',
+      sub:   'Vidéo frame par frame · Vecteurs v et a',
+      tag:   'Cinématique',
+      color: '#3a1c6b',
+    },
+    {
+      file:  'Outils/gravite_terre_lune.html',
+      title: 'Gravité Terre–Lune',
+      sub:   'Champ gravitationnel · Force d\'attraction',
+      tag:   'Gravitation',
+      color: '#6b3a1c',
+    },
+    {
+      file:  'Outils/mariotte.html',
+      title: 'Loi de Mariotte',
+      sub:   'Arduino · P × V = cste · Gaz parfaits',
+      tag:   'Thermodynamique',
+      color: '#5c2a2a',
+    },
+  ],
+
+  // ── Post Bac. ─────────────────────────────────
+  'postbac': [
+    /* ➕ Ajouter les pages ici */
+  ],
+
+  // ── À propos ──────────────────────────────────
+  'apropos': [
+    /* ➕ Ajouter les pages ici */
+  ],
+};
+
+// ════════════════════════════════════════════════
+// ÉTAT & RENDU
+// ════════════════════════════════════════════════
+let currentTab = 'accueil';
+
+const ALL_TABS = [...TABS_LEFT, ...TABS_RIGHT];
+function tabInfo(id){ return ALL_TABS.find(t=>t.id===id)||{label:'',color:'#3a2010'}; }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buildTabs(){
+  const top = document.getElementById('tabs-top');
+  const bot = document.getElementById('tabs-right');
+
+  TABS_LEFT.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tab-l'+(t.id===currentTab?' active':'');
+    b.style.background=t.color; b.style.color=t.color;
+    b.dataset.tab=t.id;
+    b.innerHTML=`<span>${t.label}</span>`;
+    b.addEventListener('click',()=>switchTab(t.id));
+    top.appendChild(b);
+  });
+
+  TABS_RIGHT.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tab-r'+(t.id===currentTab?' active':'');
+    b.style.background=t.color; b.style.color=t.color;
+    b.dataset.tab=t.id;
+    b.innerHTML=`<span>${t.label}</span>`;
+    b.addEventListener('click',()=>switchTab(t.id));
+    bot.appendChild(b);
+  });
+}
+
+function updateTabsUI(){
+  document.querySelectorAll('.tab-l,.tab-r').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===currentTab);
+  });
+}
+
+function switchTab(id){
+  currentTab=id;
+  updateTabsUI();
+  render();
+  document.getElementById('page-wrap').scrollTop=0;
+}
+
+// ── Rendu de la page centrale ──────────────────
+function render(){
+  const paper = document.getElementById('paper');
+  const date  = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const ti    = tabInfo(currentTab);
+
+  let content = '';
+
+  if(currentTab==='accueil'){
+    content = renderAccueil(date);
+  } else {
+    content = renderSection(ti, date);
+  }
+
+  paper.innerHTML = `
+    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+    ${content}
+    <div class="page-num">— ${escH(ti.label)} —</div>`;
+}
+
+// ── Page Accueil : toutes les sections ────────────
+function renderAccueil(date){
+  const sections = TABS_LEFT.filter(t=>t.id!=='accueil').map((t,i)=>{
+    const pages = PAGES[t.id]||[];
+    return `
+      <div class="sec">
+        <span class="sec-num" style="background:${t.color}">${String(i+1).padStart(2,'0')}</span>
+        <span class="sec-name">${escH(t.label)}</span>
+      </div>
+      <div class="cards">
+        ${pages.length
+          ? pages.map(p=>cardHTML(p)).join('')
+          : `<p class="empty">Aucune page pour le moment.</p>`}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="tape">Physique · Chimie · Lycée</div>
+    <div class="page-header">
+      <div>
+        <div class="exp-tag">Outils interactifs</div>
+        <h1>Cahier de <em>laboratoire</em></h1>
+      </div>
+      <div class="ph-right">
+        <div class="ph-date">${date}</div>
+        <div>GitHub Pages</div>
+      </div>
+    </div>
+    ${sections}
+    <div class="page-footer">
+      <span>Physique · Chimie · Lycée</span>
+      <a href="https://github.com" target="_blank">GitHub →</a>
+    </div>`;
+}
+
+// ── Page d'un onglet spécifique ───────────────────
+function renderSection(ti, date){
+  const pages    = PAGES[ti.id]||[];
+  const chapitres = SOMMAIRES[ti.id]||[];
+
+  const tocHTML = chapitres.length ? `
+    <div class="sec">
+      <span class="sec-num" style="background:${ti.color}">§</span>
+      <span class="sec-name">Sommaire</span>
+    </div>
+    <div class="toc">
+      ${chapitres.map(c => c.sep
+        ? `<div class="toc-sep"></div>`
+        : `<div class="toc-item">
+             <span class="toc-num">${escH(c.num)}</span>
+             ${c.partie ? `<span class="toc-partie">${escH(c.partie)}</span>` : ''}
+             <span class="toc-title">${escH(c.title)}</span>
+           </div>`
+      ).join('')}
+    </div>` : '';
+
+  const outilsHTML = `
+    <div class="sec">
+      <span class="sec-num" style="background:${ti.color}">→</span>
+      <span class="sec-name">Outils disponibles</span>
+    </div>
+    <div class="cards">
+      ${pages.length
+        ? pages.map(p=>cardHTML(p)).join('')
+        : `<p class="empty">Aucun outil pour le moment.</p>`}
+    </div>`;
+
+  return `
+    <div class="tape" style="background:${ti.color}22;color:${ti.color}">${escH(ti.label)}</div>
+    <div class="page-header">
+      <div>
+        <div class="exp-tag">Physique · Chimie</div>
+        <h1>${escH(ti.label)}</h1>
+      </div>
+      <div class="ph-right">
+        <div class="ph-date">${date}</div>
+        <div>${chapitres.filter(c=>!c.sep).length} chapitres · ${pages.length} outil${pages.length>1?'s':''}</div>
+      </div>
+    </div>
+    ${tocHTML}
+    ${outilsHTML}
+    <div class="page-footer">
+      <span>Physique · Chimie · Lycée</span>
+      <a href="https://github.com" target="_blank">GitHub →</a>
+    </div>`;
+}
+
+// ── HTML d'une carte ──────────────────────────────
+function cardHTML(p){
+  return `
+    <a class="card" href="${escH(p.file)}">
+      <div class="card-tape">${escH(p.tag)}</div>
+      <div class="card-title">${escH(p.title)}</div>
+      <div class="card-sub">${escH(p.sub)}</div>
+      <span class="card-tag" style="background:${p.color}">${escH(p.tag)}</span>
+      <span class="card-arrow">→</span>
+      <div class="bar" style="background:${p.color}"></div>
+    </a>`;
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+buildTabs();
+render();
+</script>
+</body>
+</html>
