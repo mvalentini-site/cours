@@ -346,15 +346,16 @@ function renderSection(ti, date){
   const nbChap    = chapitres.filter(c=>c.num).length;
 
   const tocHTML = nbChap
-    ? '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">S</span><span class="sec-name">Sommaire</span></div>'
-      +'<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
+    ? '<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
     : '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">-&gt;</span><span class="sec-name">Outils disponibles</span></div>'
       +'<div class="cards">'+(pages.length ? pages.map(p=>cardHTML(p)).join('') : '<p class="empty">Aucune page pour le moment.</p>')+'</div>';
 
   const count = nbChap ? nbChap+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
+  const expTag = nbChap ? 'Liste des chapitres' : 'Physique - Chimie';
+  const h1 = nbChap ? '' : '<h1>'+escH(ti.label)+'</h1>';
 
   return '<div class="tape" style="background:'+ti.color+'22;color:'+ti.color+'">'+escH(ti.label)+'</div>'
-    +'<div class="page-header"><div><div class="exp-tag">Physique - Chimie</div><h1>'+escH(ti.label)+'</h1></div>'
+    +'<div class="page-header"><div><div class="exp-tag">'+expTag+'</div>'+h1+'</div>'
     +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>'+count+'</div></div></div>'
     +tocHTML
     +'<div class="page-footer"><span>Physique - Chimie - Lycee</span><a href="https://github.com" target="_blank">GitHub</a></div>';
