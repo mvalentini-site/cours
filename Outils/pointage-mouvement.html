@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointage de Mouvement — Cahier de Labo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --paper:#f6f1e4; --paper2:#ede7d3; --paper3:#e4ddc8;
+  --ink:#1c1208; --ink2:#2d200a;
+  --faded:#7a6a50; --faded2:#a89070;
+  --red:#a63020; --blue:#1c3d6e; --green:#2a5c3a;
+  --tape:rgba(220,200,150,0.58);
+  --gmaj:rgba(70,90,200,0.13); --gmin:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);
+  --mono:'DM Mono',monospace; --serif:'Fraunces',serif;
+}
+html,body { min-height:100vh; background:#8a8070; font-family:var(--mono);
+  background-image:radial-gradient(ellipse at 20% 20%,#9a9080 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 80%,#7a7060 0%,transparent 50%);
+  display:flex; justify-content:center; align-items:flex-start; padding:36px 16px 64px; }
+
+/* PAGE */
+.page { width:100%; max-width:1060px; background:var(--paper); position:relative;
+  padding:48px 48px 64px 80px;
+  box-shadow:3px 4px 14px rgba(0,0,0,.22),1px 1px 3px rgba(0,0,0,.12); }
+.page::before { content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px); }
+.page::after { content:''; position:absolute; left:62px; top:0; bottom:0; width:1.5px;
+  background:var(--margin); pointer-events:none; z-index:1; }
+.page > * { position:relative; z-index:2; }
+.holes { position:absolute; left:18px; top:0; bottom:0; display:flex; flex-direction:column;
+  justify-content:space-around; padding:80px 0; z-index:10; }
+.hole { width:15px; height:15px; border-radius:50%; background:#8a8070;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.3),0 1px 1px rgba(255,255,255,.25); }
+
+/* TAPE */
+.tape-strip { display:inline-block; background:var(--tape); padding:3px 16px 3px 10px;
+  font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--faded);
+  margin-bottom:12px; box-shadow:1px 2px 4px rgba(0,0,0,.1); position:relative; }
+.tape-strip::before,.tape-strip::after { content:''; position:absolute; top:0; bottom:0; width:5px; background:rgba(200,180,130,.7); }
+.tape-strip::before{left:0;} .tape-strip::after{right:0;}
+
+/* HEADER */
+.header { display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:24px; padding-bottom:10px; border-bottom:1.5px solid var(--ink2); }
+.exp-tag { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--faded); margin-bottom:5px; }
+h1 { font-family:var(--serif); font-size:clamp(22px,3vw,38px); font-weight:700; font-style:italic;
+  color:var(--ink); line-height:1; letter-spacing:-.5px; }
+h1 em { color:var(--red); font-style:normal; border-bottom:2px solid rgba(166,48,32,.35); }
+.meta { text-align:right; font-size:10px; color:var(--faded); line-height:1.9; }
+.meta .date { font-family:var(--serif); font-size:13px; color:var(--blue); font-weight:600; }
+
+/* SECTION */
+.sec { display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:22px; }
+.sec-num { background:var(--ink2); color:var(--paper); font-size:8px; font-weight:500; padding:2px 6px; letter-spacing:1px; }
+.sec-name { font-size:8px; letter-spacing:3px; text-transform:uppercase; color:var(--faded); }
+
+/* BOX */
+.box { border:1.5px solid var(--ink2); padding:16px 14px 14px; background:rgba(255,255,255,.2); position:relative; margin-bottom:14px; }
+.box-tag { position:absolute; top:-9px; left:10px; background:var(--tape); padding:1px 9px;
+  font-size:7px; letter-spacing:3px; text-transform:uppercase; color:var(--ink2); box-shadow:1px 1px 3px rgba(0,0,0,.1); }
+
+/* BUTTONS */
+.btn { font-family:var(--mono); font-size:9px; letter-spacing:1px; background:var(--paper2);
+  border:1.5px solid var(--faded2); color:var(--faded); padding:4px 12px; cursor:pointer;
+  border-radius:1px; transition:all .13s; }
+.btn:hover { border-color:var(--red); color:var(--red); }
+.btn.active { background:var(--ink2); border-color:var(--ink2); color:var(--paper); }
+.btn.danger:hover { background:var(--red); border-color:var(--red); color:var(--paper); }
+.btn-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+
+/* SOURCE TABS */
+.src-tabs { display:flex; gap:6px; margin-bottom:12px; }
+.src-tab { flex:1; max-width:200px; text-align:center; }
+.src-tab.active { background:var(--ink2); border-color:var(--ink2); color:var(--paper); }
+
+/* PARAMS */
+.param-row { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+.pf { display:flex; flex-direction:column; gap:4px; }
+.pf label { font-size:8px; color:var(--faded); letter-spacing:1px; text-transform:uppercase; }
+.pf input, .pf select { background:rgba(255,255,255,.55); border:none; border-bottom:1.5px solid var(--ink2);
+  color:var(--ink); font-family:var(--mono); font-size:12px; padding:2px 6px; outline:none;
+  width:88px; transition:border-color .2s; }
+.pf input:focus { border-bottom-color:var(--blue); }
+.pf select { width:auto; background:var(--paper2); border:1.5px solid var(--faded2); border-radius:1px; padding:3px 5px; cursor:pointer; }
+
+/* VIDEO CONTROLS */
+.video-ctrl { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.frame-info { font-size:10px; color:var(--ink2); font-family:var(--mono); min-width:140px; }
+.frame-slider { flex:1; min-width:120px; -webkit-appearance:none; height:3px; background:var(--faded2); outline:none; cursor:pointer; border-radius:1px; }
+.frame-slider::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+  background:var(--paper); border:2px solid var(--red); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+.step-small { width:28px; height:28px; border:1.5px solid var(--ink2); background:var(--paper2);
+  color:var(--ink); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  border-radius:1px; transition:all .12s; flex-shrink:0; }
+.step-small:hover { border-color:var(--blue); color:var(--blue); }
+.skip-btn { font-size:10px; letter-spacing:0px; padding:4px 8px; }
+
+/* CANVAS ZONE */
+.canvas-container { position:relative; border:1.5px solid var(--ink2); background:#1a1a1a;
+  overflow:hidden; user-select:none; margin-bottom:12px; }
+.canvas-container.mode-point  { cursor:crosshair; border-color:var(--green); }
+.canvas-container.mode-nav    { cursor:grab; }
+.canvas-container.mode-etalon { cursor:crosshair; border-color:var(--blue); }
+#canvasImg, #canvasOver { position:absolute; top:0; left:0; display:block; }
+.canvas-hint { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  text-align:center; pointer-events:none; }
+.canvas-hint p { color:rgba(255,255,255,.45); font-size:11px; letter-spacing:1px; margin-bottom:8px; }
+.hint-icon { font-size:36px; opacity:.35; }
+.mode-badge { position:absolute; top:8px; right:8px; z-index:10;
+  font-size:8px; letter-spacing:2px; text-transform:uppercase; padding:3px 10px; border-radius:1px; }
+.badge-point  { background:rgba(42,92,58,.85);  color:#a8e4b8; }
+.badge-nav    { background:rgba(28,18,8,.65);    color:rgba(255,255,255,.45); }
+.badge-etalon { background:rgba(28,61,110,.85);  color:#a8c4e8; }
+.frame-badge  { position:absolute; bottom:8px; left:8px; z-index:10;
+  font-size:9px; padding:2px 8px; background:rgba(28,18,8,.7); color:rgba(255,255,255,.7);
+  border-radius:1px; display:none; }
+
+/* TABLE */
+.table-wrap { overflow-x:auto; max-height:280px; overflow-y:auto; }
+table { width:100%; border-collapse:collapse; font-size:10px; }
+thead { position:sticky; top:0; z-index:5; }
+thead th { background:var(--ink2); color:var(--paper); padding:5px 8px; text-align:left;
+  font-size:8px; letter-spacing:2px; text-transform:uppercase; font-weight:400; white-space:nowrap; }
+tbody tr { border-bottom:1px solid rgba(28,18,8,.07); }
+tbody tr:hover { background:rgba(255,255,255,.35); }
+tbody td { padding:4px 8px; color:var(--ink2); font-variant-numeric:tabular-nums; white-space:nowrap; }
+td.v-cell  { color:var(--blue); font-weight:500; }
+td.a-cell  { color:var(--red);  font-weight:500; }
+td.idx-cell { color:var(--faded); }
+.del-btn { background:none; border:none; color:var(--faded2); cursor:pointer; font-size:11px; }
+.del-btn:hover { color:var(--red); }
+
+/* VECTOR CONTROLS */
+.vec-row { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.vec-toggle { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--ink2); cursor:pointer; }
+.vec-toggle input { accent-color:var(--blue); cursor:pointer; }
+.scale-f { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--faded); }
+.scale-f input { width:56px; background:rgba(255,255,255,.55); border:none;
+  border-bottom:1.5px solid var(--ink2); color:var(--ink); font-family:var(--mono);
+  font-size:11px; padding:1px 4px; outline:none; }
+
+.export-row { display:flex; gap:6px; margin-top:10px; }
+.page-num { position:absolute; bottom:20px; right:48px; font-size:10px; color:var(--faded2); letter-spacing:2px; }
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-decoration:none;color:#7a6a50;background:rgba(246,241,228,0.92);border:1px solid #ccc4b4;padding:4px 12px;border-radius:2px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.1);" onmouseover="this.style.color='#a63020';this.style.borderColor='#a63020'" onmouseout="this.style.color='#7a6a50';this.style.borderColor='#ccc4b4'">← Accueil</a>
+<div class="page">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+  <div class="tape-strip">Cinématique · TP n°5</div>
+  <div class="header">
+    <div>
+      <div class="exp-tag">Mécanique · Analyse de mouvement</div>
+      <h1>Pointage de <em>mouvement</em></h1>
+    </div>
+    <div class="meta">
+      <div class="date" id="today-date"></div>
+      <div>vidéo · stroboscopie</div>
+    </div>
+  </div>
+
+  <!-- 01 Source -->
+  <div class="sec"><span class="sec-num">01</span><span class="sec-name">Source</span></div>
+  <div class="box">
+    <div class="box-tag">import</div>
+    <div class="src-tabs btn-row" style="margin-bottom:10px">
+      <button class="btn src-tab active" id="tabImg">🖼 Image fixe</button>
+      <button class="btn src-tab"        id="tabVid">🎬 Vidéo</button>
+    </div>
+
+    <!-- Image -->
+    <div id="srcImg">
+      <div class="btn-row">
+        <label class="btn" style="cursor:pointer">📂 Ouvrir une image
+          <input type="file" id="fileImg" accept="image/*" style="display:none">
+        </label>
+        <span id="imgInfo" style="font-size:9px;color:var(--faded)"></span>
+      </div>
+    </div>
+
+    <!-- Vidéo -->
+    <div id="srcVid" style="display:none">
+      <div class="btn-row" style="margin-bottom:10px">
+        <label class="btn" style="cursor:pointer">📂 Ouvrir une vidéo
+          <input type="file" id="fileVid" accept="video/*" style="display:none">
+        </label>
+        <span id="vidInfo" style="font-size:9px;color:var(--faded)"></span>
+      </div>
+      <!-- Contrôles vidéo -->
+      <div class="video-ctrl" id="videoCtrl" style="display:none">
+        <button class="step-small skip-btn" id="btnPrevF" title="−1 frame">◀◀</button>
+        <button class="step-small skip-btn" id="btnPrev5" title="−5 frames">−5</button>
+        <input type="range" class="frame-slider" id="frameSlider" min="0" max="100" step="1" value="0">
+        <button class="step-small skip-btn" id="btnNext5" title="+5 frames">+5</button>
+        <button class="step-small skip-btn" id="btnNextF" title="+1 frame">▶▶</button>
+        <span class="frame-info" id="frameInfo">frame — / —</span>
+      </div>
+      <div style="margin-top:8px;font-size:9px;color:var(--faded);font-style:italic" id="vidHint">
+        Charger une vidéo. Naviguer frame par frame, puis cliquer pour pointer.
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 Paramètres -->
+  <div class="sec"><span class="sec-num">02</span><span class="sec-name">Paramètres</span></div>
+  <div class="box">
+    <div class="box-tag">calibration &amp; temps</div>
+    <div class="param-row">
+      <div class="pf">
+        <label>Intervalle Δt</label>
+        <input type="number" id="dt" value="0.04" min="0.0001" step="0.001">
+      </div>
+      <div class="pf">
+        <label>Unité Δt</label>
+        <select id="dtUnit">
+          <option value="s" selected>s</option>
+          <option value="ms">ms</option>
+        </select>
+      </div>
+      <div class="pf" style="border-left:1px solid var(--faded2);padding-left:14px">
+        <label>Longueur réelle étalon</label>
+        <input type="number" id="etalonM" value="" placeholder="mètres" min="0.001" step="0.001">
+      </div>
+      <button class="btn" id="btnEtalon" style="align-self:flex-end">📏 Tracer étalon</button>
+    </div>
+    <div style="font-size:9px;color:var(--faded);font-style:italic;margin-top:8px" id="etalonInfo">
+      Étalon non défini — entrer la longueur réelle puis cliquer "Tracer étalon".
+    </div>
+  </div>
+
+  <!-- 03 Pointage -->
+  <div class="sec"><span class="sec-num">03</span><span class="sec-name">Pointage</span></div>
+  <div class="btn-row" style="margin-bottom:10px">
+    <button class="btn active" id="btnModePoint">✚ Pointer</button>
+    <button class="btn"        id="btnModeNav">✋ Naviguer</button>
+    <button class="btn danger" id="btnUndo">↩ Annuler</button>
+    <button class="btn danger" id="btnClear">✕ Effacer tout</button>
+    <span style="font-size:9px;color:var(--faded);margin-left:auto" id="pointCount">0 point</span>
+  </div>
+
+  <div class="canvas-container mode-point" id="canvasWrap" style="height:500px">
+    <canvas id="canvasImg"></canvas>
+    <canvas id="canvasOver"></canvas>
+    <div class="canvas-hint" id="canvasHint">
+      <div class="hint-icon">🎬</div>
+      <p>Importer une image ou une vidéo</p>
+    </div>
+    <div class="mode-badge badge-point" id="modeBadge">pointer</div>
+    <div class="frame-badge" id="frameBadge"></div>
+  </div>
+
+  <!-- 04 Vecteurs -->
+  <div class="sec"><span class="sec-num">04</span><span class="sec-name">Vecteurs</span></div>
+  <div class="vec-row">
+    <label class="vec-toggle"><input type="checkbox" id="showVel" checked> vitesse <span style="color:var(--blue)">▶</span></label>
+    <label class="vec-toggle"><input type="checkbox" id="showAcc"> accélération <span style="color:var(--red)">▶</span></label>
+    <div class="scale-f"><span>éch. v :</span><input type="number" id="scaleV" value="0.5" min="0.01" step="0.05"><span>px·s/m</span></div>
+    <div class="scale-f"><span>éch. a :</span><input type="number" id="scaleA" value="0.05" min="0.001" step="0.005"><span>px·s²/m</span></div>
+  </div>
+
+  <!-- 05 Tableau -->
+  <div class="sec"><span class="sec-num">05</span><span class="sec-name">Données</span></div>
+  <div class="box" style="padding:0;overflow:hidden">
+    <div class="box-tag">résultats cinématiques</div>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead><tr>
+          <th>n</th><th>t (s)</th><th>x (m)</th><th>y (m)</th>
+          <th>vₓ (m/s)</th><th>vy (m/s)</th><th>‖v‖ (m/s)</th>
+          <th>aₓ (m/s²)</th><th>ay (m/s²)</th><th>‖a‖ (m/s²)</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="export-row">
+    <button class="btn" id="btnCSV">⬇ CSV</button>
+    <button class="btn" id="btnCopy">📋 Copier</button>
+  </div>
+
+  <div class="page-num">— 5 —</div>
+</div>
+
+<script>
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+// ═══════════════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════════════
+const S = {
+  source: 'img',      // 'img' | 'vid'
+  img: null,          // HTMLImageElement ou null
+  vid: null,          // HTMLVideoElement ou null
+  vidFPS: 25,
+  vidFrameCount: 0,
+  currentFrame: 0,
+  points: [],         // [{px,py,frame}]
+  etalon: null,       // {x1,y1,x2,y2,pxDist,m}
+  etalonStep: null,   // null | 'p1' | 'p2'
+  etalonP1: null,
+  pxPerM: null,
+  mode: 'point',      // 'point' | 'nav' | 'etalon'
+  offsetX: 0, offsetY: 0, scale: 1,
+  dragging: false, dragStart: null,
+};
+
+// ═══════════════════════════════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════════════════════════════
+const wrap   = document.getElementById('canvasWrap');
+const cImg   = document.getElementById('canvasImg');
+const cOver  = document.getElementById('canvasOver');
+const ctxI   = cImg.getContext('2d');
+const ctxO   = cOver.getContext('2d');
+
+function resizeCanvas(){
+  const w=wrap.clientWidth, h=wrap.clientHeight;
+  [cImg,cOver].forEach(c=>{ c.width=w; c.height=h; c.style.width=w+'px'; c.style.height=h+'px'; });
+  redraw();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function toCanvas(ix,iy){ return {x:ix*S.scale+S.offsetX, y:iy*S.scale+S.offsetY}; }
+function toImage(cx,cy)  { return {x:(cx-S.offsetX)/S.scale, y:(cy-S.offsetY)/S.scale}; }
+
+function fitContent(w,h){
+  const W=cImg.width, H=cImg.height;
+  S.scale = Math.min(W/w, H/h)*0.95;
+  S.offsetX = (W - w*S.scale)/2;
+  S.offsetY = (H - h*S.scale)/2;
+}
+
+// ── Dessin image / frame vidéo ───────────────────────────────
+function drawSource(){
+  ctxI.clearRect(0,0,cImg.width,cImg.height);
+  if(S.source==='img' && S.img){
+    ctxI.drawImage(S.img, S.offsetX, S.offsetY, S.img.width*S.scale, S.img.height*S.scale);
+  } else if(S.source==='vid' && S.vid){
+    ctxI.drawImage(S.vid, S.offsetX, S.offsetY, S.vid.videoWidth*S.scale, S.vid.videoHeight*S.scale);
+  }
+}
+
+// ── Dessin overlay ────────────────────────────────────────────
+function drawOverlay(){
+  const W=cOver.width, H=cOver.height;
+  ctxO.clearRect(0,0,W,H);
+  if(!S.img && !S.vid) return;
+
+  const pts = S.points;
+  const showVel = document.getElementById('showVel').checked;
+  const showAcc = document.getElementById('showAcc').checked;
+  const sV = parseFloat(document.getElementById('scaleV').value)||0.5;
+  const sA = parseFloat(document.getElementById('scaleA').value)||0.05;
+
+  // Étalon
+  if(S.etalon){
+    const {x1,y1,x2,y2} = S.etalon;
+    const c1=toCanvas(x1,y1), c2=toCanvas(x2,y2);
+    ctxO.save();
+    ctxO.strokeStyle='rgba(28,61,110,0.75)'; ctxO.lineWidth=2; ctxO.setLineDash([6,4]);
+    ctxO.beginPath(); ctxO.moveTo(c1.x,c1.y); ctxO.lineTo(c2.x,c2.y); ctxO.stroke();
+    ctxO.setLineDash([]);
+    [c1,c2].forEach(c=>{ ctxO.beginPath(); ctxO.arc(c.x,c.y,4,0,Math.PI*2); ctxO.fillStyle='rgba(28,61,110,0.85)'; ctxO.fill(); });
+    ctxO.fillStyle='rgba(28,61,110,0.85)'; ctxO.font='9px "DM Mono",monospace'; ctxO.textAlign='center';
+    ctxO.fillText(S.etalon.m+' m', (c1.x+c2.x)/2, (c1.y+c2.y)/2-10);
+    ctxO.restore();
+  }
+
+  // Trajectoire (tirets)
+  if(pts.length>1){
+    ctxO.save(); ctxO.strokeStyle='rgba(166,48,32,0.25)'; ctxO.lineWidth=1; ctxO.setLineDash([3,4]);
+    ctxO.beginPath();
+    pts.forEach((p,i)=>{ const c=toCanvas(p.px,p.py); i===0?ctxO.moveTo(c.x,c.y):ctxO.lineTo(c.x,c.y); });
+    ctxO.stroke(); ctxO.setLineDash([]); ctxO.restore();
+  }
+
+  // Vecteurs vitesse
+  if(showVel && S.pxPerM){
+    for(let i=0;i<pts.length;i++){
+      const v=getV(i); if(!v) continue;
+      const c=toCanvas(pts[i].px,pts[i].py);
+      arrow(c.x,c.y, c.x+v.x*S.scale*sV, c.y-v.y*S.scale*sV, '#2a5c8a', 1.8);
+    }
+  }
+
+  // Vecteurs accélération
+  if(showAcc && S.pxPerM){
+    for(let i=0;i<pts.length;i++){
+      const a=getA(i); if(!a) continue;
+      const c=toCanvas(pts[i].px,pts[i].py);
+      arrow(c.x,c.y, c.x+a.x*S.scale*sA, c.y-a.y*S.scale*sA, '#a63020', 1.8);
+    }
+  }
+
+  // Points
+  pts.forEach((p,i)=>{
+    const c=toCanvas(p.px,p.py);
+    ctxO.save();
+    ctxO.beginPath(); ctxO.arc(c.x,c.y,5,0,Math.PI*2);
+    ctxO.fillStyle='rgba(166,48,32,0.88)'; ctxO.fill();
+    ctxO.strokeStyle='#f6f1e4'; ctxO.lineWidth=1.5; ctxO.stroke();
+    ctxO.fillStyle='rgba(44,32,10,0.85)'; ctxO.font='bold 8px "DM Mono",monospace'; ctxO.textAlign='center';
+    ctxO.fillText(i, c.x, c.y-9);
+    ctxO.restore();
+  });
+}
+
+function arrow(x1,y1,x2,y2,col,lw){
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+  if(len<2) return;
+  const ux=dx/len, uy=dy/len, ah=Math.min(9,len*.4), aw=3.5;
+  ctxO.save(); ctxO.strokeStyle=col; ctxO.fillStyle=col; ctxO.lineWidth=lw;
+  ctxO.beginPath(); ctxO.moveTo(x1,y1); ctxO.lineTo(x2,y2); ctxO.stroke();
+  ctxO.beginPath(); ctxO.moveTo(x2,y2);
+  ctxO.lineTo(x2-ah*ux+aw*uy, y2-ah*uy-aw*ux);
+  ctxO.lineTo(x2-ah*ux-aw*uy, y2-ah*uy+aw*ux);
+  ctxO.closePath(); ctxO.fill(); ctxO.restore();
+}
+
+function redraw(){ drawSource(); drawOverlay(); }
+
+// ═══════════════════════════════════════════════════════════
+// PHYSIQUE
+// ═══════════════════════════════════════════════════════════
+function getDt(){
+  const v=parseFloat(document.getElementById('dt').value)||0.04;
+  return document.getElementById('dtUnit').value==='ms' ? v/1000 : v;
+}
+
+function getV(i){
+  const pts=S.points;
+  if(!S.pxPerM || i<=0 || i>=pts.length-1) return null;
+  const dt=getDt();
+  const dx=(pts[i+1].px-pts[i-1].px)/S.pxPerM;
+  const dy=-(pts[i+1].py-pts[i-1].py)/S.pxPerM;
+  return {x:dx/(2*dt), y:dy/(2*dt), n:Math.hypot(dx,dy)/(2*dt)};
+}
+
+function getA(i){
+  const pts=S.points;
+  if(!S.pxPerM || i<=0 || i>=pts.length-1) return null;
+  const dt=getDt();
+  const ax=(pts[i+1].px-2*pts[i].px+pts[i-1].px)/S.pxPerM/(dt*dt);
+  const ay=-(pts[i+1].py-2*pts[i].py+pts[i-1].py)/S.pxPerM/(dt*dt);
+  return {x:ax, y:ay, n:Math.hypot(ax,ay)};
+}
+
+function f(v,d=3){ return v==null?'—':v.toFixed(d); }
+
+function updateTable(){
+  const pts=S.points, dt=getDt();
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  pts.forEach((p,i)=>{
+    const v=getV(i), a=getA(i);
+    const xm=S.pxPerM?(p.px/S.pxPerM).toFixed(4):'—';
+    const ym=S.pxPerM?(-p.py/S.pxPerM).toFixed(4):'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="idx-cell">${i}</td><td>${(i*dt).toFixed(4)}</td>`+
+      `<td>${xm}</td><td>${ym}</td>`+
+      `<td class="v-cell">${f(v?.x)}</td><td class="v-cell">${f(v?.y)}</td><td class="v-cell">${f(v?.n)}</td>`+
+      `<td class="a-cell">${f(a?.x,2)}</td><td class="a-cell">${f(a?.y,2)}</td><td class="a-cell">${f(a?.n,2)}</td>`+
+      `<td><button class="del-btn" data-i="${i}">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',()=>{
+    S.points.splice(+b.dataset.i,1); redraw(); updateTable(); updateCount();
+  }));
+  document.getElementById('pointCount').textContent=pts.length+' point'+(pts.length!==1?'s':'');
+}
+function updateCount(){ document.getElementById('pointCount').textContent=S.points.length+' point'+(S.points.length!==1?'s':''); }
+
+// ═══════════════════════════════════════════════════════════
+// INTERACTIONS CANVAS
+// ═══════════════════════════════════════════════════════════
+cOver.addEventListener('click', e=>{
+  if(!S.img && !S.vid) return;
+  const r=cOver.getBoundingClientRect();
+  const ip=toImage(e.clientX-r.left, e.clientY-r.top);
+
+  if(S.mode==='etalon'){
+    if(S.etalonStep==='p1'){
+      S.etalonP1=ip; S.etalonStep='p2';
+      document.getElementById('etalonInfo').textContent='Cliquer le 2e point de l\'étalon.';
+    } else if(S.etalonStep==='p2'){
+      const d=Math.hypot(ip.x-S.etalonP1.x, ip.y-S.etalonP1.y);
+      const m=parseFloat(document.getElementById('etalonM').value)||1;
+      S.etalon={x1:S.etalonP1.x,y1:S.etalonP1.y,x2:ip.x,y2:ip.y,pxDist:d,m};
+      S.pxPerM=d/m;
+      document.getElementById('etalonInfo').textContent=
+        `Étalon : ${d.toFixed(1)} px = ${m} m  →  ${S.pxPerM.toFixed(2)} px/m`;
+      setMode('point'); S.etalonStep=null;
+      redraw(); updateTable();
+    }
+    return;
+  }
+
+  if(S.mode==='point'){
+    S.points.push({px:ip.x, py:ip.y, frame:S.currentFrame});
+    redraw(); updateTable(); updateCount();
+  }
+});
+
+cOver.addEventListener('mousedown', e=>{
+  if(S.mode!=='nav') return;
+  S.dragging=true; S.dragStart={x:e.clientX-S.offsetX, y:e.clientY-S.offsetY};
+  cOver.style.cursor='grabbing';
+});
+window.addEventListener('mousemove', e=>{
+  if(!S.dragging) return;
+  S.offsetX=e.clientX-S.dragStart.x; S.offsetY=e.clientY-S.dragStart.y; redraw();
+});
+window.addEventListener('mouseup', ()=>{ S.dragging=false; cOver.style.cursor=''; });
+
+cOver.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const r=cOver.getBoundingClientRect();
+  const cx=e.clientX-r.left, cy=e.clientY-r.top;
+  const f=e.deltaY<0?1.15:1/1.15;
+  S.offsetX=cx-(cx-S.offsetX)*f; S.offsetY=cy-(cy-S.offsetY)*f; S.scale*=f; redraw();
+},{passive:false});
+
+// Clavier flèches pour frame par frame
+window.addEventListener('keydown', e=>{
+  if(S.source!=='vid'||!S.vid) return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); stepFrame(1); }
+  if(e.key==='ArrowLeft'){  e.preventDefault(); stepFrame(-1); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════════════════════
+function setMode(m){
+  S.mode=m;
+  wrap.className='canvas-container mode-'+m;
+  document.getElementById('btnModePoint').classList.toggle('active',m==='point');
+  document.getElementById('btnModeNav').classList.toggle('active',m==='nav');
+  const badge=document.getElementById('modeBadge');
+  badge.className='mode-badge badge-'+m;
+  badge.textContent={point:'pointer',nav:'naviguer',etalon:'étalon'}[m];
+}
+document.getElementById('btnModePoint').addEventListener('click',()=>setMode('point'));
+document.getElementById('btnModeNav').addEventListener('click',()=>setMode('nav'));
+document.getElementById('btnClear').addEventListener('click',()=>{
+  if(!confirm('Effacer tous les points ?')) return;
+  S.points=[]; redraw(); updateTable(); updateCount();
+});
+document.getElementById('btnUndo').addEventListener('click',()=>{
+  if(S.points.length){ S.points.pop(); redraw(); updateTable(); updateCount(); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// SOURCE TABS
+// ═══════════════════════════════════════════════════════════
+document.getElementById('tabImg').addEventListener('click',()=>{
+  S.source='img';
+  document.getElementById('tabImg').classList.add('active');
+  document.getElementById('tabVid').classList.remove('active');
+  document.getElementById('srcImg').style.display='';
+  document.getElementById('srcVid').style.display='none';
+});
+document.getElementById('tabVid').addEventListener('click',()=>{
+  S.source='vid';
+  document.getElementById('tabVid').classList.add('active');
+  document.getElementById('tabImg').classList.remove('active');
+  document.getElementById('srcImg').style.display='none';
+  document.getElementById('srcVid').style.display='';
+});
+
+// ═══════════════════════════════════════════════════════════
+// IMAGE
+// ═══════════════════════════════════════════════════════════
+document.getElementById('fileImg').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      S.img=img; S.points=[]; S.etalon=null; S.pxPerM=null;
+      document.getElementById('canvasHint').style.display='none';
+      document.getElementById('imgInfo').textContent=img.width+'×'+img.height+' px';
+      fitContent(img.width, img.height); redraw(); updateTable(); updateCount();
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+});
+
+// ═══════════════════════════════════════════════════════════
+// VIDÉO
+// ═══════════════════════════════════════════════════════════
+let vidEl = null;
+
+document.getElementById('fileVid').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  document.getElementById('vidInfo').textContent=f.name+' ('+Math.round(f.size/1024)+'KB)';
+
+  if(vidEl){ vidEl.pause(); vidEl.src=''; }
+  vidEl=document.createElement('video');
+  vidEl.muted=true; vidEl.playsInline=true; vidEl.preload='auto';
+
+  vidEl.addEventListener('loadedmetadata',()=>{
+    S.vid=vidEl;
+    S.vidFPS = 25; // défaut; on affine si possible
+    // Tenter d'extraire FPS via durée / nb frames (approximatif)
+    // On propose à l'utilisateur de renseigner le FPS dans Δt
+    S.vidFrameCount = Math.round(vidEl.duration * S.vidFPS);
+    S.currentFrame=0;
+
+    document.getElementById('canvasHint').style.display='none';
+    document.getElementById('videoCtrl').style.display='flex';
+    document.getElementById('frameBadge').style.display='block';
+    document.getElementById('frameSlider').max=Math.max(1,S.vidFrameCount-1);
+    document.getElementById('frameSlider').value=0;
+
+    // Sync Δt au FPS estimé
+    document.getElementById('dt').value=(1/S.vidFPS).toFixed(4);
+
+    fitContent(vidEl.videoWidth, vidEl.videoHeight);
+    seekTo(0);
+    document.getElementById('vidHint').textContent=
+      `Vidéo chargée : ${vidEl.videoWidth}×${vidEl.videoHeight} · durée ${vidEl.duration.toFixed(2)} s · FPS estimé ${S.vidFPS}. Régler Δt si besoin.`;
+    document.getElementById('imgInfo').textContent='';
+  });
+
+  vidEl.src=URL.createObjectURL(f);
+});
+
+function seekTo(frame){
+  if(!vidEl) return;
+  S.currentFrame=Math.max(0, Math.min(frame, S.vidFrameCount-1));
+  const t=S.currentFrame/S.vidFPS;
+  vidEl.currentTime=t;
+
+  // Attendre que la frame soit prête
+  const onSeeked=()=>{
+    vidEl.removeEventListener('seeked',onSeeked);
+    redraw();
+    document.getElementById('frameSlider').value=S.currentFrame;
+    document.getElementById('frameInfo').textContent=
+      `frame ${S.currentFrame} / ${S.vidFrameCount-1}  (t=${t.toFixed(3)} s)`;
+    document.getElementById('frameBadge').textContent=
+      `f${S.currentFrame}  t=${t.toFixed(3)}s`;
+  };
+  vidEl.addEventListener('seeked',onSeeked);
+}
+
+function stepFrame(delta){
+  seekTo(S.currentFrame+delta);
+}
+
+document.getElementById('btnPrevF').addEventListener('click',()=>stepFrame(-1));
+document.getElementById('btnNextF').addEventListener('click',()=>stepFrame(1));
+document.getElementById('btnPrev5').addEventListener('click',()=>stepFrame(-5));
+document.getElementById('btnNext5').addEventListener('click',()=>stepFrame(5));
+document.getElementById('frameSlider').addEventListener('input', e=>{
+  seekTo(parseInt(e.target.value));
+});
+
+// ═══════════════════════════════════════════════════════════
+// ÉTALON
+// ═══════════════════════════════════════════════════════════
+document.getElementById('btnEtalon').addEventListener('click',()=>{
+  const m=parseFloat(document.getElementById('etalonM').value);
+  if(!m||m<=0){ alert('Entrer la longueur réelle en mètres.'); return; }
+  if(!S.img&&!S.vid){ alert('Importer d\'abord une source.'); return; }
+  S.mode='etalon'; S.etalonStep='p1';
+  wrap.className='canvas-container mode-etalon';
+  document.getElementById('modeBadge').className='mode-badge badge-etalon';
+  document.getElementById('modeBadge').textContent='étalon';
+  document.getElementById('btnModePoint').classList.remove('active');
+  document.getElementById('btnModeNav').classList.remove('active');
+  document.getElementById('etalonInfo').textContent='Cliquer le 1er point de l\'étalon.';
+});
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('btnCSV').addEventListener('click',()=>{
+  const pts=S.points, dt=getDt();
+  let csv='n,t(s),frame,x(m),y(m),vx,vy,v,ax,ay,a\n';
+  pts.forEach((p,i)=>{
+    const v=getV(i),a=getA(i);
+    const x=S.pxPerM?(p.px/S.pxPerM).toFixed(4):'';
+    const y=S.pxPerM?(-p.py/S.pxPerM).toFixed(4):'';
+    csv+=`${i},${(i*dt).toFixed(4)},${p.frame??''},${x},${y},`+
+         `${v?v.x.toFixed(3):''},${v?v.y.toFixed(3):''},${v?v.n.toFixed(3):''},`+
+         `${a?a.x.toFixed(2):''},${a?a.y.toFixed(2):''},${a?a.n.toFixed(2):''}\n`;
+  });
+  const link=document.createElement('a');
+  link.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  link.download='pointage.csv'; link.click();
+});
+
+document.getElementById('btnCopy').addEventListener('click',()=>{
+  const rows=[...document.querySelectorAll('#dataTable tr')];
+  const text=rows.map(r=>[...r.cells].map(c=>c.textContent.trim()).join('\t')).join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=document.getElementById('btnCopy'); b.textContent='✓ Copié';
+    setTimeout(()=>b.textContent='📋 Copier',1500);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+['showVel','showAcc','scaleV','scaleA'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('change',redraw); el.addEventListener('input',redraw);
+});
+['dt','dtUnit'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{ updateTable(); redraw(); });
+});
+
+window.addEventListener('DOMContentLoaded',()=>{ resizeCanvas(); });
+</script>
+</body>
+</html>

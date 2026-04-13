@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de Masse — Cahier de Labo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper:    #f6f1e4;
+  --paper2:   #ede7d3;
+  --paper3:   #e4ddc8;
+  --ink:      #1c1208;
+  --ink2:     #2d200a;
+  --faded:    #7a6a50;
+  --faded2:   #a89070;
+  --red:      #a63020;
+  --blue:     #1c3d6e;
+  --gold:     #8a6020;
+  --grid-maj: rgba(70,90,200,0.13);
+  --grid-min: rgba(70,90,200,0.055);
+  --margin:   rgba(190,50,30,0.28);
+  --tape:     rgba(220,200,150,0.58);
+  --mono:     'DM Mono', monospace;
+  --serif:    'Fraunces', serif;
+}
+
+html, body {
+  min-height: 100vh;
+  background: #8a8070;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, #9a9080 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, #7a7060 0%, transparent 50%);
+  font-family: var(--mono);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 36px 16px 64px;
+}
+
+/* ── PAGE ────────────────────────────────────────────────────── */
+.page {
+  width: 100%;
+  max-width: 980px;
+  background: var(--paper);
+  position: relative;
+  padding: 48px 48px 64px 80px;
+  box-shadow: 3px 4px 14px rgba(0,0,0,0.22), 1px 1px 3px rgba(0,0,0,0.12);
+}
+
+/* Millimetre grid */
+.page::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(transparent, transparent 9px, var(--grid-min) 9px, var(--grid-min) 10px),
+    repeating-linear-gradient(90deg, transparent, transparent 9px, var(--grid-min) 9px, var(--grid-min) 10px),
+    repeating-linear-gradient(transparent, transparent 49px, var(--grid-maj) 49px, var(--grid-maj) 50px),
+    repeating-linear-gradient(90deg, transparent, transparent 49px, var(--grid-maj) 49px, var(--grid-maj) 50px);
+  pointer-events: none; z-index: 0;
+}
+
+/* Margin line */
+.page::after {
+  content: '';
+  position: absolute;
+  left: 62px; top: 0; bottom: 0; width: 1.5px;
+  background: var(--margin);
+  pointer-events: none; z-index: 1;
+}
+
+.page > * { position: relative; z-index: 2; }
+
+/* Punch holes */
+.holes {
+  position: absolute; left: 18px; top: 0; bottom: 0;
+  display: flex; flex-direction: column; justify-content: space-around;
+  padding: 80px 0; z-index: 10;
+}
+.hole {
+  width: 15px; height: 15px; border-radius: 50%;
+  background: #8a8070;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 1px rgba(255,255,255,0.25);
+}
+
+/* ── TAPE ────────────────────────────────────────────────────── */
+.tape-strip {
+  display: inline-block;
+  background: var(--tape);
+  padding: 3px 16px 3px 10px;
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--faded);
+  margin-bottom: 12px;
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+.tape-strip::before, .tape-strip::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 5px;
+  background: rgba(200,180,130,0.7);
+}
+.tape-strip::before { left: 0; } .tape-strip::after { right: 0; }
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 28px; padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--ink2);
+}
+.exp-tag { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--faded); margin-bottom: 5px; }
+h1 { font-family: var(--serif); font-size: clamp(24px,3vw,40px); font-weight: 700; font-style: italic; color: var(--ink); line-height: 1; letter-spacing: -0.5px; }
+h1 em { color: var(--red); font-style: normal; border-bottom: 2px solid rgba(166,48,32,0.35); }
+.meta-block { text-align: right; font-size: 10px; color: var(--faded); line-height: 1.9; }
+.meta-block .date { font-family: var(--serif); font-size: 13px; color: var(--blue); font-weight: 600; }
+
+/* ── SECTION ─────────────────────────────────────────────────── */
+.sec { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 22px; }
+.sec-num  { background: var(--ink2); color: var(--paper); font-size: 8px; font-weight: 500; padding: 2px 6px; letter-spacing: 1px; }
+.sec-name { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--faded); }
+
+/* ── LAYOUT ──────────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media(max-width:700px){ .layout { grid-template-columns: 1fr; } }
+
+/* ── BOX (panel générique) ───────────────────────────────────── */
+.box {
+  border: 1.5px solid var(--ink2);
+  padding: 18px 16px 16px;
+  background: rgba(255,255,255,0.2);
+  position: relative;
+  margin-bottom: 14px;
+}
+.box:last-child { margin-bottom: 0; }
+.box-tag {
+  position: absolute; top: -9px; left: 10px;
+  background: var(--tape); padding: 1px 9px;
+  font-size: 7px; letter-spacing: 3px; text-transform: uppercase; color: var(--ink2);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ── MATERIAL GRID ───────────────────────────────────────────── */
+.mat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.mat-btn {
+  background: var(--paper2); border: 1.5px solid var(--faded2);
+  padding: 6px 8px; cursor: pointer; text-align: left;
+  transition: all .12s; font-family: var(--mono); border-radius: 1px;
+}
+.mat-btn .mn { font-size: 10px; display: block; color: var(--ink); }
+.mat-btn .mr { font-size: 9px; color: var(--faded); }
+.mat-btn:hover { border-color: var(--red); }
+.mat-btn.sel  { background: var(--ink2); border-color: var(--ink2); }
+.mat-btn.sel .mn, .mat-btn.sel .mr { color: var(--paper); }
+
+.custom-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.custom-row label { font-size: 9px; color: var(--faded); white-space: nowrap; }
+.custom-row input {
+  flex: 1; background: rgba(255,255,255,0.5); border: none;
+  border-bottom: 1.5px solid var(--ink2); color: var(--ink);
+  font-family: var(--mono); font-size: 12px; padding: 2px 4px;
+  outline: none; min-width: 0; transition: border-color .2s;
+}
+.custom-row input:focus { border-bottom-color: var(--blue); }
+.custom-row span { font-size: 9px; color: var(--faded); white-space: nowrap; }
+
+/* ── MODE TABS ───────────────────────────────────────────────── */
+.mode-tabs { display: flex; gap: 5px; margin-bottom: 14px; }
+.mode-tab {
+  flex: 1; background: var(--paper2); border: 1.5px solid var(--faded2);
+  padding: 5px; font-family: var(--mono); font-size: 9px; cursor: pointer;
+  text-align: center; transition: all .12s; color: var(--faded); border-radius: 1px;
+}
+.mode-tab.sel { background: var(--ink2); color: var(--paper); border-color: var(--ink2); }
+
+/* ── DIM ROWS ────────────────────────────────────────────────── */
+.dim-inputs { display: flex; flex-direction: column; gap: 12px; }
+.dim-row {}
+.dim-top { display: grid; grid-template-columns: 16px 24px 1fr 24px 80px; align-items: center; gap: 5px; margin-bottom: 5px; }
+.dim-label { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--blue); }
+
+.step-btn {
+  width: 24px; height: 24px; background: var(--paper2); border: 1.5px solid var(--ink2);
+  color: var(--ink); font-size: 15px; font-family: var(--mono); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; flex-shrink: 0; border-radius: 1px;
+}
+.step-btn:hover { border-color: var(--red); color: var(--red); background: rgba(166,48,32,0.07); }
+.step-btn:active { transform: scale(0.9); }
+
+.dim-top input[type=range] {
+  flex: 1; -webkit-appearance: none; height: 2px; background: var(--faded2); outline: none; cursor: pointer;
+}
+.dim-top input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--red); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform .15s;
+}
+.dim-top input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+.dim-val { font-size: 11px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.unit-pills { display: flex; gap: 4px; padding-left: 22px; }
+.upill {
+  background: var(--paper2); border: 1px solid var(--faded2);
+  padding: 2px 8px; font-size: 9px; cursor: pointer; color: var(--faded);
+  transition: all .1s; border-radius: 1px;
+}
+.upill:hover { border-color: var(--red); color: var(--red); }
+.upill.sel { background: var(--red); border-color: var(--red); color: var(--paper); }
+
+/* Volume direct */
+.vol-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.vol-row label { font-size: 9px; color: var(--faded); white-space: nowrap; }
+.vol-row input[type=number] {
+  flex: 1; background: rgba(255,255,255,0.5); border: none;
+  border-bottom: 1.5px solid var(--ink2); color: var(--ink);
+  font-family: var(--mono); font-size: 13px; padding: 3px 5px;
+  outline: none; min-width: 0; transition: border-color .2s;
+}
+.vol-row input[type=number]:focus { border-bottom-color: var(--blue); }
+.vol-unit-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* ── RESULT BOX ──────────────────────────────────────────────── */
+.result-box {
+  margin-top: 14px;
+  background: var(--ink2); color: var(--paper);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.result-label { font-size: 8px; text-transform: uppercase; letter-spacing: 3px; opacity: .5; }
+.result-value { font-family: var(--serif); font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.result-value span { font-size: .9rem; opacity: .5; font-weight: 400; }
+.result-formula { font-size: 9px; opacity: .4; margin-top: 2px; }
+
+/* ── VIZ ─────────────────────────────────────────────────────── */
+.viz-box {
+  border: 1.5px solid var(--ink2);
+  background: var(--paper);
+  position: relative;
+}
+.viz-box-tag {
+  position: absolute; top: -9px; left: 10px;
+  background: var(--tape); padding: 1px 9px;
+  font-size: 7px; letter-spacing: 3px; text-transform: uppercase; color: var(--ink2);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+canvas#viz { display: block; width: 100%; }
+.viz-legend {
+  display: flex; gap: 14px; padding: 8px 14px;
+  border-top: 1px solid rgba(28,18,8,0.1);
+  font-size: 9px; color: var(--faded);
+}
+.viz-legend span { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 1px; flex-shrink: 0; }
+
+.page-num { position: absolute; bottom: 20px; right: 48px; font-size: 10px; color: var(--faded2); letter-spacing: 2px; }
+
+
+.zoom-row { display:flex; align-items:center; gap:6px; padding:6px 14px; border-bottom:1px solid rgba(28,18,8,0.08); }
+.zoom-lbl { font-size:8px; letter-spacing:2px; text-transform:uppercase; color:#7a6a50; min-width:28px; }
+.zoom-btn { width:22px; height:22px; border:1.5px solid #a89070; background:#ede7d3; color:#2d200a; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:1px; flex-shrink:0; transition:all .12s; }
+.zoom-btn:hover { border-color:#a63020; color:#a63020; }
+.zoom-row input[type=range] { flex:1; -webkit-appearance:none; height:2px; background:#a89070; outline:none; cursor:pointer; }
+.zoom-row input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:11px; height:11px; border-radius:50%; background:#f6f1e4; border:2px solid #a63020; cursor:pointer; }
+.zoom-val { font-size:9px; color:#7a6a50; min-width:28px; text-align:right; font-family:'DM Mono',monospace; }
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-decoration:none;color:#7a6a50;background:rgba(246,241,228,0.92);border:1px solid #ccc4b4;padding:4px 12px;border-radius:2px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.1);" onmouseover="this.style.color='#a63020';this.style.borderColor='#a63020'" onmouseout="this.style.color='#7a6a50';this.style.borderColor='#ccc4b4'">← Accueil</a>
+<div class="page">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+  <div class="tape-strip">Physique · TP n°2</div>
+  <div class="header">
+    <div>
+      <div class="exp-tag">Mécanique · Masse et volume</div>
+      <h1>Calculateur de <em>masse</em></h1>
+    </div>
+    <div class="meta-block">
+      <div class="date" id="today-date"></div>
+      <div>ρ × V → m</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Colonne gauche -->
+    <div>
+      <div class="sec"><span class="sec-num">01</span><span class="sec-name">Matériau</span></div>
+      <div class="box">
+        <div class="box-tag">masse volumique ρ</div>
+        <div class="mat-grid" id="matGrid"></div>
+        <div class="custom-row">
+          <label>Personnalisé :</label>
+          <input type="number" id="customRho" placeholder="ex : 2700" min="0.001" step="any">
+          <span>kg/m³</span>
+        </div>
+      </div>
+
+      <div class="sec"><span class="sec-num">02</span><span class="sec-name">Volume</span></div>
+      <div class="box">
+        <div class="box-tag">dimensions</div>
+        <div class="mode-tabs">
+          <button class="mode-tab sel" id="btnDim" onclick="setMode('dim')">L × l × h</button>
+          <button class="mode-tab"     id="btnVol" onclick="setMode('vol')">Volume direct</button>
+        </div>
+
+        <div id="dimSection" class="dim-inputs">
+          <div class="dim-row">
+            <div class="dim-top">
+              <span class="dim-label">L</span>
+              <button class="step-btn" onclick="step('L',-1)">−</button>
+              <input type="range" id="sL" min="1" max="200" step="1" value="100" oninput="onSlider('L')">
+              <button class="step-btn" onclick="step('L',+1)">+</button>
+              <span class="dim-val" id="vL">100 cm</span>
+            </div>
+            <div class="unit-pills" id="pills-L">
+              <button class="upill"     onclick="setUnit('L','mm')">mm</button>
+              <button class="upill sel" onclick="setUnit('L','cm')">cm</button>
+              <button class="upill"     onclick="setUnit('L','m')">m</button>
+            </div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-top">
+              <span class="dim-label">l</span>
+              <button class="step-btn" onclick="step('W',-1)">−</button>
+              <input type="range" id="sW" min="1" max="200" step="1" value="100" oninput="onSlider('W')">
+              <button class="step-btn" onclick="step('W',+1)">+</button>
+              <span class="dim-val" id="vW">100 cm</span>
+            </div>
+            <div class="unit-pills" id="pills-W">
+              <button class="upill"     onclick="setUnit('W','mm')">mm</button>
+              <button class="upill sel" onclick="setUnit('W','cm')">cm</button>
+              <button class="upill"     onclick="setUnit('W','m')">m</button>
+            </div>
+          </div>
+          <div class="dim-row">
+            <div class="dim-top">
+              <span class="dim-label">h</span>
+              <button class="step-btn" onclick="step('H',-1)">−</button>
+              <input type="range" id="sH" min="1" max="200" step="1" value="100" oninput="onSlider('H')">
+              <button class="step-btn" onclick="step('H',+1)">+</button>
+              <span class="dim-val" id="vH">100 cm</span>
+            </div>
+            <div class="unit-pills" id="pills-H">
+              <button class="upill"     onclick="setUnit('H','mm')">mm</button>
+              <button class="upill sel" onclick="setUnit('H','cm')">cm</button>
+              <button class="upill"     onclick="setUnit('H','m')">m</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="volSection" style="display:none;flex-direction:column;gap:8px;">
+          <div class="vol-row">
+            <label>Volume :</label>
+            <input type="number" id="volInput" value="1" min="0" step="any" oninput="updateFromVol()">
+          </div>
+          <div class="vol-unit-pills" id="volPills">
+            <button class="upill"     onclick="setVolUnit('mL')">mL</button>
+            <button class="upill"     onclick="setVolUnit('cL')">cL</button>
+            <button class="upill"     onclick="setVolUnit('L')">L</button>
+            <button class="upill sel" onclick="setVolUnit('m3')">m³</button>
+          </div>
+        </div>
+
+        <div class="result-box">
+          <div class="result-label">Masse calculée</div>
+          <div class="result-value" id="resultVal">— <span>kg</span></div>
+          <div class="result-formula" id="resultFormula"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : visualisation -->
+    <div>
+      <div class="sec"><span class="sec-num">03</span><span class="sec-name">Visualisation</span></div>
+      <div class="viz-box">
+        <div class="viz-box-tag">visualisation à l'échelle</div>
+
+        <div class="zoom-row">
+          <span class="zoom-lbl">zoom</span>
+          <button class="zoom-btn" id="zoomOut">−</button>
+          <input type="range" id="zoomSlider" min="0" max="10" step="1" value="5">
+          <button class="zoom-btn" id="zoomIn">+</button>
+          <span class="zoom-val" id="zoomVal">1:1</span>
+        </div>
+        <canvas id="viz" height="440"></canvas>
+        <div class="viz-legend">
+          <span><span class="leg-dot" style="background:#3a6b8a"></span>Humain 1,80 m</span>
+          <span><span class="leg-dot" style="background:#b88a3a"></span>Volume calculé</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num">— 2 —</div>
+</div>
+
+<script>
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+const MATERIALS = [
+  {name:'Eau',        rho:1000,   emoji:'💧'},
+  {name:'Béton',      rho:2400,   emoji:'🧱'},
+  {name:'Acier',      rho:7850,   emoji:'⚙️'},
+  {name:'Aluminium',  rho:2700,   emoji:'🔩'},
+  {name:'Bois (pin)', rho:550,    emoji:'🪵'},
+  {name:'Verre',      rho:2500,   emoji:'🪟'},
+  {name:'Or',         rho:19300,  emoji:'🟡'},
+  {name:'Air',        rho:1.2,    emoji:'🌬️'},
+  {name:'Terre',      rho:1600,   emoji:'🌱'},
+  {name:'Plomb',      rho:11340,  emoji:'🔘'},
+];
+
+const CM_MIN=1, CM_MAX=200;
+const DIM_UNITS = {
+  mm:{toCm:.1,  fromCm:10,   decimals:0, label:'mm'},
+  cm:{toCm:1,   fromCm:1,    decimals:0, label:'cm'},
+  m: {toCm:100, fromCm:.01,  decimals:2, label:'m'},
+};
+const VOL_UNITS = {
+  mL:{toM3:1e-6,label:'mL'}, cL:{toM3:1e-5,label:'cL'},
+  L: {toM3:1e-3,label:'L'},  m3:{toM3:1,   label:'m³'},
+};
+
+let rho=1000, volume=1, mode='dim';
+let L=1, W=1, H=1;
+const DS = {L:{cm:100,unit:'cm'}, W:{cm:100,unit:'cm'}, H:{cm:100,unit:'cm'}};
+let volUnit='m3';
+
+function displayVal(dim){
+  const d=DS[dim], u=DIM_UNITS[d.unit];
+  return (d.cm*u.fromCm).toFixed(u.decimals)+' '+u.label;
+}
+function refreshDim(dim){
+  document.getElementById('v'+dim).textContent=displayVal(dim);
+  document.getElementById('s'+dim).value=DS[dim].cm;
+}
+function onSlider(dim){DS[dim].cm=parseFloat(document.getElementById('s'+dim).value);refreshDim(dim);recalc();}
+function step(dim,delta){
+  const d=DS[dim],u=DIM_UNITS[d.unit],stepCm=u.toCm*delta;
+  d.cm=Math.min(CM_MAX,Math.max(CM_MIN,Math.round((d.cm+stepCm)*1000)/1000));
+  refreshDim(dim);recalc();
+}
+function setUnit(dim,unit){
+  DS[dim].unit=unit;
+  document.querySelectorAll('#pills-'+dim+' .upill').forEach((p,i)=>
+    p.classList.toggle('sel',['mm','cm','m'][i]===unit));
+  refreshDim(dim);recalc();
+}
+function setVolUnit(unit){
+  const cur=parseFloat(document.getElementById('volInput').value||0)*VOL_UNITS[volUnit].toM3;
+  volUnit=unit;
+  document.getElementById('volInput').value=+(cur/VOL_UNITS[unit].toM3).toPrecision(6);
+  document.querySelectorAll('#volPills .upill').forEach((p,i)=>
+    p.classList.toggle('sel',['mL','cL','L','m3'][i]===unit));
+  updateFromVol();
+}
+function updateFromVol(){
+  const raw=parseFloat(document.getElementById('volInput').value)||0;
+  volume=raw*VOL_UNITS[volUnit].toM3;
+  const s=Math.cbrt(Math.abs(volume));L=s;W=s;H=s;compute();
+}
+function setMode(m){
+  mode=m;
+  document.getElementById('dimSection').style.display=m==='dim'?'flex':'none';
+  document.getElementById('volSection').style.display =m==='vol'?'flex':'none';
+  document.getElementById('btnDim').classList.toggle('sel',m==='dim');
+  document.getElementById('btnVol').classList.toggle('sel',m==='vol');
+  recalc();
+}
+function recalc(){
+  if(mode==='dim'){L=DS.L.cm/100;W=DS.W.cm/100;H=DS.H.cm/100;volume=L*W*H;}
+  compute();
+}
+function fmtMass(n){
+  if(n>=1e9)return[(n/1e9).toFixed(3),'Mt'];
+  if(n>=1e6)return[(n/1e6).toFixed(3),'t'];
+  if(n>=1e3)return[(n/1e3).toFixed(3),'t'];
+  if(n>=1)  return[n.toLocaleString('fr-FR',{maximumFractionDigits:2}),'kg'];
+  return[(n*1000).toFixed(3),'g'];
+}
+function fmtDimM(m){
+  if(m<.01)return(m*1000).toFixed(1)+' mm';
+  if(m<1)  return(m*100).toFixed(1)+' cm';
+  return m.toFixed(3)+' m';
+}
+function compute(){
+  const mass=rho*volume;
+  const[val,unit]=fmtMass(mass);
+  document.getElementById('resultVal').innerHTML=val+' <span>'+unit+'</span>';
+  document.getElementById('resultFormula').textContent=
+    'ρ='+rho.toLocaleString('fr-FR')+' kg/m³  ×  V='+volume.toFixed(6)+' m³';
+  drawViz();
+}
+
+// Materials
+const grid=document.getElementById('matGrid');
+MATERIALS.forEach((mat,i)=>{
+  const btn=document.createElement('button');
+  btn.className='mat-btn'+(i===0?' sel':'');
+  btn.innerHTML='<span class="mn">'+mat.emoji+' '+mat.name+'</span><span class="mr">'+mat.rho.toLocaleString('fr-FR')+' kg/m³</span>';
+  btn.addEventListener('click',()=>{
+    rho=mat.rho;
+    document.getElementById('customRho').value='';
+    grid.querySelectorAll('.mat-btn').forEach((b,j)=>b.classList.toggle('sel',j===i));
+    compute();
+  });
+  grid.appendChild(btn);
+});
+document.getElementById('customRho').addEventListener('input',function(){
+  const v=parseFloat(this.value);
+  if(v>0){rho=v;grid.querySelectorAll('.mat-btn').forEach(b=>b.classList.remove('sel'));compute();}
+});
+
+// ── Canvas ────────────────────────────────────────────────────────
+const canvas=document.getElementById('viz');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+
+// Zoom : index 0..10, valeur = 2^(index-5) → de 1/32 à 32
+// index 5 = zoom 1 (1px = 1px)
+// On définit l'échelle en px/m à zoom=5 comme 100px/m (bonhomme = 180px)
+// Chaque cran double ou divise par 2.
+let zoomIdx = 5;
+const ZOOM_BASE_PX_PER_M = 100; // px/m au zoom central (index 5)
+function getPxPerM(){ return ZOOM_BASE_PX_PER_M * Math.pow(2, zoomIdx - 5); }
+
+
+
+function zoomLabel(idx){
+  const ratio = Math.pow(2, idx-5);
+  if(ratio >= 1) return '×'+ratio.toFixed(0);
+  return '×1/'+Math.round(1/ratio);
+}
+
+function resizeViz(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  canvas.width=r.width*DPR; canvas.height=440*DPR;
+  canvas.style.width=r.width+'px'; canvas.style.height='440px';
+}
+
+function millGrid(W,H){
+  ctx.strokeStyle='rgba(70,90,200,0.065)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(70,90,200,0.15)';ctx.lineWidth=0.8;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function tapeLabel(text,x,y,font,color){
+  ctx.save();
+  ctx.font=font||'10px "DM Mono",monospace';
+  const w=ctx.measureText(text).width+14;
+  ctx.fillStyle='rgba(220,200,150,0.62)';
+  ctx.fillRect(x-w/2,y-12,w,15);
+  ctx.fillStyle=color||'rgba(44,32,10,0.82)';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text,x,y-4);
+  ctx.restore();
+}
+
+function drawViz(){
+  const CW=canvas.width/DPR, CH=canvas.height/DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#f6f1e4'; ctx.fillRect(0,0,CW,CH);
+  millGrid(CW,CH);
+
+  const pxPerM = getPxPerM();
+  const a = Math.PI/6;
+  const groundY = CH - 45;
+
+  // Sol
+  ctx.strokeStyle='rgba(28,18,8,0.3)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(16,groundY); ctx.lineTo(CW-16,groundY); ctx.stroke();
+  ctx.strokeStyle='rgba(28,18,8,0.15)'; ctx.lineWidth=1;
+  for(let x=20;x<CW-16;x+=12){ ctx.beginPath(); ctx.moveTo(x,groundY); ctx.lineTo(x-8,groundY+9); ctx.stroke(); }
+
+  // ── Bonhomme (gauche, échelle courante) ─────────────────────
+  const HUMAN_M = 1.80;
+  const humanPx = HUMAN_M * pxPerM;
+  const rx = 44;
+  drawHuman(rx, groundY, humanPx);
+  tapeLabel('1,80 m', rx, groundY - humanPx - 14, '9px "DM Mono",monospace');
+  drawRuler(rx + Math.max(14, humanPx * 0.18), groundY - humanPx, groundY, HUMAN_M);
+
+  // ── Bloc — collé juste à droite du bonhomme ──────────────────
+  const Lpx = L * pxPerM;
+  const Wpx = W * pxPerM;
+  const Hpx = H * pxPerM;
+  const dxp = Math.cos(a)*Wpx*0.5;
+  const dyp = Math.sin(a)*Wpx*0.5;
+
+  // Le bord gauche du bloc = bord droit du bonhomme + petit espace
+  const humanRightEdge = rx + humanPx * 0.15 + 20; // ~emprise max du bonhomme
+  const bCx = humanRightEdge + Lpx/2 + dxp + 10;
+  const by  = groundY;
+
+  const bk=p=>({x:p.x+dxp,y:p.y-dyp});
+  const fbl={x:bCx-Lpx/2,y:by}, fbr={x:bCx+Lpx/2,y:by};
+  const ftr={x:bCx+Lpx/2,y:by-Hpx}, ftl={x:bCx-Lpx/2,y:by-Hpx};
+  const bbr=bk(fbr), btr=bk(ftr), btl=bk(ftl);
+
+  const face=(pts,fill)=>{
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+    pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.closePath(); ctx.fillStyle=fill; ctx.fill();
+    ctx.strokeStyle='rgba(138,96,32,0.8)'; ctx.lineWidth=1.2; ctx.stroke();
+  };
+  face([fbr,bbr,btr,ftr],'#b08030');
+  face([fbl,fbr,ftr,ftl],'#e8c060');
+  face([ftl,ftr,btr,btl],'#c8a040');
+
+  // Cotations (uniquement si assez grand)
+  if(Hpx > 12){
+    const hLx = ftl.x - 18;
+    ctx.strokeStyle='rgba(138,96,32,0.45)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(hLx,ftl.y); ctx.lineTo(hLx,fbl.y); ctx.stroke();
+    tapeLabel('h='+fmtDimM(H), hLx, ftl.y+(fbl.y-ftl.y)/2, '9px "DM Mono",monospace','rgba(138,96,32,0.9)');
+  }
+  if(Lpx > 20){
+    const lLy = fbl.y + 18;
+    ctx.strokeStyle='rgba(138,96,32,0.45)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(fbl.x,lLy); ctx.lineTo(fbr.x,lLy); ctx.stroke();
+    tapeLabel('L='+fmtDimM(L), (fbl.x+fbr.x)/2, lLy, '9px "DM Mono",monospace','rgba(138,96,32,0.9)');
+  }
+  if(Wpx > 20){
+    const wMx=(fbr.x+bbr.x)/2, wMy=(fbr.y+bbr.y)/2-4;
+    tapeLabel('l='+fmtDimM(W), wMx+20, wMy, '9px "DM Mono",monospace','rgba(138,96,32,0.9)');
+  }
+  tapeLabel('V='+volume.toFixed(4)+' m³', bCx+dxp/2, Math.min(ftl.y,btl.y)-16, '9px "DM Mono",monospace');
+
+  // Échelle en bas
+  ctx.fillStyle='rgba(90,80,60,0.38)'; ctx.font='8px "DM Mono",monospace'; ctx.textAlign='right';
+  ctx.fillText(zoomLabel(zoomIdx)+' — 1m='+pxPerM.toFixed(1)+'px', CW-12, CH-6);
+}
+
+
+
+function drawRuler(x,topY,bottomY,totalM){
+  if(bottomY-topY < 6) return;
+  ctx.save(); ctx.strokeStyle='rgba(28,61,110,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x,topY); ctx.lineTo(x,bottomY); ctx.stroke();
+  const tH=bottomY-topY;
+  const ticks = tH > 60 ? 6 : tH > 20 ? 3 : 1;
+  for(let i=0;i<=ticks;i++){
+    const ty=topY+tH*i/ticks;
+    ctx.beginPath(); ctx.moveTo(x-2,ty); ctx.lineTo(x+2,ty); ctx.stroke();
+    if(tH > 30){
+      const val = totalM*(1-i/ticks);
+      const str = val < 0.01 ? (val*1000).toFixed(0)+'mm' : val < 1 ? (val*100).toFixed(0)+'cm' : val.toFixed(2)+'m';
+      ctx.fillStyle='rgba(28,61,110,0.5)'; ctx.font='7px "DM Mono",monospace'; ctx.textAlign='left';
+      ctx.fillText(str, x+4, ty+3);
+    }
+  }
+  ctx.restore();
+}
+
+function drawHuman(cx,gy,totalH){
+  if(totalH<4){ ctx.fillStyle='#3a6b8a'; ctx.fillRect(cx-1,gy-totalH,2,totalH); return; }
+  const col='#3a6b8a';
+  const headR=totalH*.08,bodyH=totalH*.38,armH=totalH*.32,sw=totalH*.13,hw=totalH*.09;
+  const headY=gy-totalH+headR,neckY=headY+headR,shY=neckY+totalH*.03,hipY=shY+bodyH;
+  ctx.save(); ctx.strokeStyle=col; ctx.fillStyle=col;
+  ctx.lineWidth=Math.max(1,totalH*.02); ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.arc(cx,headY,headR,0,Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx,neckY); ctx.lineTo(cx-sw,shY); ctx.moveTo(cx,neckY); ctx.lineTo(cx+sw,shY);
+  ctx.moveTo(cx-sw*.5,shY+totalH*.02); ctx.lineTo(cx-hw,hipY);
+  ctx.lineTo(cx+hw,hipY); ctx.lineTo(cx+sw*.5,shY+totalH*.02);
+  ctx.moveTo(cx-sw*.3,shY+totalH*.01); ctx.lineTo(cx+sw*.3,shY+totalH*.01);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx-sw,shY); ctx.lineTo(cx-sw*1.2,shY+armH);
+  ctx.moveTo(cx+sw,shY); ctx.lineTo(cx+sw*1.2,shY+armH);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx-hw,hipY); ctx.lineTo(cx-hw*1.1,gy);
+  ctx.moveTo(cx+hw,hipY); ctx.lineTo(cx+hw*1.1,gy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  resizeViz();
+  window.addEventListener('resize',()=>{ resizeViz(); compute(); });
+
+  // Zoom slider
+  const zsl=document.getElementById('zoomSlider');
+  const zvl=document.getElementById('zoomVal');
+  function applyZoom(idx){
+    zoomIdx=Math.max(0,Math.min(10,idx));
+    zsl.value=zoomIdx;
+    zvl.textContent=zoomLabel(zoomIdx);
+    compute();
+  }
+  zsl.addEventListener('input',()=>applyZoom(parseInt(zsl.value)));
+  document.getElementById('zoomIn') .addEventListener('click',()=>applyZoom(zoomIdx+1));
+  document.getElementById('zoomOut').addEventListener('click',()=>applyZoom(zoomIdx-1));
+  zvl.textContent=zoomLabel(zoomIdx);
+
+  recalc();
+});
+</script>
+</body>
+</html>
