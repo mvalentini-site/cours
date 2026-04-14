@@ -1,0 +1,244 @@
+/* ════════════════════════════════════════════════════════════
+   chapitre.css — Styles des pages de chapitre
+   Dépend de : commun.css (à charger avant)
+   ════════════════════════════════════════════════════════════ */
+
+body {
+  min-height: 100vh;
+}
+
+/* ── Mise en page ── */
+#wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.paper {
+  padding: 48px 52px 72px 80px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, .3);
+}
+
+/* ── Lien retour ── */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--faded);
+  text-decoration: none;
+  margin-bottom: 20px;
+  transition: color .15s;
+}
+.back:hover { color: var(--red); }
+
+/* ── Étiquette adhésif ── */
+.tape-label {
+  display: inline-block;
+  background: var(--tape);
+  padding: 3px 16px 3px 10px;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--faded);
+  margin-bottom: 12px;
+  position: relative;
+}
+.tape-label::before,
+.tape-label::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: rgba(200, 180, 130, .7);
+}
+.tape-label::before { left: 0; }
+.tape-label::after  { right: 0; }
+
+/* ── En-tête de page ── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--ink2);
+}
+
+.exp-tag {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--faded);
+  margin-bottom: 5px;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(22px, 3vw, 38px);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -.5px;
+}
+h1 em {
+  color: var(--color);
+  font-style: normal;
+}
+
+.ph-right {
+  text-align: right;
+  font-size: 10px;
+  color: var(--faded);
+  line-height: 1.9;
+}
+.ph-num {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--color);
+  font-weight: 600;
+}
+
+/* ── Sections (accordéon) ── */
+.section {
+  margin-bottom: 28px;
+}
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sec-label {
+  font-size: 8px;
+  font-weight: 500;
+  padding: 3px 8px;
+  letter-spacing: 1px;
+  color: var(--paper);
+  text-transform: uppercase;
+}
+
+.sec-title {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.sec-toggle {
+  font-size: 10px;
+  color: var(--faded2);
+  margin-left: auto;
+  transition: transform .2s;
+  display: inline-block;
+}
+.sec-toggle.open { transform: rotate(90deg); }
+
+/* ── Liste de documents ── */
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .3s ease;
+}
+.doc-list.open { max-height: 800px; }
+
+.doc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  text-decoration: none;
+  color: inherit;
+}
+.doc:hover {
+  background: rgba(255, 255, 255, .4);
+  border-left-color: var(--color);
+}
+
+.doc-icon {
+  font-size: 11px;
+  color: var(--faded2);
+  min-width: 16px;
+  text-align: center;
+}
+
+.doc-name {
+  font-size: 11px;
+  color: var(--ink);
+}
+
+.doc-tag {
+  font-size: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  color: var(--paper);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ── Visionneuse intégrée ── */
+#viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(50, 40, 30, .85);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+}
+#viewer.open { display: flex; }
+
+#viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--ink2);
+  flex-shrink: 0;
+}
+
+#viewer-title {
+  font-size: 11px;
+  color: rgba(255, 255, 255, .8);
+  font-family: var(--mono);
+  flex: 1;
+}
+
+#viewer-newTab {
+  font-size: 10px;
+  color: rgba(255, 255, 255, .6);
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+#viewer-newTab:hover { color: #fff; }
+
+#viewer-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, .7);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+#viewer-close:hover { color: #fff; }
+
+#viewer-frame {
+  flex: 1;
+  border: none;
+  background: #fff;
+}

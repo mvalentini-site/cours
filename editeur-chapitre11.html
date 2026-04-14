@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Chapitre 11</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e1e2e;--surface:#181825;--surface2:#313244;--surface3:#45475a;
+  --text:#cdd6f4;--text2:#a6adc8;--text3:#6c7086;
+  --blue:#89b4fa;--green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;
+  --purple:#cba6f7;--teal:#94e2d5;--orange:#fab387;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+header{background:var(--surface);border-bottom:1px solid var(--surface2);padding:12px 20px;display:flex;align-items:center;gap:12px;}
+header h1{font-size:15px;font-weight:700;color:var(--purple);}
+.chip{font-size:10px;padding:3px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);letter-spacing:.5px;}
+.spacer{flex:1;}
+.btn{border:none;border-radius:7px;padding:7px 16px;cursor:pointer;font-size:12px;font-weight:600;transition:filter .15s;}
+.btn:hover{filter:brightness(1.12);}
+.btn-primary{background:var(--purple);color:#1e1e2e;}
+.btn-secondary{background:var(--surface2);color:var(--text);}
+.btn-small{padding:4px 10px;font-size:11px;}
+.btn-danger{background:var(--red);color:#1e1e2e;}
+.btn-green{background:var(--green);color:#1e1e2e;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--surface2);display:flex;flex-direction:column;padding:16px 12px;gap:6px;overflow-y:auto;}
+.sidebar h2{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;padding:0 4px;}
+.sidebar-section{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s;display:flex;align-items:center;gap:8px;}
+.sidebar-section:hover{background:var(--surface2);}
+.sidebar-section.active{background:var(--surface2);color:var(--text);}
+.sidebar-section .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.add-section-btn{margin-top:8px;border:1px dashed var(--surface3);color:var(--text3);background:transparent;width:100%;padding:7px;border-radius:6px;cursor:pointer;font-size:11px;transition:all .15s;}
+.add-section-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* ── MAIN EDITOR ── */
+.main{flex:1;overflow-y:auto;padding:24px 28px;}
+.meta-card{background:var(--surface);border-radius:10px;padding:20px;margin-bottom:24px;border:1px solid var(--surface2);}
+.meta-card h2{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;}
+.field-row{display:flex;gap:12px;margin-bottom:10px;align-items:center;}
+.field-row label{font-size:11px;color:var(--text2);min-width:90px;}
+.field-row input,.field-row select{flex:1;background:var(--surface2);border:1px solid var(--surface3);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;transition:border .15s;}
+.field-row input:focus,.field-row select:focus{border-color:var(--purple);}
+
+.section-editor{background:var(--surface);border-radius:10px;padding:20px;margin-bottom:16px;border:1px solid var(--surface2);}
+.section-header-edit{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.section-header-edit input{flex:1;background:var(--surface2);border:1px solid var(--surface3);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-weight:600;outline:none;}
+.section-header-edit input:focus{border-color:var(--purple);}
+.color-swatch{width:28px;height:28px;border-radius:5px;border:none;cursor:pointer;padding:2px;}
+
+.docs-list{display:flex;flex-direction:column;gap:8px;}
+.doc-item{background:var(--surface2);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;border:1px solid transparent;transition:border .15s;}
+.doc-item:hover{border-color:var(--surface3);}
+.doc-item-row{display:flex;align-items:center;gap:8px;}
+.doc-item-row label{font-size:10px;color:var(--text3);min-width:60px;}
+.doc-item-row input,.doc-item-row select{flex:1;background:var(--bg);border:1px solid var(--surface3);border-radius:5px;padding:5px 8px;color:var(--text);font-size:11px;outline:none;}
+.doc-item-row input:focus,.doc-item-row select:focus{border-color:var(--blue);}
+.url-ok{border-color:var(--green) !important;}
+.url-placeholder{border-color:var(--yellow) !important;}
+.doc-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:4px;}
+.add-doc-btn{border:1px dashed var(--surface3);color:var(--text3);background:transparent;width:100%;padding:8px;border-radius:7px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
+.add-doc-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── PREVIEW PANEL ── */
+.preview-panel{width:380px;background:var(--surface);border-left:1px solid var(--surface2);display:flex;flex-direction:column;}
+.preview-panel header{padding:10px 14px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--surface2);display:flex;align-items:center;gap:8px;}
+.preview-frame{flex:1;border:none;background:white;}
+
+/* ── STATUS BAR ── */
+footer{background:var(--surface);border-top:1px solid var(--surface2);padding:5px 16px;font-size:10px;color:var(--text3);display:flex;gap:20px;}
+.status-ok{color:var(--green);}
+.status-warn{color:var(--yellow);}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface2);border-radius:12px;padding:24px;width:420px;display:flex;flex-direction:column;gap:14px;}
+.modal h3{font-size:14px;color:var(--purple);}
+.modal textarea{width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--surface3);border-radius:7px;padding:10px;font-family:monospace;font-size:11px;resize:vertical;outline:none;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✏️ Éditeur de page</h1>
+  <span class="chip" id="page-chip">Chapitre 11</span>
+  <div class="spacer"></div>
+  <button class="btn btn-secondary btn-small" onclick="showPreview()">👁 Aperçu</button>
+  <button class="btn btn-primary" onclick="exportFile()">💾 Exporter HTML</button>
+</header>
+
+<div class="layout">
+
+  <!-- Sidebar sections -->
+  <div class="sidebar">
+    <h2>Sections</h2>
+    <div id="sidebar-list"></div>
+    <button class="add-section-btn" onclick="addSection()">+ Nouvelle section</button>
+  </div>
+
+  <!-- Main editor -->
+  <div class="main" id="main-editor">
+
+    <!-- Infos générales -->
+    <div class="meta-card">
+      <h2>Informations générales</h2>
+      <div class="field-row">
+        <label>Titre page</label>
+        <input type="text" id="meta-title" value="Chapitre 11 - Fluides au repos">
+      </div>
+      <div class="field-row">
+        <label>Numéro chapitre</label>
+        <input type="text" id="meta-chapter" value="11">
+      </div>
+      <div class="field-row">
+        <label>Intitulé chapitre</label>
+        <input type="text" id="meta-name" value="Fluides au repos">
+      </div>
+      <div class="field-row">
+        <label>Classe</label>
+        <input type="text" id="meta-class" value="1re Spécialité">
+      </div>
+      <div class="field-row">
+        <label>Matière</label>
+        <input type="text" id="meta-subject" value="Physique">
+      </div>
+      <div class="field-row">
+        <label>Thème</label>
+        <input type="text" id="meta-theme" value="Mouvements et interactions">
+      </div>
+      <div class="field-row">
+        <label>Lien retour</label>
+        <input type="text" id="meta-back" value="../../index.html">
+      </div>
+      <div class="field-row">
+        <label>Texte retour</label>
+        <input type="text" id="meta-back-label" value="-- 1res Spe">
+      </div>
+    </div>
+
+    <!-- Sections editor -->
+    <div id="sections-container"></div>
+
+  </div>
+
+</div>
+
+<footer>
+  <span id="footer-sections">0 sections</span>
+  <span id="footer-docs">0 documents</span>
+  <span id="footer-missing" class="status-warn"></span>
+  <span id="footer-ok" class="status-ok"></span>
+</footer>
+
+<!-- Modal aperçu/export -->
+<div class="overlay" id="modal-preview">
+  <div class="modal" style="width:560px;">
+    <h3>👁 Aperçu du HTML généré</h3>
+    <textarea id="preview-code" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-small" onclick="closeModal()">Fermer</button>
+      <button class="btn btn-primary btn-small" onclick="copyCode()">Copier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA MODEL ───────────────────────────────────────────────
+const ICON_MAP = {
+  'Document': '📄', 'Video': '▶', 'Activite': '📄', 'Corrige': '📄',
+  'Situation': '📄', 'Experience': '🔬', 'Lien': '🔗', 'Digiwall': '📤',
+  'Simulation': '🎮', 'TD': '📄'
+};
+
+const TAG_COLORS = {
+  'Cours':     '#1c3d6e',
+  'Activite':  '#2a5c3a',
+  'TD':        '#3a2010',
+  'Corrige':   '#5c2a2a',
+  'Situation': '#3a1c6b',
+  'Lien':      '#3a3a1c',
+  'Digiwall':  '#6b3a1c',
+  'Simulation':'#1c4a4a',
+  'Experience':'#2a5c3a',
+  'Video':     '#5a3a1c',
+  'Document':  '#1c3d6e',
+};
+
+let pageData = {
+  sections: [
+    {
+      id: 's1', label: 'Cours', color: '#1c3d6e', title: 'Synthese et videos de cours',
+      docs: [
+        {id:'d1', icon:'📄', name:'Fiche synthese', tag:'Document', tagColor:'#1c3d6e', url:'https://docs.google.com/document/d/16R3DuAtxnX-6sVrZBk2nCm12cPJWvJIAa6HVJwcrYsc/preview', external:false},
+        {id:'d2', icon:'▶', name:'Video Hachette', tag:'Video', tagColor:'#5a3a1c', url:'LIEN_VIDEO_HACHETTE', external:false},
+        {id:'d3', icon:'▶', name:'Loi de Boyle-Mariotte', tag:'Video', tagColor:'#5a3a1c', url:'LIEN_BOYLE_VIDEO', external:false},
+        {id:'d4', icon:'▶', name:'Force pressante', tag:'Video', tagColor:'#5a3a1c', url:'LIEN_FORCE_PRESSANTE', external:false},
+        {id:'d5', icon:'▶', name:'Hydrostatique', tag:'Video', tagColor:'#5a3a1c', url:'LIEN_HYDROSTATIQUE', external:false},
+      ]
+    },
+    {
+      id: 's2', label: 'Activite', color: '#2a5c3a', title: 'Activite 11A',
+      docs: [
+        {id:'d6', icon:'📄', name:'Activite 11A', tag:'Activite', tagColor:'#2a5c3a', url:'LIEN_ACT_11A', external:false},
+        {id:'d7', icon:'📄', name:'Corrige 11A', tag:'Corrige', tagColor:'#5c2a2a', url:'LIEN_CORRIGE_11A', external:false},
+        {id:'d8', icon:'🔗', name:'Loi de Boyle-Mariotte', tag:'Lien', tagColor:'#3a3a1c', url:'LIEN_BOYLE_ACT', external:false},
+      ]
+    },
+    {
+      id: 's3', label: 'Activite', color: '#2a5c3a', title: 'Activite 11B',
+      docs: [
+        {id:'d9', icon:'📄', name:'Situation probleme', tag:'Situation', tagColor:'#3a1c6b', url:'LIEN_SITUATION_11B', external:false},
+        {id:'d10', icon:'📄', name:'Activite 11B', tag:'Activite', tagColor:'#2a5c3a', url:'LIEN_ACT_11B', external:false},
+        {id:'d11', icon:'🔬', name:'Experience Boyle-Mariotte', tag:'Experience', tagColor:'#2a5c3a', url:'LIEN_EXP_BOYLE', external:false},
+        {id:'d12', icon:'📤', name:'Deposer votre compte-rendu', tag:'Digiwall', tagColor:'#6b3a1c', url:'https://digiwall.app/w/4900/4abad8/comptes-rendus-act-11b', external:true},
+      ]
+    },
+    {
+      id: 's4', label: 'Activite', color: '#2a5c3a', title: 'Activite 11C',
+      docs: [
+        {id:'d13', icon:'📄', name:'Situation probleme', tag:'Situation', tagColor:'#3a1c6b', url:'LIEN_SITUATION_11C', external:false},
+        {id:'d14', icon:'📄', name:'Activite 11C', tag:'Activite', tagColor:'#2a5c3a', url:'https://drive.google.com/file/d/17Zj4ZyW9E_WAybXhTIjuz2zMOBRTNyP6/preview', external:false},
+        {id:'d15', icon:'🎮', name:'Animation PhET - Under Pressure', tag:'Simulation', tagColor:'#1c4a4a', url:'https://phet.colorado.edu/sims/html/under-pressure/latest/under-pressure_all.html', external:true},
+        {id:'d16', icon:'📤', name:'Deposer votre compte-rendu', tag:'Digiwall', tagColor:'#6b3a1c', url:'https://digiwall.app/w/4901/5b7358/comptes-rendus-act-11c', external:true},
+        {id:'d17', icon:'📄', name:"Corrige de l'activite", tag:'Corrige', tagColor:'#5c2a2a', url:'LIEN_CORRIGE_11C', external:false},
+      ]
+    },
+    {
+      id: 's5', label: 'TD', color: '#3a2010', title: 'Exercices',
+      docs: [
+        {id:'d18', icon:'📄', name:"Feuille d'exercices", tag:'TD', tagColor:'#3a2010', url:'LIEN_EXERCICES', external:false},
+        {id:'d19', icon:'📄', name:'Corrige', tag:'Corrige', tagColor:'#5c2a2a', url:'LIEN_CORRIGE_TD', external:false},
+      ]
+    }
+  ]
+};
+
+let uid = 100;
+function newId() { return 'x' + (uid++); }
+
+// ─── RENDER ───────────────────────────────────────────────────
+function render() {
+  renderSidebar();
+  renderSections();
+  updateFooter();
+}
+
+function renderSidebar() {
+  const el = document.getElementById('sidebar-list');
+  el.innerHTML = pageData.sections.map((s,i) => `
+    <div class="sidebar-section" onclick="scrollToSection('${s.id}')">
+      <span class="dot" style="background:${s.color}"></span>
+      <span>${s.label} — ${s.title.substring(0,18)}${s.title.length>18?'…':''}</span>
+    </div>
+  `).join('');
+}
+
+function renderSections() {
+  const el = document.getElementById('sections-container');
+  el.innerHTML = pageData.sections.map((s,si) => `
+    <div class="section-editor" id="sec-${s.id}">
+      <div class="section-header-edit">
+        <input type="color" class="color-swatch" value="${s.color}" title="Couleur" oninput="updateSection(${si},'color',this.value)">
+        <select style="background:var(--surface2);border:1px solid var(--surface3);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;outline:none;" onchange="updateSection(${si},'label',this.value)">
+          ${['Cours','Activite','TD','Exercices','Evaluation'].map(opt => `<option value="${opt}" ${s.label===opt?'selected':''}>${opt}</option>`).join('')}
+        </select>
+        <input type="text" value="${s.title}" placeholder="Titre de la section" oninput="updateSection(${si},'title',this.value)" style="flex:1;background:var(--surface2);border:1px solid var(--surface3);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-weight:600;outline:none;">
+        <button class="btn btn-danger btn-small" onclick="deleteSection(${si})">🗑</button>
+      </div>
+
+      <div class="docs-list" id="docs-${s.id}">
+        ${s.docs.map((d,di) => renderDoc(si,di,d)).join('')}
+      </div>
+      <button class="add-doc-btn" onclick="addDoc(${si})">+ Ajouter un document / lien</button>
+    </div>
+  `).join('');
+}
+
+function renderDoc(si, di, d) {
+  const urlClass = d.url.startsWith('LIEN_') ? 'url-placeholder' : (d.url ? 'url-ok' : '');
+  return `
+    <div class="doc-item" id="doc-${d.id}">
+      <div class="doc-item-row">
+        <label>Icône</label>
+        <select onchange="updateDoc(${si},${di},'icon',this.value)">
+          ${['📄','▶','🔗','📤','🎮','🔬','📊','🖼','📝'].map(ic=>`<option value="${ic}" ${d.icon===ic?'selected':''}>${ic}</option>`).join('')}
+        </select>
+        <label>Nom</label>
+        <input type="text" value="${d.name}" placeholder="Nom affiché" oninput="updateDoc(${si},${di},'name',this.value)">
+      </div>
+      <div class="doc-item-row">
+        <label>Type</label>
+        <select onchange="updateDoc(${si},${di},'tag',this.value); updateDoc(${si},${di},'tagColor',TAG_COLORS[this.value]||'#555')">
+          ${Object.keys(TAG_COLORS).map(t=>`<option value="${t}" ${d.tag===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <label>Couleur tag</label>
+        <input type="color" value="${d.tagColor}" oninput="updateDoc(${si},${di},'tagColor',this.value)" style="width:36px;height:28px;border:none;border-radius:5px;background:var(--surface2);cursor:pointer;padding:2px;">
+      </div>
+      <div class="doc-item-row">
+        <label>URL</label>
+        <input type="text" class="${urlClass}" value="${d.url}" placeholder="https://... ou LIEN_A_CONFIGURER" oninput="updateDoc(${si},${di},'url',this.value);updateUrlStyle(this)">
+      </div>
+      <div class="doc-item-row">
+        <label>Lien ext.</label>
+        <input type="checkbox" ${d.external?'checked':''} onchange="updateDoc(${si},${di},'external',this.checked)" style="width:auto;">
+        <span style="font-size:10px;color:var(--text3);">S'ouvre dans un nouvel onglet (pas dans la visionneuse)</span>
+      </div>
+      <div class="doc-actions">
+        ${di > 0 ? `<button class="btn btn-secondary btn-small" onclick="moveDoc(${si},${di},-1)">↑</button>` : ''}
+        ${di < pageData.sections[si].docs.length-1 ? `<button class="btn btn-secondary btn-small" onclick="moveDoc(${si},${di},1)">↓</button>` : ''}
+        <button class="btn btn-danger btn-small" onclick="deleteDoc(${si},${di})">🗑 Supprimer</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateUrlStyle(input) {
+  input.className = '';
+  if (input.value.startsWith('LIEN_')) input.classList.add('url-placeholder');
+  else if (input.value) input.classList.add('url-ok');
+}
+
+// ─── DATA MUTATIONS ───────────────────────────────────────────
+function updateSection(si, key, val) {
+  pageData.sections[si][key] = val;
+  if (key !== 'title') renderSidebar(); // avoid re-render loop on typing
+}
+
+function updateDoc(si, di, key, val) {
+  pageData.sections[si].docs[di][key] = val;
+}
+
+function addSection() {
+  pageData.sections.push({
+    id: newId(), label: 'Activite', color: '#2a5c3a', title: 'Nouvelle section',
+    docs: []
+  });
+  render();
+}
+
+function deleteSection(si) {
+  if (!confirm('Supprimer cette section ?')) return;
+  pageData.sections.splice(si, 1);
+  render();
+}
+
+function addDoc(si) {
+  pageData.sections[si].docs.push({
+    id: newId(), icon: '📄', name: 'Nouveau document', tag: 'Document',
+    tagColor: '#1c3d6e', url: 'LIEN_A_CONFIGURER', external: false
+  });
+  render();
+}
+
+function deleteDoc(si, di) {
+  pageData.sections[si].docs.splice(di, 1);
+  render();
+}
+
+function moveDoc(si, di, dir) {
+  const docs = pageData.sections[si].docs;
+  const [item] = docs.splice(di, 1);
+  docs.splice(di + dir, 0, item);
+  render();
+}
+
+function scrollToSection(id) {
+  document.getElementById('sec-' + id)?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ─── FOOTER ───────────────────────────────────────────────────
+function updateFooter() {
+  const total = pageData.sections.reduce((a,s) => a + s.docs.length, 0);
+  const missing = pageData.sections.reduce((a,s) => a + s.docs.filter(d => d.url.startsWith('LIEN_')).length, 0);
+  document.getElementById('footer-sections').textContent = pageData.sections.length + ' sections';
+  document.getElementById('footer-docs').textContent = total + ' documents';
+  document.getElementById('footer-missing').textContent = missing ? `⚠ ${missing} lien(s) à configurer` : '';
+  document.getElementById('footer-ok').textContent = missing === 0 ? '✓ Tous les liens sont configurés' : '';
+}
+
+// ─── HTML GENERATION ──────────────────────────────────────────
+function generateHTML() {
+  const title = document.getElementById('meta-title').value;
+  const chapter = document.getElementById('meta-chapter').value;
+  const name = document.getElementById('meta-name').value;
+  const cls = document.getElementById('meta-class').value;
+  const subject = document.getElementById('meta-subject').value;
+  const theme = document.getElementById('meta-theme').value;
+  const backUrl = document.getElementById('meta-back').value;
+  const backLabel = document.getElementById('meta-back-label').value;
+
+  const sectionsHTML = pageData.sections.map(s => {
+    const docsHTML = s.docs.map(d => {
+      if (d.external) {
+        return `        <a class="doc" href="${d.url}" target="_blank">
+          <span class="doc-icon">${d.icon}</span><span class="doc-name">${d.name}</span>
+          <span class="doc-tag" style="background:${d.tagColor}">${d.tag}</span>
+        </a>`;
+      } else {
+        return `        <div class="doc" data-url="${d.url}" data-title="${d.name}">
+          <span class="doc-icon">${d.icon}</span><span class="doc-name">${d.name}</span>
+          <span class="doc-tag" style="background:${d.tagColor}">${d.tag}</span>
+        </div>`;
+      }
+    }).join('\n');
+
+    return `    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:${s.color}">${s.label}</span>
+        <span class="sec-title">${s.title}</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+${docsHTML}
+      </div>
+    </div>`;
+  }).join('\n\n');
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#7a6a50;--faded2:#a89070;
+  --red:#a63020;--blue:#1c3d6e;
+  --tape:rgba(220,200,150,0.62);--desk:#6a6258;
+  --gmaj:rgba(70,90,200,0.13);--gmin:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);
+  --color:#1c3d6e;
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+html,body{width:100%;min-height:100vh;
+  background:var(--desk);
+  background-image:radial-gradient(ellipse at 15% 10%,#7a7268 0%,transparent 50%),
+    radial-gradient(ellipse at 85% 90%,#5a5248 0%,transparent 50%);
+  font-family:var(--mono);}
+#wrap{max-width:900px;margin:0 auto;padding:24px 16px 60px;}
+.paper{background:var(--paper);padding:48px 52px 72px 80px;position:relative;
+  box-shadow:0 4px 32px rgba(0,0,0,.3);}
+.paper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);}
+.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;
+  background:var(--margin);pointer-events:none;z-index:1;}
+.paper>*{position:relative;z-index:2;}
+.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;
+  display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
+.hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--faded);text-decoration:none;margin-bottom:20px;transition:color .15s;}
+.back:hover{color:var(--red);}
+.tape-label{display:inline-block;background:var(--tape);padding:3px 16px 3px 10px;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
+  margin-bottom:12px;position:relative;}
+.tape-label::before,.tape-label::after{content:'';position:absolute;top:0;bottom:0;width:5px;background:rgba(200,180,130,.7);}
+.tape-label::before{left:0;}.tape-label::after{right:0;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:32px;padding-bottom:12px;border-bottom:1.5px solid var(--ink2);}
+.exp-tag{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
+h1{font-family:var(--serif);font-size:clamp(22px,3vw,38px);font-weight:700;font-style:italic;
+  color:var(--ink);line-height:1;letter-spacing:-.5px;}
+h1 em{color:var(--color);font-style:normal;}
+.ph-right{text-align:right;font-size:10px;color:var(--faded);line-height:1.9;}
+.ph-num{font-family:var(--serif);font-size:13px;color:var(--color);font-weight:600;}
+.section{margin-bottom:28px;}
+.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;user-select:none;}
+.sec-label{font-size:8px;font-weight:500;padding:3px 8px;letter-spacing:1px;color:var(--paper);text-transform:uppercase;}
+.sec-title{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--ink);}
+.sec-toggle{font-size:10px;color:var(--faded2);margin-left:auto;transition:transform .2s;display:inline-block;}
+.sec-toggle.open{transform:rotate(90deg);}
+.doc-list{display:flex;flex-direction:column;gap:4px;overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.doc-list.open{max-height:600px;}
+.doc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:2px solid transparent;
+  cursor:pointer;transition:background .12s,border-color .12s;text-decoration:none;color:inherit;}
+.doc:hover{background:rgba(255,255,255,.4);border-left-color:var(--color);}
+.doc-icon{font-size:11px;color:var(--faded2);min-width:16px;text-align:center;}
+.doc-name{font-size:11px;color:var(--ink);}
+.doc-tag{font-size:7px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;
+  color:var(--paper);margin-left:auto;white-space:nowrap;}
+#viewer{position:fixed;inset:0;background:rgba(50,40,30,.85);z-index:100;display:none;flex-direction:column;}
+#viewer.open{display:flex;}
+#viewer-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--ink2);flex-shrink:0;}
+#viewer-title{font-size:11px;color:rgba(255,255,255,.8);font-family:var(--mono);flex:1;}
+#viewer-newTab{font-size:10px;color:rgba(255,255,255,.6);text-decoration:none;letter-spacing:1px;}
+#viewer-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;}
+#viewer-close:hover{color:#fff;}
+#viewer-frame{flex:1;border:none;background:#fff;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="paper">
+    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+    <a class="back" href="${backUrl}">${backLabel}</a>
+
+    <div class="tape-label" style="background:var(--color)22;color:var(--color)">${theme}</div>
+    <div class="page-header">
+      <div>
+        <div class="exp-tag">${cls} - ${subject}</div>
+        <h1><em>${chapter}</em> - ${name}</h1>
+      </div>
+      <div class="ph-right">
+        <div class="ph-num">Chapitre ${chapter}</div>
+        <div>${cls}</div>
+      </div>
+    </div>
+
+${sectionsHTML}
+
+  </div>
+</div>
+
+<div id="viewer">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank">Ouvrir dans un onglet</a>
+    <button id="viewer-close">X</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen></iframe>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function closeViewer() {
+    document.getElementById('viewer').classList.remove('open');
+    document.getElementById('viewer-frame').src = 'about:blank';
+  }
+  document.querySelectorAll('.sec-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      var list = header.nextElementSibling;
+      var arrow = header.querySelector('.sec-toggle');
+      var isOpen = list.classList.contains('open');
+      document.querySelectorAll('.doc-list.open').forEach(function(l) {
+        l.classList.remove('open');
+        l.previousElementSibling.querySelector('.sec-toggle').classList.remove('open');
+      });
+      if (!isOpen) { list.classList.add('open'); arrow.classList.add('open'); }
+    });
+  });
+  document.querySelectorAll('.doc[data-url]').forEach(function(doc) {
+    doc.addEventListener('click', function() {
+      var url = doc.getAttribute('data-url');
+      var title = doc.getAttribute('data-title');
+      if (url.startsWith('LIEN_')) { alert('Lien à configurer : ' + url); return; }
+      document.getElementById('viewer-title').textContent = title;
+      document.getElementById('viewer-newTab').href = url;
+      document.getElementById('viewer-frame').src = url;
+      document.getElementById('viewer').classList.add('open');
+    });
+  });
+  document.getElementById('viewer-close').addEventListener('click', closeViewer);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeViewer(); });
+});
+<\/script>
+</body>
+</html>`;
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────
+function exportFile() {
+  const html = generateHTML();
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+}
+
+function showPreview() {
+  document.getElementById('preview-code').value = generateHTML();
+  document.getElementById('modal-preview').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-preview').classList.remove('open');
+}
+
+function copyCode() {
+  document.getElementById('preview-code').select();
+  document.execCommand('copy');
+  alert('Copié dans le presse-papier !');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 11 - Fluides au repos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#7a6a50;--faded2:#a89070;
+  --red:#a63020;--blue:#1c3d6e;
+  --tape:rgba(220,200,150,0.62);--desk:#6a6258;
+  --gmaj:rgba(70,90,200,0.13);--gmin:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);
+  --color:#1c3d6e;
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+html,body{width:100%;min-height:100vh;
+  background:var(--desk);
+  background-image:radial-gradient(ellipse at 15% 10%,#7a7268 0%,transparent 50%),
+    radial-gradient(ellipse at 85% 90%,#5a5248 0%,transparent 50%);
+  font-family:var(--mono);}
+#wrap{max-width:900px;margin:0 auto;padding:24px 16px 60px;}
+.paper{background:var(--paper);padding:48px 52px 72px 80px;position:relative;
+  box-shadow:0 4px 32px rgba(0,0,0,.3);}
+.paper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);}
+.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;
+  background:var(--margin);pointer-events:none;z-index:1;}
+.paper>*{position:relative;z-index:2;}
+.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;
+  display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
+.hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--faded);text-decoration:none;margin-bottom:20px;transition:color .15s;}
+.back:hover{color:var(--red);}
+.tape-label{display:inline-block;background:var(--tape);padding:3px 16px 3px 10px;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
+  margin-bottom:12px;position:relative;}
+.tape-label::before,.tape-label::after{content:'';position:absolute;top:0;bottom:0;width:5px;background:rgba(200,180,130,.7);}
+.tape-label::before{left:0;}.tape-label::after{right:0;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:32px;padding-bottom:12px;border-bottom:1.5px solid var(--ink2);}
+.exp-tag{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
+h1{font-family:var(--serif);font-size:clamp(22px,3vw,38px);font-weight:700;font-style:italic;
+  color:var(--ink);line-height:1;letter-spacing:-.5px;}
+h1 em{color:var(--color);font-style:normal;}
+.ph-right{text-align:right;font-size:10px;color:var(--faded);line-height:1.9;}
+.ph-num{font-family:var(--serif);font-size:13px;color:var(--color);font-weight:600;}
+.section{margin-bottom:28px;}
+.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;user-select:none;}
+.sec-label{font-size:8px;font-weight:500;padding:3px 8px;letter-spacing:1px;color:var(--paper);text-transform:uppercase;}
+.sec-title{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--ink);}
+.sec-toggle{font-size:10px;color:var(--faded2);margin-left:auto;transition:transform .2s;display:inline-block;}
+.sec-toggle.open{transform:rotate(90deg);}
+.doc-list{display:flex;flex-direction:column;gap:4px;overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.doc-list.open{max-height:600px;}
+.doc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:2px solid transparent;
+  cursor:pointer;transition:background .12s,border-color .12s;text-decoration:none;color:inherit;}
+.doc:hover{background:rgba(255,255,255,.4);border-left-color:var(--color);}
+.doc-icon{font-size:11px;color:var(--faded2);min-width:16px;text-align:center;}
+.doc-name{font-size:11px;color:var(--ink);}
+.doc-tag{font-size:7px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;
+  color:var(--paper);margin-left:auto;white-space:nowrap;}
+#viewer{position:fixed;inset:0;background:rgba(50,40,30,.85);z-index:100;display:none;flex-direction:column;}
+#viewer.open{display:flex;}
+#viewer-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--ink2);flex-shrink:0;}
+#viewer-title{font-size:11px;color:rgba(255,255,255,.8);font-family:var(--mono);flex:1;}
+#viewer-newtab{font-size:10px;color:rgba(255,255,255,.6);text-decoration:none;letter-spacing:1px;}
+#viewer-newTab:hover{color:#fff;}
+#viewer-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;}
+#viewer-close:hover{color:#fff;}
+#viewer-frame{flex:1;border:none;background:#fff;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="paper">
+    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+    <a class="back" href="../../index.html">-- 1res Spe</a>
+
+    <div class="tape-label" style="background:var(--color)22;color:var(--color)">Mouvements et interactions</div>
+    <div class="page-header">
+      <div>
+        <div class="exp-tag">1re Specialite - Physique</div>
+        <h1><em>11</em> - Fluides au repos</h1>
+      </div>
+      <div class="ph-right">
+        <div class="ph-num">Chapitre 11</div>
+        <div>1re Specialite</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:#1c3d6e">Cours</span>
+        <span class="sec-title">Synthese et videos de cours</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+        <div class="doc" data-url="https://docs.google.com/document/d/16R3DuAtxnX-6sVrZBk2nCm12cPJWvJIAa6HVJwcrYsc/preview" data-title="Fiche synthese">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Fiche synthese</span>
+          <span class="doc-tag" style="background:#1c3d6e">Document</span>
+        </div>
+        <div class="doc" data-url="LIEN_VIDEO_HACHETTE" data-title="Video Hachette">
+          <span class="doc-icon">&#9654;</span><span class="doc-name">Video Hachette</span>
+          <span class="doc-tag" style="background:#5a3a1c">Video</span>
+        </div>
+        <div class="doc" data-url="LIEN_BOYLE_VIDEO" data-title="Loi de Boyle-Mariotte">
+          <span class="doc-icon">&#9654;</span><span class="doc-name">Loi de Boyle-Mariotte</span>
+          <span class="doc-tag" style="background:#5a3a1c">Video</span>
+        </div>
+        <div class="doc" data-url="LIEN_FORCE_PRESSANTE" data-title="Force pressante">
+          <span class="doc-icon">&#9654;</span><span class="doc-name">Force pressante</span>
+          <span class="doc-tag" style="background:#5a3a1c">Video</span>
+        </div>
+        <div class="doc" data-url="LIEN_HYDROSTATIQUE" data-title="Hydrostatique">
+          <span class="doc-icon">&#9654;</span><span class="doc-name">Hydrostatique</span>
+          <span class="doc-tag" style="background:#5a3a1c">Video</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:#2a5c3a">Activite</span>
+        <span class="sec-title">Activite 11A</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+        <div class="doc" data-url="LIEN_ACT_11A" data-title="Activite 11A">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Activite 11A</span>
+          <span class="doc-tag" style="background:#2a5c3a">Activite</span>
+        </div>
+        <div class="doc" data-url="LIEN_CORRIGE_11A" data-title="Corrige 11A">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Corrige 11A</span>
+          <span class="doc-tag" style="background:#5c2a2a">Corrige</span>
+        </div>
+        <div class="doc" data-url="LIEN_BOYLE_ACT" data-title="Loi de Boyle-Mariotte">
+          <span class="doc-icon">&#128279;</span><span class="doc-name">Loi de Boyle-Mariotte</span>
+          <span class="doc-tag" style="background:#3a3a1c">Lien</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:#2a5c3a">Activite</span>
+        <span class="sec-title">Activite 11B</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+        <div class="doc" data-url="LIEN_SITUATION_11B" data-title="Situation probleme 11B">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Situation probleme</span>
+          <span class="doc-tag" style="background:#3a1c6b">Situation</span>
+        </div>
+        <div class="doc" data-url="LIEN_ACT_11B" data-title="Activite 11B">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Activite 11B</span>
+          <span class="doc-tag" style="background:#2a5c3a">Activite</span>
+        </div>
+        <div class="doc" data-url="LIEN_EXP_BOYLE" data-title="Experience Boyle-Mariotte">
+          <span class="doc-icon">&#128300;</span><span class="doc-name">Experience Boyle-Mariotte</span>
+          <span class="doc-tag" style="background:#2a5c3a">Experience</span>
+        </div>
+        <a class="doc" href="https://digiwall.app/w/4900/4abad8/comptes-rendus-act-11b" target="_blank">
+          <span class="doc-icon">&#128228;</span><span class="doc-name">Deposer votre compte-rendu</span>
+          <span class="doc-tag" style="background:#6b3a1c">Digiwall</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:#2a5c3a">Activite</span>
+        <span class="sec-title">Activite 11C</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+        <div class="doc" data-url="LIEN_SITUATION_11C" data-title="Situation probleme 11C">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Situation probleme</span>
+          <span class="doc-tag" style="background:#3a1c6b">Situation</span>
+        </div>
+        <div class="doc" data-url="https://drive.google.com/file/d/17Zj4ZyW9E_WAybXhTIjuz2zMOBRTNyP6/preview" data-title="Activite 11C">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Activite 11C</span>
+          <span class="doc-tag" style="background:#2a5c3a">Activite</span>
+        </div>
+        <a class="doc" href="https://phet.colorado.edu/sims/html/under-pressure/latest/under-pressure_all.html" target="_blank">
+          <span class="doc-icon">&#127918;</span><span class="doc-name">Animation PhET - Under Pressure</span>
+          <span class="doc-tag" style="background:#1c4a4a">Simulation</span>
+        </a>
+        <a class="doc" href="https://digiwall.app/w/4901/5b7358/comptes-rendus-act-11c" target="_blank">
+          <span class="doc-icon">&#128228;</span><span class="doc-name">Deposer votre compte-rendu</span>
+          <span class="doc-tag" style="background:#6b3a1c">Digiwall</span>
+        </a>
+        <div class="doc" data-url="LIEN_CORRIGE_11C" data-title="Corrige activite 11C">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Corrige de l activite</span>
+          <span class="doc-tag" style="background:#5c2a2a">Corrige</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header">
+        <span class="sec-label" style="background:#3a2010">TD</span>
+        <span class="sec-title">Exercices</span>
+        <span class="sec-toggle">&#9658;</span>
+      </div>
+      <div class="doc-list">
+        <div class="doc" data-url="LIEN_EXERCICES" data-title="Exercices">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Feuille d exercices</span>
+          <span class="doc-tag" style="background:#3a2010">TD</span>
+        </div>
+        <div class="doc" data-url="LIEN_CORRIGE_TD" data-title="Corrige TD">
+          <span class="doc-icon">&#128196;</span><span class="doc-name">Corrige</span>
+          <span class="doc-tag" style="background:#5c2a2a">Corrige</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="viewer">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank">Ouvrir dans un onglet</a>
+    <button id="viewer-close">X</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen></iframe>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  function closeViewer() {
+    document.getElementById('viewer').classList.remove('open');
+    document.getElementById('viewer-frame').src = 'about:blank';
+  }
+
+  document.querySelectorAll('.sec-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      var list = header.nextElementSibling;
+      var arrow = header.querySelector('.sec-toggle');
+      var isOpen = list.classList.contains('open');
+      document.querySelectorAll('.doc-list.open').forEach(function(l) {
+        l.classList.remove('open');
+        l.previousElementSibling.querySelector('.sec-toggle').classList.remove('open');
+      });
+      if (!isOpen) {
+        list.classList.add('open');
+        arrow.classList.add('open');
+      }
+    });
+  });
+
+  document.querySelectorAll('.doc[data-url]').forEach(function(doc) {
+    doc.addEventListener('click', function() {
+      var url = doc.getAttribute('data-url');
+      var title = doc.getAttribute('data-title');
+      if (url.startsWith('LIEN_')) {
+        alert('Lien a configurer : ' + url);
+        return;
+      }
+      document.getElementById('viewer-title').textContent = title;
+      document.getElementById('viewer-newTab').href = url;
+      document.getElementById('viewer-frame').src = url;
+      document.getElementById('viewer').classList.add('open');
+    });
+  });
+
+  document.getElementById('viewer-close').addEventListener('click', closeViewer);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeViewer(); }
+  });
+
+});
+</script>
+</body>
+</html>

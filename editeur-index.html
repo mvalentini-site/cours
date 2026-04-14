@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Index Cahier</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e1e2e;--s:#181825;--s2:#313244;--s3:#45475a;--s4:#585b70;
+  --t:#cdd6f4;--t2:#a6adc8;--t3:#6c7086;
+  --blue:#89b4fa;--green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;
+  --purple:#cba6f7;--teal:#94e2d5;--orange:#fab387;--pink:#f5c2e7;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ── */
+.hdr{background:var(--s);border-bottom:1px solid var(--s2);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-title{font-size:14px;font-weight:700;color:var(--purple);}
+.hdr-sub{font-size:10px;color:var(--t3);}
+.sp{flex:1;}
+.btn{border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;transition:filter .15s;}
+.btn:hover{filter:brightness(1.12);}
+.pri{background:var(--purple);color:#1e1e2e;}
+.sec{background:var(--s2);color:var(--t);}
+.sml{padding:4px 10px;font-size:11px;}
+.dng{background:var(--red);color:#1e1e2e;}
+.ok{background:var(--green);color:#1e1e2e;}
+
+/* ── BODY ── */
+.body{display:flex;flex:1;overflow:hidden;}
+
+/* ── LEFT NAV ── */
+.nav{width:200px;background:var(--s);border-right:1px solid var(--s2);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.nav-sect{padding:10px 12px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);}
+.nav-item{padding:8px 14px;font-size:12px;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;border-left:2px solid transparent;}
+.nav-item:hover{background:var(--s2);}
+.nav-item.active{background:var(--s2);color:var(--t);border-left-color:var(--purple);}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.nav-add{margin:6px 12px;border:1px dashed var(--s3);color:var(--t3);background:transparent;width:calc(100% - 24px);padding:6px;border-radius:6px;cursor:pointer;font-size:11px;}
+.nav-add:hover{border-color:var(--purple);color:var(--purple);}
+.nav-divider{height:1px;background:var(--s2);margin:6px 0;}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:20px 24px;}
+
+/* ── CARDS ── */
+.card{background:var(--s);border:1px solid var(--s2);border-radius:10px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title span{flex:1;}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.row label{font-size:11px;color:var(--t2);min-width:80px;}
+.row input,.row select,.row textarea{flex:1;background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:6px 9px;color:var(--t);font-size:12px;outline:none;min-width:0;}
+.row input:focus,.row select:focus,.row textarea:focus{border-color:var(--purple);}
+.row textarea{resize:vertical;font-family:inherit;}
+.color-pick{width:32px;height:28px;border:none;border-radius:5px;background:var(--s2);cursor:pointer;padding:2px;flex:none;}
+
+/* ── TABS EDITOR ── */
+.tab-list{display:flex;flex-direction:column;gap:6px;}
+.tab-item{background:var(--s2);border-radius:7px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
+.tab-item input{flex:1;background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding:5px 8px;color:var(--t);font-size:11px;outline:none;}
+.tab-item input:focus{border-color:var(--purple);}
+.tab-item .id-badge{font-size:9px;color:var(--t3);font-family:monospace;min-width:70px;}
+.add-row{border:1px dashed var(--s3);color:var(--t3);background:transparent;width:100%;padding:8px;border-radius:7px;cursor:pointer;font-size:11px;margin-top:6px;}
+.add-row:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── SOMMAIRE ── */
+.sommaire-list{display:flex;flex-direction:column;gap:6px;}
+.som-item{background:var(--s2);border-radius:7px;padding:10px 12px;display:flex;align-items:center;gap:8px;border-left:3px solid var(--s3);}
+.som-item.is-cat{border-left-color:var(--orange);}
+.som-item.is-chap{border-left-color:var(--blue);}
+.som-item input{background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding:5px 8px;color:var(--t);font-size:11px;outline:none;}
+.som-item input:focus{border-color:var(--purple);}
+.som-item .w-num{width:50px;}
+.som-item .w-partie{width:90px;}
+.som-item .w-title{flex:1;}
+.type-badge{font-size:9px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.badge-cat{background:var(--orange);color:#1e1e2e;}
+.badge-chap{background:var(--blue);color:#1e1e2e;}
+
+/* ── OUTILS CARDS ── */
+.outil-list{display:flex;flex-direction:column;gap:8px;}
+.outil-item{background:var(--s2);border-radius:8px;padding:12px 14px;border:1px solid transparent;}
+.outil-item:hover{border-color:var(--s3);}
+
+/* ── PREVIEW ── */
+.preview-btn{background:var(--s2);color:var(--t2);border:1px dashed var(--s3);border-radius:7px;padding:6px 12px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.preview-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* ── STATUS ── */
+footer{background:var(--s);border-top:1px solid var(--s2);padding:4px 16px;font-size:10px;color:var(--t3);display:flex;gap:20px;flex-shrink:0;}
+.fw{color:var(--yellow);}
+.fg{color:var(--green);}
+
+/* ── OVERLAY ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:var(--s2);border-radius:12px;padding:22px;width:500px;max-width:95vw;display:flex;flex-direction:column;gap:12px;}
+.modal h3{font-size:14px;color:var(--purple);}
+.modal textarea{width:100%;height:220px;background:var(--bg);color:var(--t);border:1px solid var(--s3);border-radius:7px;padding:10px;font-family:monospace;font-size:11px;resize:vertical;outline:none;}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── DRAG HINT ── */
+.drag-hint{font-size:9px;color:var(--t3);margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">✏️ Éditeur — Cahier de Physique-Chimie</div>
+    <div class="hdr-sub">index.html · structure principale</div>
+  </div>
+  <div class="sp"></div>
+  <button class="btn sec sml" onclick="showCode()">👁 Voir le code</button>
+  <button class="btn pri" onclick="exportFile()">💾 Exporter HTML</button>
+</div>
+
+<div class="body">
+
+  <!-- Navigation gauche -->
+  <div class="nav">
+    <div class="nav-sect">Général</div>
+    <div class="nav-item active" data-pane="meta" onclick="showPane('meta')">
+      <span class="nav-dot" style="background:var(--purple)"></span>Site &amp; Onglets
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-sect">Sommaires</div>
+    <div id="nav-sommaires"></div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-sect">Outils</div>
+    <div id="nav-outils"></div>
+  </div>
+
+  <!-- Zone principale -->
+  <div class="main" id="main-area">
+    <!-- rempli dynamiquement -->
+  </div>
+
+</div>
+
+<footer>
+  <span id="ft-tabs">0 onglets</span>
+  <span id="ft-chaps">0 chapitres</span>
+  <span id="ft-outils">0 outils</span>
+  <span id="ft-warn" class="fw"></span>
+</footer>
+
+<!-- Overlay code -->
+<div class="ov" id="ov-code">
+  <div class="modal">
+    <h3>📋 Code HTML généré</h3>
+    <textarea id="code-ta" readonly></textarea>
+    <div class="modal-acts">
+      <button class="btn sec sml" onclick="closeOv()">Fermer</button>
+      <button class="btn ok sml" onclick="copyCode()">Copier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+let D = {
+  site: {
+    title:   'Cahier de Physique-Chimie',
+    tagline: 'Physique - Chimie - Lycée',
+    github:  'https://github.com',
+  },
+  tabs_left: [
+    { id:'accueil',  label:'Accueil',   color:'#3a2010' },
+    { id:'1ere-spe', label:'1res Spe',  color:'#1c3d6e' },
+    { id:'1ere-ens', label:'Ens. Sci.', color:'#2a5c3a' },
+    { id:'5eme',     label:'5eme',      color:'#6b3a1c' },
+    { id:'outils',   label:'Outils',    color:'#3a3a1c' },
+  ],
+  tabs_right: [
+    { id:'postbac', label:'Post Bac.', color:'#3a1c6b' },
+    { id:'apropos', label:'A propos',  color:'#1c4a4a' },
+  ],
+  sommaires: {
+    '1ere-spe': [
+      { cat:'Organisation et transformation de la matiere' },
+      { num:'01', title:'La mole',                          partie:'Partie 1', file:'' },
+      { num:'01', title:'Dosage par etalonnage',            partie:'Partie 2', file:'' },
+      { num:'02', title:'Oxydoreduction',                   file:'' },
+      { num:'03', title:'Avancement',                       file:'' },
+      { num:'04', title:'Titrages',                         file:'' },
+      { num:'05', title:'De la structure a la polarite',    file:'' },
+      { num:'06', title:'Cohesion de la matiere',           file:'' },
+      { num:'07', title:'Structure des entites organiques', file:'' },
+      { num:'08', title:'Syntheses chimiques',              file:'' },
+      { num:'09', title:'Combustions',                      file:'' },
+      { cat:'Mouvements et interactions' },
+      { num:'10', title:'Interactions et champs',           file:'' },
+      { num:'11', title:'Fluides au repos',                 file:'1ere-spe/ch11/index.html' },
+      { num:'12', title:"Mouvement d'un systeme",           file:'' },
+      { cat:'Energie, conversions et transferts' },
+      { num:'13', title:'Energie des systemes electriques', file:'' },
+      { num:'14', title:'Energie mecanique',                file:'' },
+      { cat:'Ondes et signaux' },
+      { num:'15', title:'Ondes mecaniques',                 file:'' },
+      { num:'16', title:'Lentilles minces',                 file:'' },
+      { num:'17', title:'Couleurs',                         file:'' },
+      { num:'18', title:'Lumiere, onde et particules',      file:'' },
+    ],
+  },
+  pages: {
+    'outils': [
+      { file:'Outils/oscillateur-labo-a3.html',   title:'Oscillateur harmonique',  sub:'Masse-Ressort - Frequence - Energie',           tag:'Mecanique',       color:'#1c3d6e' },
+      { file:'Outils/masse-volumique-labo.html',  title:'Masse volumique',          sub:"p x V = m - Visualisation a l'echelle",          tag:'Matiere',         color:'#2a5c3a' },
+      { file:'Outils/pointage-mouvement.html',    title:'Pointage de mouvement',    sub:'Video frame par frame - Vecteurs v et a',        tag:'Cinematique',     color:'#3a1c6b' },
+      { file:'Outils/gravite_terre_lune.html',    title:'Gravite Terre-Lune',       sub:"Champ gravitationnel - Force d'attraction",      tag:'Gravitation',     color:'#6b3a1c' },
+      { file:'Outils/mariotte.html',              title:'Loi de Mariotte',           sub:'Arduino - P x V = cste - Gaz parfaits',         tag:'Thermodynamique', color:'#5c2a2a' },
+    ],
+  },
+};
+
+let uid = 200;
+function nid(){ return 'n'+(uid++); }
+let currentPane = 'meta';
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function buildNav(){
+  // sommaires nav
+  const ns = document.getElementById('nav-sommaires');
+  ns.innerHTML = '';
+  const somTabs = [...D.tabs_left, ...D.tabs_right].filter(t => t.id !== 'accueil');
+  somTabs.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'nav-item' + (currentPane==='som-'+t.id?' active':'');
+    d.dataset.pane = 'som-'+t.id;
+    d.innerHTML = `<span class="nav-dot" style="background:${t.color}"></span>${t.label}`;
+    d.onclick = () => showPane('som-'+t.id);
+    ns.appendChild(d);
+  });
+
+  // outils nav
+  const no = document.getElementById('nav-outils');
+  no.innerHTML = '';
+  const outilTabs = [...D.tabs_left, ...D.tabs_right];
+  outilTabs.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'nav-item' + (currentPane==='out-'+t.id?' active':'');
+    d.dataset.pane = 'out-'+t.id;
+    d.innerHTML = `<span class="nav-dot" style="background:${t.color}"></span>${t.label}`;
+    d.onclick = () => showPane('out-'+t.id);
+    no.appendChild(d);
+  });
+}
+
+function showPane(id){
+  currentPane = id;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.pane===id));
+  renderPane();
+}
+
+// ═══════════════════════════════════════════
+// PANES
+// ═══════════════════════════════════════════
+function renderPane(){
+  const area = document.getElementById('main-area');
+  if(currentPane==='meta')          area.innerHTML = paneGlobal();
+  else if(currentPane.startsWith('som-')) area.innerHTML = paneSommaire(currentPane.slice(4));
+  else if(currentPane.startsWith('out-')) area.innerHTML = paneOutil(currentPane.slice(4));
+  updateFooter();
+}
+
+// ── Panneau global ────────────────────────
+function paneGlobal(){
+  return `
+  <div class="card">
+    <div class="card-title"><span>🌐 Informations du site</span></div>
+    <div class="row"><label>Titre</label><input type="text" value="${esc(D.site.title)}" oninput="D.site.title=this.value"></div>
+    <div class="row"><label>Tagline</label><input type="text" value="${esc(D.site.tagline)}" oninput="D.site.tagline=this.value"></div>
+    <div class="row"><label>Lien GitHub</label><input type="text" value="${esc(D.site.github)}" oninput="D.site.github=this.value"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>◀ Onglets gauche</span><button class="btn sec sml" onclick="addTabLeft()">+ Ajouter</button></div>
+    <p class="drag-hint">Ordre = ordre d'affichage vertical</p>
+    <div class="tab-list" id="tl-list">${D.tabs_left.map((t,i)=>tabItemHTML(t,i,'L')).join('')}</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>▶ Onglets droite</span><button class="btn sec sml" onclick="addTabRight()">+ Ajouter</button></div>
+    <div class="tab-list" id="tr-list">${D.tabs_right.map((t,i)=>tabItemHTML(t,i,'R')).join('')}</div>
+  </div>`;
+}
+
+function tabItemHTML(t, i, side){
+  return `<div class="tab-item">
+    <input type="color" class="color-pick" value="${t.color}" title="Couleur" oninput="updateTab('${side}',${i},'color',this.value)">
+    <span class="id-badge">${t.id}</span>
+    <input type="text" value="${esc(t.label)}" placeholder="Label" oninput="updateTab('${side}',${i},'label',this.value)" style="flex:1">
+    <input type="text" value="${esc(t.id)}" placeholder="ID (slug)" oninput="updateTab('${side}',${i},'id',this.value)" style="width:100px;font-family:monospace;font-size:10px">
+    ${i>0?`<button class="btn sec sml" onclick="moveTab('${side}',${i},-1)">↑</button>`:''}
+    ${i<(side==='L'?D.tabs_left:D.tabs_right).length-1?`<button class="btn sec sml" onclick="moveTab('${side}',${i},1)">↓</button>`:''}
+    <button class="btn dng sml" onclick="delTab('${side}',${i})">🗑</button>
+  </div>`;
+}
+
+// ── Panneau sommaire ──────────────────────
+function paneSommaire(tabId){
+  const tab = [...D.tabs_left,...D.tabs_right].find(t=>t.id===tabId);
+  const items = D.sommaires[tabId]||[];
+  const rows = items.map((c,i)=>somItemHTML(tabId,c,i)).join('');
+
+  return `<div class="card">
+    <div class="card-title">
+      <span class="nav-dot" style="background:${tab?.color||'#555'}"></span>
+      <span>Sommaire — ${tab?.label||tabId}</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn sec sml" onclick="addSomCat('${tabId}')">+ Catégorie</button>
+      <button class="btn sec sml" onclick="addSomChap('${tabId}')">+ Chapitre</button>
+    </div>
+    ${items.length ? '' : '<p style="font-size:11px;color:var(--t3);font-style:italic;padding:12px 0;">Aucun chapitre pour l\'instant.</p>'}
+    <div class="sommaire-list" id="som-${tabId}">${rows}</div>
+  </div>`;
+}
+
+function somItemHTML(tabId, c, i){
+  const isCat = !!c.cat;
+  const total = (D.sommaires[tabId]||[]).length;
+  if(isCat){
+    return `<div class="som-item is-cat">
+      <span class="type-badge badge-cat">Catégorie</span>
+      <input class="w-title" type="text" value="${esc(c.cat)}" placeholder="Nom de catégorie" oninput="updateSom('${tabId}',${i},'cat',this.value)">
+      ${i>0?`<button class="btn sec sml" onclick="moveSom('${tabId}',${i},-1)">↑</button>`:''}
+      ${i<total-1?`<button class="btn sec sml" onclick="moveSom('${tabId}',${i},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="delSom('${tabId}',${i})">🗑</button>
+    </div>`;
+  }
+  const hasLink = c.file && !c.file.startsWith('LIEN_');
+  const linkStyle = hasLink ? 'border-color:var(--green)' : (c.file?'border-color:var(--yellow)':'');
+  return `<div class="som-item is-chap" style="flex-direction:column;align-items:stretch;gap:6px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="type-badge badge-chap">Chap.</span>
+      <input class="w-num" type="text" value="${esc(c.num||'')}" placeholder="N°" oninput="updateSom('${tabId}',${i},'num',this.value)">
+      <input class="w-title" type="text" value="${esc(c.title||'')}" placeholder="Titre du chapitre" oninput="updateSom('${tabId}',${i},'title',this.value)">
+      <input class="w-partie" type="text" value="${esc(c.partie||'')}" placeholder="Partie (opt.)" oninput="updateSom('${tabId}',${i},'partie',this.value)">
+      ${i>0?`<button class="btn sec sml" onclick="moveSom('${tabId}',${i},-1)">↑</button>`:''}
+      ${i<total-1?`<button class="btn sec sml" onclick="moveSom('${tabId}',${i},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="delSom('${tabId}',${i})">🗑</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding-left:4px;">
+      <span style="font-size:10px;color:var(--t3);min-width:46px;">📄 Fichier</span>
+      <input type="text" value="${esc(c.file||'')}" placeholder="1ere-spe/11-Fluides-au-repos/index.html"
+        style="flex:1;background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding:5px 8px;color:var(--t);font-size:11px;outline:none;font-family:monospace;${linkStyle}"
+        oninput="updateSom('${tabId}',${i},'file',this.value);updateLinkStyle(this)">
+      ${hasLink?`<span style="font-size:10px;color:var(--green);">✓</span>`:`<span style="font-size:10px;color:var(--t3);">—</span>`}
+    </div>
+  </div>`;
+}
+
+// ── Panneau outils ────────────────────────
+function paneOutil(tabId){
+  const tab = [...D.tabs_left,...D.tabs_right].find(t=>t.id===tabId);
+  const items = D.pages[tabId]||[];
+
+  return `<div class="card">
+    <div class="card-title">
+      <span class="nav-dot" style="background:${tab?.color||'#555'}"></span>
+      <span>Outils / Cartes — ${tab?.label||tabId}</span>
+      <button class="btn sec sml" onclick="addOutil('${tabId}')">+ Ajouter une carte</button>
+    </div>
+    ${items.length ? '' : '<p style="font-size:11px;color:var(--t3);font-style:italic;padding:8px 0;">Aucun outil pour cet onglet.</p>'}
+    <div class="outil-list">${items.map((p,i)=>outilItemHTML(tabId,p,i)).join('')}</div>
+  </div>`;
+}
+
+function outilItemHTML(tabId, p, i){
+  const total = (D.pages[tabId]||[]).length;
+  return `<div class="outil-item">
+    <div class="row">
+      <label>Titre</label>
+      <input type="text" value="${esc(p.title)}" oninput="updateOutil('${tabId}',${i},'title',this.value)">
+      <input type="color" class="color-pick" value="${p.color||'#1c3d6e'}" oninput="updateOutil('${tabId}',${i},'color',this.value)">
+    </div>
+    <div class="row">
+      <label>Sous-titre</label>
+      <input type="text" value="${esc(p.sub||'')}" oninput="updateOutil('${tabId}',${i},'sub',this.value)">
+    </div>
+    <div class="row">
+      <label>Tag</label>
+      <input type="text" value="${esc(p.tag||'')}" placeholder="ex: Mecanique" oninput="updateOutil('${tabId}',${i},'tag',this.value)" style="max-width:130px">
+      <label>Fichier</label>
+      <input type="text" value="${esc(p.file||'')}" placeholder="Outils/mon-outil.html" oninput="updateOutil('${tabId}',${i},'file',this.value)">
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px;">
+      ${i>0?`<button class="btn sec sml" onclick="moveOutil('${tabId}',${i},-1)">↑</button>`:''}
+      ${i<total-1?`<button class="btn sec sml" onclick="moveOutil('${tabId}',${i},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="delOutil('${tabId}',${i})">🗑 Supprimer</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// MUTATIONS — TABS
+// ═══════════════════════════════════════════
+function updateTab(side, i, key, val){
+  const arr = side==='L'?D.tabs_left:D.tabs_right;
+  arr[i][key] = val;
+  buildNav();
+}
+function addTabLeft(){
+  D.tabs_left.push({id:'nouveau-'+nid(),label:'Nouveau',color:'#555555'});
+  buildNav(); renderPane();
+}
+function addTabRight(){
+  D.tabs_right.push({id:'nouveau-'+nid(),label:'Nouveau',color:'#555555'});
+  buildNav(); renderPane();
+}
+function delTab(side, i){
+  if(!confirm('Supprimer cet onglet ?')) return;
+  const arr = side==='L'?D.tabs_left:D.tabs_right;
+  arr.splice(i,1);
+  buildNav(); renderPane();
+}
+function moveTab(side, i, dir){
+  const arr = side==='L'?D.tabs_left:D.tabs_right;
+  const [item]=arr.splice(i,1); arr.splice(i+dir,0,item);
+  buildNav(); renderPane();
+}
+
+// ═══════════════════════════════════════════
+// MUTATIONS — SOMMAIRE
+// ═══════════════════════════════════════════
+function updateSom(tabId, i, key, val){
+  if(!D.sommaires[tabId]) D.sommaires[tabId]=[];
+  D.sommaires[tabId][i][key]=val;
+}
+function addSomCat(tabId){
+  if(!D.sommaires[tabId]) D.sommaires[tabId]=[];
+  D.sommaires[tabId].push({cat:'Nouvelle catégorie'});
+  renderPane();
+}
+function addSomChap(tabId){
+  if(!D.sommaires[tabId]) D.sommaires[tabId]=[];
+  const nums = D.sommaires[tabId].filter(c=>c.num).map(c=>parseInt(c.num)||0);
+  const next = nums.length ? Math.max(...nums)+1 : 1;
+  D.sommaires[tabId].push({num:String(next).padStart(2,'0'),title:'Nouveau chapitre',file:''});
+  renderPane();
+}
+
+function updateLinkStyle(input){
+  const v = input.value.trim();
+  input.style.borderColor = v ? 'var(--green)' : '';
+  // update model too
+  const next = input.nextElementSibling;
+  if(next) next.textContent = v ? '✓' : '—';
+  if(next) next.style.color = v ? 'var(--green)' : 'var(--t3)';
+}
+function delSom(tabId, i){
+  D.sommaires[tabId].splice(i,1);
+  renderPane();
+}
+function moveSom(tabId, i, dir){
+  const arr=D.sommaires[tabId];
+  const [item]=arr.splice(i,1); arr.splice(i+dir,0,item);
+  renderPane();
+}
+
+// ═══════════════════════════════════════════
+// MUTATIONS — OUTILS
+// ═══════════════════════════════════════════
+function updateOutil(tabId, i, key, val){
+  if(!D.pages[tabId]) D.pages[tabId]=[];
+  D.pages[tabId][i][key]=val;
+}
+function addOutil(tabId){
+  if(!D.pages[tabId]) D.pages[tabId]=[];
+  D.pages[tabId].push({file:'Outils/nouveau.html',title:'Nouvel outil',sub:'Description',tag:'Outil',color:'#1c3d6e'});
+  renderPane();
+}
+function delOutil(tabId, i){
+  D.pages[tabId].splice(i,1);
+  renderPane();
+}
+function moveOutil(tabId, i, dir){
+  const arr=D.pages[tabId];
+  const [item]=arr.splice(i,1); arr.splice(i+dir,0,item);
+  renderPane();
+}
+
+// ═══════════════════════════════════════════
+// FOOTER
+// ═══════════════════════════════════════════
+function updateFooter(){
+  const nbTabs = D.tabs_left.length + D.tabs_right.length;
+  const nbChaps = Object.values(D.sommaires).reduce((a,s)=>a+s.filter(c=>c.num).length,0);
+  const nbOutils = Object.values(D.pages).reduce((a,s)=>a+s.length,0);
+  const nbMissing = Object.values(D.pages).reduce((a,s)=>a+s.filter(p=>p.file.includes('nouveau')).length,0);
+  document.getElementById('ft-tabs').textContent = nbTabs+' onglets';
+  document.getElementById('ft-chaps').textContent = nbChaps+' chapitres';
+  document.getElementById('ft-outils').textContent = nbOutils+' outils';
+  document.getElementById('ft-warn').textContent = nbMissing?`⚠ ${nbMissing} outil(s) avec chemin à définir`:'';
+}
+
+// ═══════════════════════════════════════════
+// HTML GENERATION
+// ═══════════════════════════════════════════
+function generateHTML(){
+  const tabsLeftJS = JSON.stringify(D.tabs_left, null, 2);
+  const tabsRightJS = JSON.stringify(D.tabs_right, null, 2);
+
+  // Build sommaires
+  const somKeys = Object.keys(D.sommaires);
+  const somLines = somKeys.map(k => {
+    const items = D.sommaires[k].map(c => {
+      if(c.cat) return `    { cat:'${jsEsc(c.cat)}' }`;
+      const partie = c.partie ? `, partie:'${jsEsc(c.partie)}'` : '';
+      const file   = `, file:'${jsEsc(c.file||'')}'`;
+      return `    { num:'${jsEsc(c.num||'')}', title:'${jsEsc(c.title||'')}' ${partie}${file}}`;
+    }).join(',\n');
+    return `  '${k}': [\n${items}\n  ]`;
+  });
+
+  // Build pages
+  const pageKeys = Object.keys(D.pages);
+  const pageLines = pageKeys.map(k => {
+    const items = D.pages[k].map(p => {
+      return `    { file:'${jsEsc(p.file)}', title:'${jsEsc(p.title)}', sub:'${jsEsc(p.sub||'')}', tag:'${jsEsc(p.tag||'')}', color:'${p.color||'#555'}' }`;
+    }).join(',\n');
+    const noItems = ['accueil','1ere-spe','1ere-ens','5eme','postbac','apropos'].filter(id=>!D.pages[id]);
+    return `  '${k}': [\n${items}\n  ]`;
+  });
+
+  // Empty tabs
+  const allTabIds = [...D.tabs_left,...D.tabs_right].map(t=>t.id);
+  const emptyPages = allTabIds.filter(id=>!D.pages[id]).map(id=>`  '${id}': []`);
+  const allPageLines = [...pageLines, ...emptyPages];
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc2(D.site.title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--paper3:#e4ddc8;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#7a6a50;--faded2:#a89070;
+  --red:#a63020;--blue:#1c3d6e;
+  --tape:rgba(220,200,150,0.62);--desk:#6a6258;
+  --gmaj:rgba(70,90,200,0.13);--gmin:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);
+  --tab-w:44px;
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+html,body{width:100%;height:100vh;overflow:hidden;
+  background:var(--desk);
+  background-image:radial-gradient(ellipse at 15% 10%,#7a7268 0%,transparent 50%),
+    radial-gradient(ellipse at 85% 90%,#5a5248 0%,transparent 50%);
+  font-family:var(--mono);}
+#app{display:grid;grid-template-columns:var(--tab-w) 1fr var(--tab-w);height:100vh;}
+#tabs-left{display:flex;flex-direction:column;justify-content:space-between;
+  padding:20px 0;z-index:20;background:rgba(0,0,0,.12);}
+.tabs-group{display:flex;flex-direction:column;gap:3px;}
+.tab-l{height:76px;width:var(--tab-w);border:none;cursor:pointer;
+  border-radius:0 4px 4px 0;box-shadow:2px 2px 6px rgba(0,0,0,.3);
+  transition:width .15s,opacity .15s;opacity:.72;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;overflow:hidden;}
+.tab-l:hover{width:54px;opacity:1;}
+.tab-l.active{width:58px;opacity:1;box-shadow:3px 2px 12px rgba(0,0,0,.4);}
+.tab-l.active::after{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);
+  border-left:8px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent;}
+.tab-l span{writing-mode:vertical-rl;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.88);white-space:nowrap;pointer-events:none;}
+#tabs-right{display:flex;flex-direction:column;justify-content:center;gap:3px;
+  padding:20px 0;z-index:20;background:rgba(0,0,0,.08);}
+.tab-r{height:72px;width:var(--tab-w);border:none;cursor:pointer;
+  border-radius:4px 0 0 4px;box-shadow:-2px 2px 6px rgba(0,0,0,.3);
+  transition:width .15s,opacity .15s;opacity:.68;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tab-r:hover{width:54px;opacity:1;}
+.tab-r.active{width:56px;opacity:1;}
+.tab-r span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,255,255,.85);white-space:nowrap;pointer-events:none;}
+#book{position:relative;overflow:hidden;height:100vh;
+  box-shadow:inset 5px 0 16px rgba(0,0,0,.15),inset -5px 0 16px rgba(0,0,0,.15);}
+#page-wrap{height:100%;overflow-y:auto;overflow-x:hidden;}
+.paper{min-height:100%;background:var(--paper);padding:48px 52px 72px 80px;position:relative;}
+.paper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);}
+.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;
+  background:var(--margin);pointer-events:none;z-index:1;}
+.paper>*{position:relative;z-index:2;}
+.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;
+  display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
+.hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
+.tape{display:inline-block;background:var(--tape);padding:3px 16px 3px 10px;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
+  margin-bottom:12px;position:relative;}
+.tape::before,.tape::after{content:'';position:absolute;top:0;bottom:0;width:5px;background:rgba(200,180,130,.7);}
+.tape::before{left:0;}.tape::after{right:0;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:28px;padding-bottom:12px;border-bottom:1.5px solid var(--ink2);}
+.exp-tag{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
+h1{font-family:var(--serif);font-size:clamp(24px,3.5vw,42px);font-weight:700;font-style:italic;
+  color:var(--ink);line-height:1;letter-spacing:-.5px;}
+h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,.3);}
+.ph-right{text-align:right;font-size:10px;color:var(--faded);line-height:1.9;}
+.ph-date{font-family:var(--serif);font-size:13px;color:var(--blue);font-weight:600;}
+.sec{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:28px;}
+.sec-num{font-size:8px;font-weight:500;padding:2px 6px;letter-spacing:1px;color:var(--paper);}
+.sec-name{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:6px;}
+.card{display:block;border:1.5px solid var(--ink2);padding:16px 32px 14px 14px;
+  background:rgba(255,255,255,.22);position:relative;text-decoration:none;color:inherit;
+  transition:background .13s,transform .12s;}
+.card:hover{background:rgba(255,255,255,.48);transform:translateY(-2px);}
+.card-tape{position:absolute;top:-8px;left:10px;background:var(--tape);padding:1px 8px;
+  font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);
+  box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.card-title{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--ink);
+  margin-bottom:4px;margin-top:4px;line-height:1.2;}
+.card-sub{font-size:9px;color:var(--faded);line-height:1.6;}
+.card-arrow{position:absolute;bottom:10px;right:12px;font-size:13px;color:var(--faded2);}
+.card-tag{display:inline-block;margin-top:8px;font-size:7px;color:var(--paper);padding:1px 6px;letter-spacing:1px;}
+.card .bar{position:absolute;bottom:0;left:0;right:0;height:2.5px;opacity:.55;}
+.chap-num{font-family:var(--serif);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+.chap-title{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--faded);
+  line-height:1.3;margin-bottom:4px;}
+.chap-partie{font-size:7px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--paper);padding:1px 6px;display:inline-block;margin-top:4px;}
+.chap-cat{grid-column:1/-1;font-family:var(--serif);font-size:16px;font-style:italic;
+  color:var(--ink2);border-bottom:1.5px solid var(--ink2);padding:18px 0 8px;margin-bottom:2px;}
+.empty{font-size:10px;color:var(--faded2);font-style:italic;padding:12px 0;}
+.page-footer{margin-top:44px;padding-top:14px;border-top:1px solid rgba(28,18,8,.1);
+  display:flex;justify-content:space-between;font-size:9px;color:var(--faded2);}
+.page-footer a{color:var(--faded2);text-decoration:none;}
+.page-footer a:hover{color:var(--red);}
+.page-num{position:absolute;bottom:20px;right:48px;font-size:9px;color:var(--faded2);letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="tabs-left">
+    <div class="tabs-group" id="tabs-top"></div>
+    <div class="tabs-group" id="tabs-bot"></div>
+  </div>
+  <div id="book">
+    <div id="page-wrap">
+      <div class="paper" id="paper">
+        <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="tabs-right"></div>
+</div>
+
+<script>
+const SITE_TITLE    = '${jsEsc(D.site.title)}';
+const SITE_TAGLINE  = '${jsEsc(D.site.tagline)}';
+const SITE_GITHUB   = '${jsEsc(D.site.github)}';
+
+const TABS_LEFT = ${tabsLeftJS};
+const TABS_RIGHT = ${tabsRightJS};
+
+const SOMMAIRES = {
+${somLines.join(',\n')}
+};
+
+const PAGES = {
+${allPageLines.join(',\n')}
+};
+
+let currentTab = 'accueil';
+const ALL_TABS = [...TABS_LEFT, ...TABS_RIGHT];
+function tabInfo(id){ return ALL_TABS.find(t=>t.id===id)||{label:'',color:'#3a2010'}; }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buildTabs(){
+  const top = document.getElementById('tabs-top');
+  const bot = document.getElementById('tabs-right');
+  TABS_LEFT.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tab-l'+(t.id===currentTab?' active':'');
+    b.style.background=t.color; b.style.color=t.color;
+    b.dataset.tab=t.id;
+    b.innerHTML='<span>'+t.label+'</span>';
+    b.addEventListener('click',()=>switchTab(t.id));
+    top.appendChild(b);
+  });
+  TABS_RIGHT.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tab-r'+(t.id===currentTab?' active':'');
+    b.style.background=t.color; b.style.color=t.color;
+    b.dataset.tab=t.id;
+    b.innerHTML='<span>'+t.label+'</span>';
+    b.addEventListener('click',()=>switchTab(t.id));
+    bot.appendChild(b);
+  });
+}
+
+function updateTabsUI(){
+  document.querySelectorAll('.tab-l,.tab-r').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===currentTab);
+  });
+}
+
+function switchTab(id){
+  currentTab=id;
+  updateTabsUI();
+  render();
+  document.getElementById('page-wrap').scrollTop=0;
+}
+
+function render(){
+  const paper = document.getElementById('paper');
+  const date  = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const ti    = tabInfo(currentTab);
+  const content = currentTab==='accueil' ? renderAccueil(date) : renderSection(ti, date);
+  paper.innerHTML =
+    '<div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>'
+    + content
+    + '<div class="page-num">-- '+escH(ti.label)+' --</div>';
+}
+
+function renderAccueil(date){
+  const sections = TABS_LEFT.filter(t=>t.id!=='accueil').map((t,i)=>{
+    const chaps = (SOMMAIRES[t.id]||[]);
+    const pages = PAGES[t.id]||[];
+    const items = chaps.length
+      ? chaps.map(c=>chapHTML(c,t.color)).join('')
+      : pages.length
+        ? pages.map(p=>cardHTML(p)).join('')
+        : '<p class="empty">Aucune page pour le moment.</p>';
+    return '<div class="sec"><span class="sec-num" style="background:'+t.color+'">'+String(i+1).padStart(2,'0')+'</span><span class="sec-name">'+escH(t.label)+'</span></div><div class="cards">'+items+'</div>';
+  }).join('');
+  return '<div class="tape">'+escH(SITE_TAGLINE)+'</div>'
+    +'<div class="page-header"><div><div class="exp-tag">Outils interactifs</div><h1>Cahier de <em>laboratoire</em></h1></div>'
+    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>GitHub Pages</div></div></div>'
+    +sections
+    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></div>';
+}
+
+function renderSection(ti, date){
+  const chapitres = SOMMAIRES[ti.id]||[];
+  const pages     = PAGES[ti.id]||[];
+  const nbChap    = chapitres.filter(c=>c.num).length;
+  const tocHTML = nbChap
+    ? '<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
+    : '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">-&gt;</span><span class="sec-name">Outils disponibles</span></div>'
+      +'<div class="cards">'+(pages.length ? pages.map(p=>cardHTML(p)).join('') : '<p class="empty">Aucune page pour le moment.</p>')+'</div>';
+  const count = nbChap ? nbChap+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
+  const expTag = nbChap ? 'Liste des chapitres' : 'Physique - Chimie';
+  const h1 = nbChap ? '' : '<h1>'+escH(ti.label)+'</h1>';
+  return '<div class="tape" style="background:'+ti.color+'22;color:'+ti.color+'">'+escH(ti.label)+'</div>'
+    +'<div class="page-header"><div><div class="exp-tag">'+expTag+'</div>'+h1+'</div>'
+    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>'+count+'</div></div></div>'
+    +tocHTML
+    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></div>';
+}
+
+function chapHTML(c, color){
+  if(c.cat) return '<div class="chap-cat">'+escH(c.cat)+'</div>';
+  const hasLink = c.file && c.file.trim() !== '';
+  const tag  = hasLink ? 'a' : 'div';
+  const href = hasLink ? ' href="'+escH(c.file)+'"' : '';
+  const cursor = hasLink ? '' : ' style="cursor:default;"';
+  const arrow = hasLink ? '<span class="card-arrow">-&gt;</span>' : '';
+  return '<'+tag+' class="card"'+href+cursor+'>'
+    +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
+    +'<div class="chap-title">'+escH(c.title)+'</div>'
+    +(c.partie ? '<span class="chap-partie" style="background:'+color+'">'+escH(c.partie)+'</span>' : '')
+    +arrow
+    +'<div class="bar" style="background:'+color+'"></div>'
+    +'</'+tag+'>';
+}
+
+function cardHTML(p){
+  return '<a class="card" href="'+escH(p.file)+'">'
+    +'<div class="card-tape">'+escH(p.tag)+'</div>'
+    +'<div class="card-title">'+escH(p.title)+'</div>'
+    +'<div class="card-sub">'+escH(p.sub)+'</div>'
+    +'<span class="card-tag" style="background:'+p.color+'">'+escH(p.tag)+'</span>'
+    +'<span class="card-arrow">-&gt;</span>'
+    +'<div class="bar" style="background:'+p.color+'"></div>'
+    +'</a>';
+}
+
+buildTabs();
+render();
+<\/script>
+</body>
+</html>`;
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc2(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function jsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// ═══════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════
+function exportFile(){
+  const html = generateHTML();
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+}
+
+function showCode(){
+  document.getElementById('code-ta').value = generateHTML();
+  document.getElementById('ov-code').classList.add('open');
+}
+function closeOv(){
+  document.getElementById('ov-code').classList.remove('open');
+}
+function copyCode(){
+  document.getElementById('code-ta').select();
+  document.execCommand('copy');
+  alert('Code copié !');
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeOv(); });
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+buildNav();
+renderPane();
+</script>
+</body>
+</html>
