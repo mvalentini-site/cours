@@ -55,6 +55,21 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);heigh
 .row textarea{resize:vertical;font-family:inherit;}
 .color-pick{width:32px;height:28px;border:none;border-radius:5px;background:var(--s2);cursor:pointer;padding:2px;flex:none;}
 
+/* ── COLOR SWATCH PICKER ── */
+.cpw{position:relative;display:inline-flex;align-items:center;flex-shrink:0;}
+.cp-preview{width:30px;height:26px;border-radius:5px;cursor:pointer;border:2px solid rgba(255,255,255,.15);transition:border-color .15s,transform .1s;flex-shrink:0;}
+.cp-preview:hover{border-color:rgba(255,255,255,.45);transform:scale(1.07);}
+.cp-pop{position:absolute;top:calc(100% + 6px);left:0;background:var(--s);border:1px solid var(--s3);border-radius:9px;padding:9px;z-index:2000;display:none;box-shadow:0 6px 24px rgba(0,0,0,.55);min-width:136px;}
+.cp-pop.open{display:block;}
+.pal-grid{display:grid;grid-template-columns:repeat(4,28px);gap:4px;margin-bottom:8px;}
+.pal-swatch{width:28px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:transform .1s,border-color .15s;}
+.pal-swatch:hover{transform:scale(1.18);border-color:rgba(255,255,255,.6);}
+.pal-swatch.selected{border-color:#fff;}
+.pal-sep{grid-column:1/-1;height:1px;background:var(--s2);margin:2px 0;}
+.pal-custom-row{display:flex;align-items:center;gap:6px;}
+.pal-custom-row label{font-size:9px;color:var(--t3);white-space:nowrap;}
+.pal-custom-row input[type=color]{flex:1;height:22px;border:none;border-radius:4px;background:var(--s2);cursor:pointer;padding:1px;}
+
 /* ── TABS EDITOR ── */
 .tab-list{display:flex;flex-direction:column;gap:6px;}
 .tab-item{background:var(--s2);border-radius:7px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
@@ -159,6 +174,8 @@ footer{background:var(--s);border-top:1px solid var(--s2);padding:4px 16px;font-
   <span id="ft-warn" class="fw"></span>
 </footer>
 
+<div class="toast" id="toast"></div>
+
 <!-- Overlay code -->
 <div class="ov" id="ov-code">
   <div class="modal">
@@ -235,6 +252,75 @@ function nid(){ return 'n'+(uid++); }
 let currentPane = 'meta';
 
 // ═══════════════════════════════════════════
+// COLOR PALETTE
+// ═══════════════════════════════════════════
+const PALETTE = [
+  '#1c3d6e', // Bleu marine
+  '#2a5c3a', // Vert forêt
+  '#3a2010', // Marron
+  '#3a1c6b', // Violet
+  '#5c2a2a', // Rouge sombre
+  '#1c4a4a', // Teal
+  '#6b3a1c', // Rouille
+  '#3a3a1c', // Olive
+  '#5a3a1c', // Brun
+  '#4a1c5c', // Prune
+  '#1c3a5c', // Bleu acier
+  '#3a5c1c', // Vert olive
+];
+
+// Génère le HTML du sélecteur de couleur avec palette
+function colorSwatchHTML(cpid, color, callbackTpl){
+  const escCb = callbackTpl.replace(/"/g,'&quot;');
+  const swatches = PALETTE.map(c => {
+    const sel = c.toLowerCase()===color.toLowerCase() ? ' selected' : '';
+    return `<div class="pal-swatch${sel}" style="background:${c}" title="${c}" onclick="event.stopPropagation();pickColor('${cpid}','${c}')"></div>`;
+  }).join('');
+  return `<div class="cpw" id="${cpid}" data-cb="${escCb}">
+    <div class="cp-preview" style="background:${color}" onclick="event.stopPropagation();togglePalette('${cpid}')" title="Choisir une couleur"></div>
+    <div class="cp-pop">
+      <div class="pal-grid">${swatches}</div>
+      <div class="pal-sep"></div>
+      <div class="pal-custom-row">
+        <label>Autre</label>
+        <input type="color" value="${color}" oninput="event.stopPropagation();pickColor('${cpid}',this.value)" onclick="event.stopPropagation()">
+      </div>
+    </div>
+  </div>`;
+}
+
+function togglePalette(cpid){
+  const el = document.getElementById(cpid);
+  if(!el) return;
+  // Fermer toutes les palettes ouvertes sauf celle-ci
+  document.querySelectorAll('.cp-pop.open').forEach(p => {
+    if(p.closest('.cpw').id !== cpid) p.classList.remove('open');
+  });
+  el.querySelector('.cp-pop').classList.toggle('open');
+}
+
+function pickColor(cpid, color){
+  const el = document.getElementById(cpid);
+  if(!el) return;
+  // Mettre à jour la prévisualisation
+  el.querySelector('.cp-preview').style.background = color;
+  const customInput = el.querySelector('input[type=color]');
+  if(customInput) customInput.value = color;
+  // Marquer le swatch sélectionné
+  el.querySelectorAll('.pal-swatch').forEach(s => s.classList.toggle('selected', s.style.background === color || s.title.toLowerCase() === color.toLowerCase()));
+  // Exécuter le callback
+  const cb = el.dataset.cb.replace(/COLORVAL/g, JSON.stringify(color));
+  try { new Function(cb)(); } catch(e){ console.warn('pickColor cb err', e); }
+  // Fermer la palette
+  el.querySelector('.cp-pop').classList.remove('open');
+}
+
+// Fermer les palettes si clic en dehors
+document.addEventListener('click', function(){
+  document.querySelectorAll('.cp-pop.open').forEach(p => p.classList.remove('open'));
+});
+
+// ═══════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════
 function buildNav(){
@@ -305,8 +391,9 @@ function paneGlobal(){
 }
 
 function tabItemHTML(t, i, side){
+  const cpid = nid();
   return `<div class="tab-item">
-    <input type="color" class="color-pick" value="${t.color}" title="Couleur" oninput="updateTab('${side}',${i},'color',this.value)">
+    ${colorSwatchHTML(cpid, t.color||'#3a2010', `updateTab('${side}',${i},'color',COLORVAL)`)}
     <span class="id-badge">${t.id}</span>
     <input type="text" value="${esc(t.label)}" placeholder="Label" oninput="updateTab('${side}',${i},'label',this.value)" style="flex:1">
     <input type="text" value="${esc(t.id)}" placeholder="ID (slug)" oninput="updateTab('${side}',${i},'id',this.value)" style="width:100px;font-family:monospace;font-size:10px">
@@ -388,11 +475,12 @@ function paneOutil(tabId){
 
 function outilItemHTML(tabId, p, i){
   const total = (D.pages[tabId]||[]).length;
+  const cpid = nid();
   return `<div class="outil-item">
     <div class="row">
       <label>Titre</label>
       <input type="text" value="${esc(p.title)}" oninput="updateOutil('${tabId}',${i},'title',this.value)">
-      <input type="color" class="color-pick" value="${p.color||'#1c3d6e'}" oninput="updateOutil('${tabId}',${i},'color',this.value)">
+      ${colorSwatchHTML(cpid, p.color||'#1c3d6e', `updateOutil('${tabId}',${i},'color',COLORVAL)`)}
     </div>
     <div class="row">
       <label>Sous-titre</label>
@@ -818,6 +906,88 @@ render();
 function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function esc2(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function jsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// ═══════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════
+function importFile(){
+  document.getElementById('file-input').click();
+}
+
+function handleFileInput(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      parseIndexHTML(ev.target.result);
+      toast('✓ ' + file.name + ' chargé avec succès', 'ok');
+    } catch(err) {
+      toast('✗ Erreur : ' + err.message, 'err');
+      console.error(err);
+    }
+    input.value = ''; // reset pour pouvoir recharger le même fichier
+  };
+  reader.readAsText(file);
+}
+
+function parseIndexHTML(html){
+  // Trouver le bloc <script> principal (celui qui contient TABS_LEFT)
+  const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([^]*?)<\/script>/gi)];
+  const mainScript = scripts.map(m => m[1]).find(s => s.includes('TABS_LEFT'));
+  if(!mainScript) throw new Error('Données TABS_LEFT introuvables dans ce fichier — est-ce bien un index.html généré par cet éditeur ?');
+
+  // On supprime uniquement les APPELS autonomes en fin de script (lignes "buildTabs();" seules)
+  // Le ^ et $ avec flag m évitent de toucher "function buildTabs(){" sur la même ligne
+  const sandboxed = mainScript
+    .replace(/^\s*buildTabs\s*\(\s*\)\s*;?\s*$/mg, '//')
+    .replace(/^\s*render\s*\(\s*\)\s*;?\s*$/mg, '//');
+
+  // Extraire les données via Function (exécution isolée, pas d'accès au DOM de l'éditeur)
+  const fn = new Function(`
+    ${sandboxed}
+    return {
+      title:    typeof SITE_TITLE   !== 'undefined' ? SITE_TITLE   : '',
+      tagline:  typeof SITE_TAGLINE !== 'undefined' ? SITE_TAGLINE : '',
+      github:   typeof SITE_GITHUB  !== 'undefined' ? SITE_GITHUB  : '',
+      tabsLeft: typeof TABS_LEFT    !== 'undefined' ? TABS_LEFT    : null,
+      tabsRight:typeof TABS_RIGHT   !== 'undefined' ? TABS_RIGHT   : null,
+      sommaires:typeof SOMMAIRES    !== 'undefined' ? SOMMAIRES    : null,
+      pages:    typeof PAGES        !== 'undefined' ? PAGES        : null,
+    };
+  `);
+  const data = fn();
+
+  if(!data.tabsLeft) throw new Error('Structure TABS_LEFT manquante');
+
+  // Charger dans le modèle de l'éditeur
+  if(data.title)    D.site.title   = data.title;
+  if(data.tagline)  D.site.tagline = data.tagline;
+  if(data.github)   D.site.github  = data.github;
+  if(data.tabsLeft)  D.tabs_left   = data.tabsLeft;
+  if(data.tabsRight) D.tabs_right  = data.tabsRight;
+  if(data.sommaires) D.sommaires   = data.sommaires;
+  if(data.pages)     D.pages       = data.pages;
+
+  // S'assurer que chaque chapitre a bien un champ file (rétro-compat anciens exports)
+  Object.values(D.sommaires).forEach(arr =>
+    arr.forEach(c => { if(c.num && c.file === undefined) c.file = ''; })
+  );
+
+  currentPane = 'meta';
+  buildNav();
+  renderPane();
+}
+
+// ── Toast notification ──
+let toastTimer;
+function toast(msg, type=''){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
 
 // ═══════════════════════════════════════════
 // EXPORT

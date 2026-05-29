@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    chapitre.js — Interactions des pages de chapitre
-   Accordéon sections + visionneuse de documents
+   Visionneuse de documents (PDF, iframe, YouTube)
    ════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -18,43 +18,31 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('viewer-frame').src = 'about:blank';
   }
 
-  /* ── Accordéon sections ── */
-  document.querySelectorAll('.sec-header').forEach(function (header) {
-    header.addEventListener('click', function () {
-      var list  = header.nextElementSibling;
-      var arrow = header.querySelector('.sec-toggle');
-      var isOpen = list.classList.contains('open');
-
-      // Fermer toutes les sections ouvertes
-      document.querySelectorAll('.doc-list.open').forEach(function (l) {
-        l.classList.remove('open');
-        l.previousElementSibling.querySelector('.sec-toggle').classList.remove('open');
-      });
-
-      // Ouvrir celle cliquée si elle était fermée
-      if (!isOpen) {
-        list.classList.add('open');
-        arrow.classList.add('open');
-      }
-    });
-  });
-
-  /* ── Clic sur un document (visionneuse) ── */
+  /* ── Clic sur un document ou miniature vidéo ── */
   document.querySelectorAll('.doc[data-url]').forEach(function (doc) {
     doc.addEventListener('click', function () {
       var url   = doc.getAttribute('data-url');
       var title = doc.getAttribute('data-title');
 
-      if (url.startsWith('LIEN_')) {
+      if (!url || url.startsWith('LIEN_')) {
         alert('Lien à configurer : ' + url);
         return;
       }
+
+      // YouTube → convertir en URL embed pour la visionneuse
+      var ytMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+      if (ytMatch) {
+        openViewer('https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=1', title);
+        return;
+      }
+
       openViewer(url, title);
     });
   });
 
   /* ── Fermeture visionneuse ── */
-  document.getElementById('viewer-close').addEventListener('click', closeViewer);
+  var closeBtn = document.getElementById('viewer-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeViewer);
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeViewer();

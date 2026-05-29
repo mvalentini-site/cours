@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Page de chapitre</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e1e2e;--s:#181825;--s2:#313244;--s3:#45475a;--s4:#585b70;
+  --t:#cdd6f4;--t2:#a6adc8;--t3:#6c7086;
+  --blue:#89b4fa;--green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;
+  --purple:#cba6f7;--teal:#94e2d5;--orange:#fab387;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ── */
+.hdr{background:var(--s);border-bottom:1px solid var(--s2);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-title{font-size:14px;font-weight:700;color:var(--purple);}
+.hdr-sub{font-size:10px;color:var(--t3);}
+.sp{flex:1;}
+.btn{border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;transition:filter .15s;}
+.btn:hover{filter:brightness(1.12);}
+.pri{background:var(--purple);color:#1e1e2e;}
+.sec2{background:var(--s2);color:var(--t);}
+.sml{padding:4px 10px;font-size:11px;}
+.dng{background:var(--red);color:#1e1e2e;}
+.ok{background:var(--green);color:#1e1e2e;}
+
+/* ── LAYOUT ── */
+.body{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.nav{width:210px;background:var(--s);border-right:1px solid var(--s2);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.nav-inner{flex:1;overflow-y:auto;padding:12px;}
+.nav-sect{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 4px 6px;margin-top:8px;}
+.nav-item{padding:7px 10px;font-size:11px;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:6px;transition:background .1s;}
+.nav-item:hover{background:var(--s2);}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.nav-type{font-size:8px;color:var(--t3);margin-left:auto;}
+.nav-add{margin:10px 0 4px;border:1px dashed var(--s3);color:var(--t3);background:transparent;width:100%;padding:7px;border-radius:7px;cursor:pointer;font-size:11px;transition:all .15s;}
+.nav-add:hover{border-color:var(--purple);color:var(--purple);}
+.nav-move-wrap{display:flex;gap:4px;justify-content:flex-end;margin-top:6px;}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:20px 24px;}
+
+/* ── META CARD ── */
+.card{background:var(--s);border:1px solid var(--s2);border-radius:10px;padding:18px;margin-bottom:16px;}
+.card-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title span{flex:1;}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.row label{font-size:11px;color:var(--t2);min-width:80px;}
+.row input,.row select,.row textarea{flex:1;background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:6px 9px;color:var(--t);font-size:12px;outline:none;min-width:0;}
+.row input:focus,.row select:focus,.row textarea:focus{border-color:var(--purple);}
+.row textarea{resize:vertical;font-family:inherit;min-height:80px;}
+
+/* ── SECTION EDITOR ── */
+.sec-edit{border-radius:10px;margin-bottom:14px;border:1px solid var(--s2);overflow:hidden;}
+.sec-edit-hdr{background:var(--s);padding:12px 14px;display:flex;align-items:center;gap:8px;}
+.sec-edit-hdr input[type=text]{background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:5px 9px;color:var(--t);font-size:12px;font-weight:600;outline:none;flex:1;}
+.sec-edit-hdr input[type=text]:focus{border-color:var(--purple);}
+.sec-edit-hdr select{background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:5px 8px;color:var(--t);font-size:11px;outline:none;}
+.type-pill{font-size:9px;padding:2px 8px;border-radius:10px;background:var(--s3);color:var(--t2);letter-spacing:.5px;white-space:nowrap;}
+.sec-edit-body{background:var(--bg);padding:14px;}
+
+/* ── DOCS LIST ── */
+.docs-list{display:flex;flex-direction:column;gap:8px;}
+.doc-item{background:var(--s);border-radius:8px;padding:11px 12px;display:flex;flex-direction:column;gap:7px;border:1px solid transparent;transition:border .15s;}
+.doc-item:hover{border-color:var(--s3);}
+.di-row{display:flex;align-items:center;gap:7px;}
+.di-row label{font-size:10px;color:var(--t3);min-width:56px;}
+.di-row input,.di-row select{flex:1;background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:5px 8px;color:var(--t);font-size:11px;outline:none;min-width:0;}
+.di-row input:focus,.di-row select:focus{border-color:var(--blue);}
+.url-ok{border-color:var(--green)!important;}
+.url-ph{border-color:var(--yellow)!important;}
+.add-doc-btn{border:1px dashed var(--s3);color:var(--t3);background:transparent;width:100%;padding:7px;border-radius:7px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
+.add-doc-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── VIDEO ITEMS ── */
+.video-list{display:flex;flex-direction:column;gap:8px;}
+.vid-item{background:var(--s);border-radius:8px;padding:11px 12px;display:flex;flex-direction:column;gap:7px;border:1px solid transparent;}
+.vid-item:hover{border-color:var(--s3);}
+.vid-thumb-prev{width:100px;height:56px;object-fit:cover;border-radius:4px;background:#333;flex-shrink:0;}
+
+/* ── COLOR SWATCH PICKER ── */
+.cpw{position:relative;display:inline-flex;align-items:center;flex-shrink:0;}
+.cp-preview{width:28px;height:24px;border-radius:5px;cursor:pointer;border:2px solid rgba(255,255,255,.15);transition:border-color .15s,transform .1s;}
+.cp-preview:hover{border-color:rgba(255,255,255,.4);transform:scale(1.07);}
+.cp-pop{position:absolute;top:calc(100% + 6px);left:0;background:var(--s);border:1px solid var(--s3);border-radius:9px;padding:9px;z-index:2000;display:none;box-shadow:0 6px 24px rgba(0,0,0,.55);min-width:136px;}
+.cp-pop.open{display:block;}
+.pal-grid{display:grid;grid-template-columns:repeat(4,28px);gap:4px;margin-bottom:8px;}
+.pal-swatch{width:28px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:transform .1s,border-color .15s;}
+.pal-swatch:hover{transform:scale(1.18);border-color:rgba(255,255,255,.6);}
+.pal-swatch.selected{border-color:#fff;}
+.pal-sep{grid-column:1/-1;height:1px;background:var(--s2);margin:2px 0;}
+.pal-custom-row{display:flex;align-items:center;gap:6px;}
+.pal-custom-row label{font-size:9px;color:var(--t3);white-space:nowrap;}
+.pal-custom-row input[type=color]{flex:1;height:22px;border:none;border-radius:4px;background:var(--s2);cursor:pointer;padding:1px;}
+
+/* ── MODAL ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:999;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:var(--s2);border-radius:12px;padding:22px;width:500px;max-width:96vw;display:flex;flex-direction:column;gap:14px;}
+.modal h3{font-size:14px;color:var(--purple);}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;}
+.modal textarea{width:100%;height:220px;background:var(--bg);color:var(--t);border:1px solid var(--s3);border-radius:7px;padding:10px;font-family:monospace;font-size:11px;resize:vertical;outline:none;}
+
+/* ── TYPE PICKER ── */
+.type-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+.type-btn{border:1.5px solid var(--s3);background:var(--s);border-radius:10px;padding:16px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;color:var(--t2);}
+.type-btn:hover{border-color:var(--purple);color:var(--t);background:var(--s2);}
+.type-btn .tb-icon{font-size:22px;}
+.type-btn .tb-label{font-size:12px;font-weight:600;}
+.type-btn .tb-desc{font-size:10px;color:var(--t3);text-align:center;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s2);color:var(--t);border-radius:8px;padding:10px 20px;
+  font-size:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;
+  border:1px solid var(--s3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok2{border-color:var(--green);color:var(--green);}
+.toast.err2{border-color:var(--red);color:var(--red);}
+
+/* ── STATUS BAR ── */
+footer{background:var(--s);border-top:1px solid var(--s2);padding:4px 16px;font-size:10px;color:var(--t3);display:flex;gap:20px;flex-shrink:0;}
+.fw{color:var(--yellow);} .fg{color:var(--green);}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">✏️ Éditeur de page chapitre</div>
+    <div class="hdr-sub" id="hdr-sub">page · structure par blocs</div>
+  </div>
+  <div class="sp"></div>
+  <button class="btn sec2 sml" onclick="showCode()">👁 Voir le code</button>
+  <button class="btn pri" onclick="exportFile()">💾 Exporter HTML</button>
+</div>
+
+<div class="body">
+
+  <!-- Sidebar -->
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="nav-sect">Informations</div>
+      <div class="nav-item" onclick="scrollToMeta()">
+        <span class="nav-dot" style="background:var(--t3)"></span>En-tête du chapitre
+      </div>
+      <div class="nav-sect">Blocs</div>
+      <div id="nav-list"></div>
+      <button class="nav-add" onclick="openTypePicker()">+ Ajouter un bloc</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="main-area">
+
+    <!-- Meta -->
+    <div class="card" id="meta-card">
+      <div class="card-title"><span>📋 En-tête du chapitre</span></div>
+      <div class="row"><label>Titre</label><input id="m-title" type="text" value="Chapitre 11 - Fluides au repos"></div>
+      <div class="row"><label>Numéro</label><input id="m-num" type="text" value="11" style="max-width:70px;"></div>
+      <div class="row"><label>Nom</label><input id="m-name" type="text" value="Fluides au repos"></div>
+      <div class="row"><label>Classe</label><input id="m-class" type="text" value="1re Spécialité"></div>
+      <div class="row"><label>Thème</label><input id="m-theme" type="text" value="Mouvements et interactions"></div>
+      <div class="row"><label>Retour vers</label><input id="m-back" type="text" value="../../index.html"></div>
+      <div class="row"><label>Label retour</label><input id="m-back-label" type="text" value="← 1res Spe"></div>
+    </div>
+
+    <!-- Blocs -->
+    <div id="blocs-container"></div>
+
+  </div>
+</div>
+
+<footer>
+  <span id="ft-blocs">0 blocs</span>
+  <span id="ft-docs">0 documents</span>
+  <span id="ft-warn" class="fw"></span>
+  <span id="ft-ok" class="fg"></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<!-- Modal: type picker -->
+<div class="ov" id="ov-type">
+  <div class="modal" style="width:460px;">
+    <h3>Quel type de bloc ajouter ?</h3>
+    <div class="type-picker">
+      <button class="type-btn" onclick="addBloc('docs');closeOv('ov-type')">
+        <span class="tb-icon">📄</span>
+        <span class="tb-label">Documents</span>
+        <span class="tb-desc">Fiches, activités, TD, simulations…</span>
+      </button>
+      <button class="type-btn" onclick="addBloc('texte');closeOv('ov-type')">
+        <span class="tb-icon">✏️</span>
+        <span class="tb-label">Texte</span>
+        <span class="tb-desc">Intro, consigne, rappel de cours…</span>
+      </button>
+      <button class="type-btn" onclick="addBloc('video');closeOv('ov-type')">
+        <span class="tb-icon">🎬</span>
+        <span class="tb-label">Vidéo</span>
+        <span class="tb-desc">YouTube ou fichier .mp4 local</span>
+      </button>
+      <button class="type-btn" onclick="addBloc('viewer');closeOv('ov-type')">
+        <span class="tb-icon">🖼</span>
+        <span class="tb-label">Visionneur</span>
+        <span class="tb-desc">PDF, Géogebra, iframe…</span>
+      </button>
+    </div>
+    <div class="modal-acts">
+      <button class="btn sec2 sml" onclick="closeOv('ov-type')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: code -->
+<div class="ov" id="ov-code">
+  <div class="modal">
+    <h3>📋 Code HTML généré</h3>
+    <textarea id="code-ta" readonly></textarea>
+    <div class="modal-acts">
+      <button class="btn sec2 sml" onclick="closeOv('ov-code')">Fermer</button>
+      <button class="btn ok sml" onclick="copyCode()">Copier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// PALETTE
+// ═══════════════════════════════════════════
+const PALETTE = [
+  '#1c3d6e','#2a5c3a','#3a2010','#3a1c6b',
+  '#5c2a2a','#1c4a4a','#6b3a1c','#3a3a1c',
+  '#5a3a1c','#4a1c5c','#1c3a5c','#3a5c1c',
+];
+
+let uid = 10;
+function nid(){ return 'c'+(uid++); }
+
+function colorSwatchHTML(cpid, color, callbackTpl){
+  const escCb = callbackTpl.replace(/"/g,'&quot;');
+  const swatches = PALETTE.map(c => {
+    const sel = c.toLowerCase()===color.toLowerCase()?'selected':'';
+    return `<div class="pal-swatch ${sel}" style="background:${c}" title="${c}" onclick="event.stopPropagation();pickColor('${cpid}','${c}')"></div>`;
+  }).join('');
+  return `<div class="cpw" id="${cpid}" data-cb="${escCb}">
+    <div class="cp-preview" style="background:${color}" onclick="event.stopPropagation();togglePalette('${cpid}')" title="Choisir une couleur"></div>
+    <div class="cp-pop">
+      <div class="pal-grid">${swatches}</div>
+      <div class="pal-sep"></div>
+      <div class="pal-custom-row"><label>Autre</label>
+        <input type="color" value="${color}" oninput="event.stopPropagation();pickColor('${cpid}',this.value)" onclick="event.stopPropagation()">
+      </div>
+    </div>
+  </div>`;
+}
+function togglePalette(cpid){
+  const el=document.getElementById(cpid);if(!el)return;
+  document.querySelectorAll('.cp-pop.open').forEach(p=>{if(p.closest('.cpw').id!==cpid)p.classList.remove('open');});
+  el.querySelector('.cp-pop').classList.toggle('open');
+}
+function pickColor(cpid,color){
+  const el=document.getElementById(cpid);if(!el)return;
+  el.querySelector('.cp-preview').style.background=color;
+  const ci=el.querySelector('input[type=color]');if(ci)ci.value=color;
+  el.querySelectorAll('.pal-swatch').forEach(s=>s.classList.toggle('selected',s.title.toLowerCase()===color.toLowerCase()));
+  try{new Function(el.dataset.cb.replace(/COLORVAL/g,JSON.stringify(color)))();}catch(e){console.warn(e);}
+  el.querySelector('.cp-pop').classList.remove('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.cp-pop.open').forEach(p=>p.classList.remove('open')));
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const TAG_COLORS = {
+  'Cours':'#1c3d6e','Activite':'#2a5c3a','TD':'#3a2010','Corrige':'#5c2a2a',
+  'Situation':'#3a1c6b','Lien':'#3a3a1c','Digiwall':'#6b3a1c',
+  'Simulation':'#1c4a4a','Experience':'#2a5c3a','Video':'#5a3a1c','Document':'#1c3d6e',
+};
+
+let D = {
+  blocs: [
+    {
+      id:'b1', type:'docs', label:'Cours', color:'#1c3d6e', title:'Synthèse et vidéos de cours',
+      docs:[
+        {id:'d1',icon:'📄',name:'Fiche synthèse',     tag:'Document', tagColor:'#1c3d6e', url:'https://docs.google.com/document/d/16R3DuAtxnX-6sVrZBk2nCm12cPJWvJIAa6HVJwcrYsc/preview',ext:false},
+        {id:'d2',icon:'▶', name:'Vidéo Hachette',     tag:'Video',    tagColor:'#5a3a1c', url:'LIEN_VIDEO_HACHETTE', ext:false},
+        {id:'d3',icon:'▶', name:'Loi de Boyle-Mariotte', tag:'Video', tagColor:'#5a3a1c', url:'LIEN_BOYLE_VIDEO',   ext:false},
+      ]
+    },
+    {
+      id:'b2', type:'texte', label:'Intro', color:'#3a3a1c', title:'Mise en contexte',
+      content:'Les fluides (liquides et gaz) exercent des forces sur les surfaces qui les délimitent. Dans ce chapitre, nous étudions les propriétés des fluides au repos : pression, poussée d\'Archimède et loi de Mariotte.'
+    },
+    {
+      id:'b3', type:'docs', label:'Activite', color:'#2a5c3a', title:'Activité 11A',
+      docs:[
+        {id:'d6',icon:'📄',name:'Activité 11A',          tag:'Activite',  tagColor:'#2a5c3a', url:'LIEN_ACT_11A',    ext:false},
+        {id:'d7',icon:'📄',name:'Corrigé 11A',            tag:'Corrige',   tagColor:'#5c2a2a', url:'LIEN_CORRIGE_11A',ext:false},
+        {id:'d8',icon:'🎮',name:'Animation PhET – Under Pressure', tag:'Simulation', tagColor:'#1c4a4a', url:'https://phet.colorado.edu/sims/html/under-pressure/latest/under-pressure_all.html', ext:true},
+      ]
+    },
+    {
+      id:'b4', type:'video', label:'Vidéos', color:'#5a3a1c', title:'Vidéos complémentaires',
+      videos:[
+        {id:'v1', title:'Poussée d\'Archimède',     url:'https://www.youtube.com/watch?v=Ks9M4PmfX8c', mp4:false},
+        {id:'v2', title:'Pression hydrostatique',   url:'LIEN_VIDEO_MP4.mp4',                          mp4:true},
+      ]
+    },
+    {
+      id:'b5', type:'viewer', label:'Simulation', color:'#1c4a4a', title:'Simulation – Pression hydrostatique',
+      url:'https://phet.colorado.edu/sims/html/under-pressure/latest/under-pressure_all.html', height:400
+    },
+    {
+      id:'b6', type:'docs', label:'TD', color:'#3a2010', title:'Exercices',
+      docs:[
+        {id:'d18',icon:'📄',name:'Feuille d\'exercices', tag:'TD',     tagColor:'#3a2010', url:'LIEN_EXERCICES',  ext:false},
+        {id:'d19',icon:'📄',name:'Corrigé',              tag:'Corrige',tagColor:'#5c2a2a', url:'LIEN_CORRIGE_TD', ext:false},
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+const TYPE_ICON={'docs':'📄','texte':'✏️','video':'🎬','viewer':'🖼'};
+
+function buildNav(){
+  const el=document.getElementById('nav-list');
+  el.innerHTML=D.blocs.map((b,i)=>`
+    <div class="nav-item" onclick="scrollToBloc('${b.id}')">
+      <span class="nav-dot" style="background:${b.color}"></span>
+      <span style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${b.label} — ${b.title.substring(0,15)}${b.title.length>15?'…':''}</span>
+      <span class="nav-type">${TYPE_ICON[b.type]||''}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// RENDER BLOCS
+// ═══════════════════════════════════════════
+function renderAll(){
+  buildNav();
+  const el=document.getElementById('blocs-container');
+  el.innerHTML=D.blocs.map((b,i)=>renderBlocEditor(b,i)).join('');
+  updateFooter();
+}
+
+function renderBlocEditor(b,i){
+  const cpid=nid();
+  const total=D.blocs.length;
+  const moves=(i>0?`<button class="btn sec2 sml" onclick="moveBloc(${i},-1)">↑</button>`:'')
+             +(i<total-1?`<button class="btn sec2 sml" onclick="moveBloc(${i},1)">↓</button>`:'');
+  const hdr=`<div class="sec-edit-hdr">
+    ${colorSwatchHTML(cpid,b.color,`updateBloc(${i},'color',COLORVAL)`)}
+    <select onchange="updateBloc(${i},'label',this.value)" style="max-width:110px">
+      ${['Cours','Activite','TD','Exercices','Evaluation','Vidéos','Simulation','Intro','Bilan'].map(o=>`<option value="${o}" ${b.label===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <input type="text" value="${esc(b.title)}" placeholder="Titre du bloc" oninput="updateBloc(${i},'title',this.value)" style="flex:1">
+    <span class="type-pill">${TYPE_ICON[b.type]} ${b.type}</span>
+    ${moves}
+    <button class="btn dng sml" onclick="deleteBloc(${i})">🗑</button>
+  </div>`;
+
+  let body='';
+  if(b.type==='docs')   body=renderDocsBody(b,i);
+  if(b.type==='texte')  body=renderTexteBody(b,i);
+  if(b.type==='video')  body=renderVideoBody(b,i);
+  if(b.type==='viewer') body=renderViewerBody(b,i);
+
+  return `<div class="sec-edit" id="bloc-${b.id}">${hdr}<div class="sec-edit-body">${body}</div></div>`;
+}
+
+// ── Docs ──────────────────────────────────
+function renderDocsBody(b,i){
+  const items=b.docs.map((d,di)=>renderDocItem(i,di,d,b.docs.length)).join('');
+  return `<div class="docs-list">${items}</div>
+    <button class="add-doc-btn" onclick="addDoc(${i})">+ Ajouter un document</button>`;
+}
+
+function renderDocItem(bi,di,d,total){
+  const urlCls=d.url.startsWith('LIEN_')?'url-ph':(d.url?'url-ok':'');
+  return `<div class="doc-item">
+    <div class="di-row">
+      <label>Icône</label>
+      <select style="max-width:70px" onchange="updateDoc(${bi},${di},'icon',this.value)">
+        ${['📄','▶','🔗','📤','🎮','🔬','📊','🖼','📝'].map(ic=>`<option value="${ic}" ${d.icon===ic?'selected':''}>${ic}</option>`).join('')}
+      </select>
+      <label>Nom</label>
+      <input type="text" value="${esc(d.name)}" placeholder="Nom affiché" oninput="updateDoc(${bi},${di},'name',this.value)">
+    </div>
+    <div class="di-row">
+      <label>Type</label>
+      <select onchange="updateDoc(${bi},${di},'tag',this.value);updateDoc(${bi},${di},'tagColor',TAG_COLORS[this.value]||'#555')">
+        ${Object.keys(TAG_COLORS).map(t=>`<option value="${t}" ${d.tag===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <label>Couleur</label>
+      <input type="color" value="${d.tagColor}" style="width:32px;height:26px;border:none;border-radius:5px;background:var(--s2);cursor:pointer;padding:2px;flex:none;" oninput="updateDoc(${bi},${di},'tagColor',this.value)">
+    </div>
+    <div class="di-row">
+      <label>URL</label>
+      <input type="text" class="${urlCls}" value="${esc(d.url)}" placeholder="https://... ou LIEN_À_CONFIGURER" oninput="updateDoc(${bi},${di},'url',this.value);updateUrlCls(this)">
+    </div>
+    <div class="di-row">
+      <label>Ext.</label>
+      <input type="checkbox" ${d.ext?'checked':''} onchange="updateDoc(${bi},${di},'ext',this.checked)" style="width:auto;flex:none;">
+      <span style="font-size:10px;color:var(--t3)">Ouvre dans un nouvel onglet (pas dans le visionneur)</span>
+    </div>
+    <div style="display:flex;gap:5px;justify-content:flex-end;margin-top:2px;">
+      ${di>0?`<button class="btn sec2 sml" onclick="moveDoc(${bi},${di},-1)">↑</button>`:''}
+      ${di<total-1?`<button class="btn sec2 sml" onclick="moveDoc(${bi},${di},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="deleteDoc(${bi},${di})">🗑</button>
+    </div>
+  </div>`;
+}
+
+// ── Texte ─────────────────────────────────
+function renderTexteBody(b,i){
+  return `<div class="row" style="align-items:flex-start">
+    <label>Contenu</label>
+    <textarea rows="5" placeholder="Texte libre : intro, consigne, rappel..." oninput="updateBloc(${i},'content',this.value)">${esc(b.content||'')}</textarea>
+  </div>
+  <p style="font-size:10px;color:var(--t3);margin-top:4px;">Retours à la ligne préservés. Police Fraunces (serif) sur le cahier.</p>`;
+}
+
+// ── Vidéo ─────────────────────────────────
+function renderVideoBody(b,i){
+  const items=(b.videos||[]).map((v,vi)=>renderVideoItem(i,vi,v,(b.videos||[]).length)).join('');
+  return `<div class="video-list">${items}</div>
+    <button class="add-doc-btn" onclick="addVideo(${i})">+ Ajouter une vidéo</button>`;
+}
+
+function renderVideoItem(bi,vi,v,total){
+  const thumbSrc=getYtThumb(v.url);
+  const thumbHtml=(!v.mp4 && thumbSrc)
+    ?`<img class="vid-thumb-prev" src="${thumbSrc}" alt="miniature" onerror="this.style.display='none'">`
+    :`<div class="vid-thumb-prev" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:#666">${v.mp4?'🎬 .mp4':'—'}</div>`;
+  return `<div class="vid-item">
+    <div class="di-row">
+      ${thumbHtml}
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+        <div class="di-row">
+          <label>Titre</label>
+          <input type="text" value="${esc(v.title)}" placeholder="Titre de la vidéo" oninput="updateVideo(${bi},${vi},'title',this.value)">
+        </div>
+        <div class="di-row">
+          <label>URL</label>
+          <input type="text" value="${esc(v.url)}" placeholder="https://youtube.com/watch?v=... ou video.mp4" oninput="updateVideo(${bi},${vi},'url',this.value);renderAll()">
+        </div>
+        <div class="di-row">
+          <label>Fichier .mp4</label>
+          <input type="checkbox" ${v.mp4?'checked':''} onchange="updateVideo(${bi},${vi},'mp4',this.checked);renderAll()" style="width:auto;flex:none;">
+          <span style="font-size:10px;color:var(--t3)">Cochez si l'URL est un fichier local (.mp4)</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;justify-content:flex-end;">
+      ${vi>0?`<button class="btn sec2 sml" onclick="moveVideo(${bi},${vi},-1)">↑</button>`:''}
+      ${vi<total-1?`<button class="btn sec2 sml" onclick="moveVideo(${bi},${vi},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="deleteVideo(${bi},${vi})">🗑</button>
+    </div>
+  </div>`;
+}
+
+// ── Visionneur ────────────────────────────
+function renderViewerBody(b,i){
+  return `<div class="row">
+    <label>URL</label>
+    <input type="text" value="${esc(b.url||'')}" placeholder="https://... (PDF Google Drive, Géogebra, simulation...)" oninput="updateBloc(${i},'url',this.value)" style="${b.url?'border-color:var(--green)':''}">
+  </div>
+  <div class="row">
+    <label>Hauteur (px)</label>
+    <input type="number" value="${b.height||400}" min="200" max="900" step="50" oninput="updateBloc(${i},'height',parseInt(this.value)||400)" style="max-width:100px;">
+    <span style="font-size:10px;color:var(--t3)">L'iframe s'affichera à cette hauteur dans la page.</span>
+  </div>`;
+}
+
+// ── Helpers ───────────────────────────────
+function getYtThumb(url){
+  if(!url) return '';
+  const m=url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m?`https://img.youtube.com/vi/${m[1]}/maxresdefault.jpg`:'';
+}
+
+function updateUrlCls(input){
+  input.className='';
+  if(input.value.startsWith('LIEN_')) input.classList.add('url-ph');
+  else if(input.value) input.classList.add('url-ok');
+}
+
+// ═══════════════════════════════════════════
+// MUTATIONS
+// ═══════════════════════════════════════════
+function updateBloc(i,k,v){ D.blocs[i][k]=v; if(k==='color')buildNav(); }
+function deleteBloc(i){ if(!confirm('Supprimer ce bloc ?'))return; D.blocs.splice(i,1); renderAll(); }
+function moveBloc(i,dir){ const [b]=D.blocs.splice(i,1); D.blocs.splice(i+dir,0,b); renderAll(); }
+
+function updateDoc(bi,di,k,v){ D.blocs[bi].docs[di][k]=v; }
+function addDoc(bi){
+  D.blocs[bi].docs.push({id:nid(),icon:'📄',name:'Nouveau document',tag:'Document',tagColor:'#1c3d6e',url:'LIEN_A_CONFIGURER',ext:false});
+  renderAll();
+}
+function deleteDoc(bi,di){ D.blocs[bi].docs.splice(di,1); renderAll(); }
+function moveDoc(bi,di,dir){ const [d]=D.blocs[bi].docs.splice(di,1); D.blocs[bi].docs.splice(di+dir,0,d); renderAll(); }
+
+function updateVideo(bi,vi,k,v){ D.blocs[bi].videos[vi][k]=v; }
+function addVideo(bi){
+  if(!D.blocs[bi].videos) D.blocs[bi].videos=[];
+  D.blocs[bi].videos.push({id:nid(),title:'Nouvelle vidéo',url:'',mp4:false});
+  renderAll();
+}
+function deleteVideo(bi,vi){ D.blocs[bi].videos.splice(vi,1); renderAll(); }
+function moveVideo(bi,vi,dir){ const [v]=D.blocs[bi].videos.splice(vi,1); D.blocs[bi].videos.splice(vi+dir,0,v); renderAll(); }
+
+function addBloc(type){
+  const defaults={
+    docs:   {label:'Activite',color:'#2a5c3a',title:'Nouvelle section',docs:[]},
+    texte:  {label:'Intro',   color:'#3a3a1c',title:'Texte',content:''},
+    video:  {label:'Vidéos',  color:'#5a3a1c',title:'Vidéos',videos:[]},
+    viewer: {label:'Simulation',color:'#1c4a4a',title:'Simulation',url:'',height:400},
+  };
+  D.blocs.push({id:nid(),type,...defaults[type]});
+  renderAll();
+  setTimeout(()=>scrollToBloc(D.blocs[D.blocs.length-1].id),50);
+}
+
+// ═══════════════════════════════════════════
+// FOOTER
+// ═══════════════════════════════════════════
+function updateFooter(){
+  const nbDocs=D.blocs.filter(b=>b.type==='docs').reduce((a,b)=>a+b.docs.length,0);
+  const nbMiss=D.blocs.filter(b=>b.type==='docs').reduce((a,b)=>a+b.docs.filter(d=>d.url.startsWith('LIEN_')).length,0);
+  document.getElementById('ft-blocs').textContent=D.blocs.length+' blocs';
+  document.getElementById('ft-docs').textContent=nbDocs+' documents';
+  document.getElementById('ft-warn').textContent=nbMiss?`⚠ ${nbMiss} lien(s) à configurer`:'';
+  document.getElementById('ft-ok').textContent=nbMiss===0&&nbDocs>0?'✓ Tous les liens configurés':'';
+}
+
+// ═══════════════════════════════════════════
+// HTML GENERATION
+// ═══════════════════════════════════════════
+function generateHTML(){
+  const title  = document.getElementById('m-title').value;
+  const num    = document.getElementById('m-num').value;
+  const name   = document.getElementById('m-name').value;
+  const cls    = document.getElementById('m-class').value;
+  const theme  = document.getElementById('m-theme').value;
+  const back   = document.getElementById('m-back').value;
+  const backLbl= document.getElementById('m-back-label').value;
+  const assets = '../../assets';
+
+  const blocsHTML = D.blocs.map(b => genBlocHTML(b)).join('\n\n');
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc2(title)}</title>
+<link rel="stylesheet" href="${assets}/css/commun.css">
+<link rel="stylesheet" href="${assets}/css/chapitre.css">
+</head>
+<body>
+<div id="wrap">
+  <div class="paper">
+    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+    <a class="back" href="${esc2(back)}">${esc2(backLbl)}</a>
+    <div class="tape-label" style="background:var(--color)22;color:var(--color)">${esc2(theme)}</div>
+    <div class="page-header">
+      <div>
+        <div class="exp-tag">${esc2(cls)} — Physique - Chimie</div>
+        <h1><em>${esc2(num)}</em> — ${esc2(name)}</h1>
+      </div>
+      <div class="ph-right">
+        <div class="ph-num">Chapitre ${esc2(num)}</div>
+        <div>${esc2(cls)}</div>
+      </div>
+    </div>
+
+${blocsHTML}
+
+  </div>
+</div>
+<div id="viewer">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank">Ouvrir dans un onglet</a>
+    <button id="viewer-close">✕</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen></iframe>
+</div>
+<script src="${assets}/js/chapitre.js"><\/script>
+</body>
+</html>`;
+}
+
+function genBlocHTML(b){
+  const hdr=`      <div class="sec-header">
+        <span class="sec-label" style="background:${b.color}">${esc2(b.label)}</span>
+        <span class="sec-title">${esc2(b.title)}</span>
+      </div>`;
+
+  let content='';
+
+  if(b.type==='docs'){
+    const docsH=(b.docs||[]).map(d=>{
+      if(d.ext) return `        <a class="doc" href="${esc2(d.url)}" target="_blank">
+          <span class="doc-icon">${d.icon}</span><span class="doc-name">${esc2(d.name)}</span>
+          <span class="doc-tag" style="background:${d.tagColor}">${esc2(d.tag)}</span>
+        </a>`;
+      return `        <div class="doc" data-url="${esc2(d.url)}" data-title="${esc2(d.name)}">
+          <span class="doc-icon">${d.icon}</span><span class="doc-name">${esc2(d.name)}</span>
+          <span class="doc-tag" style="background:${d.tagColor}">${esc2(d.tag)}</span>
+        </div>`;
+    }).join('\n');
+    content=`      <div class="doc-list">\n${docsH}\n      </div>`;
+  }
+
+  if(b.type==='texte'){
+    const lines=esc2(b.content||'').split('\n').map(l=>`        <p class="block-text">${l||'&nbsp;'}</p>`).join('\n');
+    content=`      <div class="sec-content">\n${lines}\n      </div>`;
+  }
+
+  if(b.type==='video'){
+    const vids=(b.videos||[]).map(v=>{
+      if(v.mp4){
+        return `        <video class="video-local" controls>
+          <source src="${esc2(v.url)}" type="video/mp4">
+          <a href="${esc2(v.url)}">${esc2(v.title)}</a>
+        </video>
+        <p class="video-caption">${esc2(v.title)}</p>`;
+      }
+      // YouTube
+      const thumb=getYtThumb(v.url)||'';
+      if(thumb){
+        return `        <div class="doc" data-url="${esc2(v.url)}" data-title="${esc2(v.title)}" style="padding:0;overflow:hidden;flex-direction:column;align-items:stretch;max-width:220px;">
+          <div style="position:relative;">
+            <img src="${thumb}" alt="${esc2(v.title)}" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;background:#222;">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:rgba(255,255,255,.9);text-shadow:0 0 10px rgba(0,0,0,.6);">▶</div>
+          </div>
+          <div class="doc-name" style="padding:6px 8px;font-size:9px;">${esc2(v.title)}</div>
+        </div>`;
+      }
+      return `        <a class="doc" href="${esc2(v.url)}" target="_blank">
+          <span class="doc-icon">▶</span><span class="doc-name">${esc2(v.title)}</span>
+          <span class="doc-tag" style="background:#5a3a1c">Vidéo</span>
+        </a>`;
+    }).join('\n');
+    content=`      <div class="doc-list" style="flex-direction:row;flex-wrap:wrap;gap:12px;">\n${vids}\n      </div>`;
+  }
+
+  if(b.type==='viewer'){
+    content=`      <div class="viewer-embed" style="height:${b.height||400}px;">
+        <iframe src="${esc2(b.url||'about:blank')}" allowfullscreen loading="lazy"></iframe>
+      </div>`;
+  }
+
+  return `    <div class="section" data-type="${b.type}">\n${hdr}\n${content}\n    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc2(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function jsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// ═══════════════════════════════════════════
+// MODALS / UI
+// ═══════════════════════════════════════════
+function openTypePicker(){ document.getElementById('ov-type').classList.add('open'); }
+function closeOv(id){ document.getElementById(id).classList.remove('open'); }
+function scrollToMeta(){ document.getElementById('meta-card').scrollIntoView({behavior:'smooth',block:'start'}); }
+function scrollToBloc(id){ document.getElementById('bloc-'+id)?.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+function showCode(){
+  document.getElementById('code-ta').value=generateHTML();
+  document.getElementById('ov-code').classList.add('open');
+}
+function copyCode(){
+  document.getElementById('code-ta').select();
+  document.execCommand('copy');
+  toast('Code copié !','ok2');
+}
+function exportFile(){
+  const html=generateHTML();
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='index.html';
+  a.click();
+  toast('✓ index.html exporté','ok2');
+}
+
+// Toast
+let toastTm;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast'+(type?' '+type:'')+' show';
+  clearTimeout(toastTm);
+  toastTm=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeOv('ov-type'); closeOv('ov-code'); }});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>
