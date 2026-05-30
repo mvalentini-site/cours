@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Plan d'onglet</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4f8;--s:#ffffff;--s2:#f1f5f9;--s3:#e2e8f0;--s4:#cbd5e1;
+  --t:#1e293b;--t2:#475569;--t3:#94a3b8;
+  --blue:#2563eb;--green:#059669;--red:#e11d48;--yellow:#d97706;
+  --purple:#4f46e5;--orange:#ea580c;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.hdr{background:var(--s);border-bottom:1px solid var(--s3);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-title{font-size:14px;font-weight:700;color:var(--purple);}
+.hdr-sub{font-size:10px;color:var(--t3);}
+.sp{flex:1;}
+.btn{border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;transition:filter .15s;}
+.btn:hover{filter:brightness(1.08);}
+.pri{background:var(--purple);color:#fff;}
+.sec{background:var(--s2);color:var(--t);border:1px solid var(--s3);}
+.sml{padding:4px 10px;font-size:11px;}
+.dng{background:var(--red);color:#fff;}
+.ok{background:var(--green);color:#fff;}
+
+/* Tab selector bar */
+.tab-bar{background:var(--s);border-bottom:1px solid var(--s3);padding:8px 18px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.tab-pill{border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);transition:all .15s;opacity:.65;}
+.tab-pill:hover{opacity:.9;}
+.tab-pill.active{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.3);}
+.tab-bar-label{font-size:10px;color:var(--t3);margin-right:4px;}
+
+/* Main */
+.main{flex:1;overflow-y:auto;padding:20px 24px;}
+
+/* Chapter table */
+.chap-table{width:100%;border-collapse:separate;border-spacing:0 4px;}
+.chap-table th{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 10px;text-align:left;font-weight:400;}
+.row-cat td{background:var(--s2);border-radius:7px;padding:8px 12px;border:1px solid var(--s3);}
+.row-cat input{background:transparent;border:none;color:var(--orange);font-size:13px;font-style:italic;font-family:'Segoe UI',sans-serif;outline:none;width:100%;}
+.row-chap td{background:var(--s);padding:6px 8px;border-top:1px solid var(--s3);border-bottom:1px solid var(--s3);}
+.row-chap td:first-child{border-radius:7px 0 0 7px;border-left:1px solid var(--s3);}
+.row-chap td:last-child{border-radius:0 7px 7px 0;border-right:1px solid var(--s3);}
+.row-chap:hover td{background:var(--s2);}
+.num-cell{width:52px;}
+.num-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 7px;color:var(--t);font-size:12px;font-family:monospace;outline:none;width:46px;text-align:center;}
+.num-inp:focus{border-color:var(--purple);}
+.title-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 8px;color:var(--t);font-size:12px;outline:none;width:100%;}
+.title-inp:focus{border-color:var(--purple);}
+.partie-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 7px;color:var(--t);font-size:11px;outline:none;width:100%;font-family:monospace;}
+.partie-inp:focus{border-color:var(--blue);}
+.url-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 8px;color:var(--t);font-size:10px;font-family:monospace;outline:none;width:100%;}
+.url-inp:focus{border-color:var(--blue);}
+.url-inp.ok{border-color:var(--green);}
+.url-inp.ph{border-color:var(--yellow);}
+.url-inp.empty{border-color:var(--s3);}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.act-cell{display:flex;gap:4px;align-items:center;white-space:nowrap;}
+
+/* Add buttons */
+.add-row{border:1px dashed var(--s3);color:var(--t3);background:transparent;width:100%;padding:9px;border-radius:8px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
+.add-row.chap:hover{border-color:var(--blue);color:var(--blue);}
+.add-row.cat:hover{border-color:var(--orange);color:var(--orange);}
+.add-btns{display:flex;gap:8px;margin-top:10px;}
+.add-btns .add-row{margin-top:0;}
+
+/* Legend */
+.legend{display:flex;gap:14px;font-size:10px;color:var(--t3);padding:10px 0 0;}
+.leg-item{display:flex;align-items:center;gap:5px;}
+
+footer{background:var(--s);border-top:1px solid var(--s3);padding:5px 18px;font-size:10px;color:var(--t3);display:flex;gap:20px;flex-shrink:0;}
+.fg{color:var(--green);}.fw{color:var(--yellow);}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s);color:var(--t);border-radius:8px;padding:10px 20px;
+  font-size:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;border:1px solid var(--s3);box-shadow:0 4px 12px rgba(0,0,0,.12);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:999;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:var(--s);border:1px solid var(--s3);border-radius:12px;padding:22px;width:540px;max-width:95vw;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+.modal h3{font-size:14px;color:var(--purple);}
+.modal textarea{width:100%;height:240px;background:var(--s2);color:var(--t);border:1px solid var(--s3);border-radius:7px;padding:10px;font-family:monospace;font-size:11px;resize:vertical;outline:none;}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;}
+.empty-state{text-align:center;padding:40px;color:var(--t3);font-size:13px;}
+.empty-state p{margin-top:8px;font-size:11px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">📋 Éditeur — Plan d'onglet</div>
+    <div class="hdr-sub" id="hdr-sub">Chargez un index.html pour commencer</div>
+  </div>
+  <div class="sp"></div>
+  <button class="btn sec sml" onclick="importFile()">📂 Charger index.html</button>
+  <button class="btn sec sml" onclick="showCode()">👁 Voir le code</button>
+  <button class="btn pri" onclick="exportFile()">💾 Exporter index.html</button>
+  <input type="file" id="file-input" accept=".html" style="display:none" onchange="handleFile(this)">
+</div>
+
+<!-- Tab selector -->
+<div class="tab-bar" id="tab-bar">
+  <span class="tab-bar-label">Onglet :</span>
+  <span style="font-size:11px;color:var(--t3)">Chargez un index.html d'abord</span>
+</div>
+
+<div class="main" id="main-area">
+  <div class="empty-state">
+    📂 <strong>Aucun fichier chargé</strong>
+    <p>Cliquez sur "Charger index.html" pour ouvrir votre fichier principal.</p>
+    <p style="margin-top:16px">
+      <button class="btn sec" onclick="importFile()">📂 Charger index.html</button>
+    </p>
+  </div>
+</div>
+
+<footer>
+  <span id="ft-chaps">—</span>
+  <span id="ft-ok" class="fg"></span>
+  <span id="ft-warn" class="fw"></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<div class="ov" id="ov-code">
+  <div class="modal">
+    <h3>📋 Code HTML généré</h3>
+    <textarea id="code-ta" readonly></textarea>
+    <div class="modal-acts">
+      <button class="btn sec sml" onclick="closeOv()">Fermer</button>
+      <button class="btn ok sml" onclick="copyCode()">Copier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let RAW_HTML = '';       // HTML source de l'index.html chargé
+let SITE = null;         // données extraites : title, tagline, github, tabs_left, tabs_right, sommaires, pages
+let currentTab = '';
+let uid = 100;
+function nid(){ return 'n'+(uid++); }
+
+// ═══════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════
+function importFile(){ document.getElementById('file-input').click(); }
+
+function handleFile(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      loadSite(ev.target.result, f.name);
+      toast('✓ '+f.name+' chargé','ok');
+    }catch(e){
+      toast('✗ Erreur : '+e.message,'err');
+      console.error(e);
+    }
+    input.value='';
+  };
+  r.readAsText(f);
+}
+
+function parseIndexHTML(html){
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([^]*?)<\/script>/gi)];
+  const main=scripts.map(m=>m[1]).find(s=>s.includes('TABS_LEFT'));
+  if(!main) throw new Error('Données TABS_LEFT introuvables — est-ce bien un index.html du site ?');
+
+  const sandboxed=main
+    .replace(/^\s*buildTabs\s*\(\s*\)\s*;?\s*$/mg,'//')
+    .replace(/^\s*render\s*\(\s*\)\s*;?\s*$/mg,'//');
+
+  const fn=new Function(`
+    ${sandboxed}
+    return {
+      title:    typeof SITE_TITLE   !=='undefined'?SITE_TITLE:'',
+      tagline:  typeof SITE_TAGLINE !=='undefined'?SITE_TAGLINE:'',
+      github:   typeof SITE_GITHUB  !=='undefined'?SITE_GITHUB:'',
+      tabs_left: typeof TABS_LEFT   !=='undefined'?TABS_LEFT:null,
+      tabs_right:typeof TABS_RIGHT  !=='undefined'?TABS_RIGHT:null,
+      sommaires: typeof SOMMAIRES   !=='undefined'?SOMMAIRES:null,
+      pages:     typeof PAGES       !=='undefined'?PAGES:null,
+    };
+  `);
+  const data=fn();
+  if(!data.tabs_left) throw new Error('Structure TABS_LEFT manquante');
+  // Garantir que chaque chapitre a un champ file
+  Object.values(data.sommaires||{}).forEach(arr=>arr.forEach(c=>{if(c.num&&c.file===undefined)c.file='';}));
+  return data;
+}
+
+// ═══════════════════════════════════════════
+// TAB BAR
+// ═══════════════════════════════════════════
+function buildTabBar(){
+  const bar=document.getElementById('tab-bar');
+  bar.innerHTML='<span class="tab-bar-label">Onglet :</span>';
+  const allTabs=[...SITE.tabs_left,...SITE.tabs_right].filter(t=>t.id!=='accueil');
+  allTabs.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='tab-pill'+(t.id===currentTab?' active':'');
+    btn.style.background=t.color;
+    btn.textContent=t.label;
+    btn.dataset.id=t.id;
+    btn.onclick=()=>selectTab(t.id);
+    bar.appendChild(btn);
+  });
+}
+
+function selectTab(id){
+  currentTab=id;
+  document.querySelectorAll('.tab-pill').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  if(!SITE.sommaires[id]) SITE.sommaires[id]=[];
+  render();
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function render(){
+  if(!SITE||!currentTab){ return; }
+  const items=SITE.sommaires[currentTab]||[];
+  const tab=[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id===currentTab);
+  const color=tab?tab.color:'#555';
+
+  const rows=items.map((c,i)=>rowHTML(c,i,items.length,color)).join('');
+
+  document.getElementById('main-area').innerHTML=`
+    <table class="chap-table">
+      <thead>
+        <tr>
+          <th style="width:52px">N°</th>
+          <th>Titre du chapitre</th>
+          <th style="width:110px">Partie</th>
+          <th>Fichier lié (chemin)</th>
+          <th style="width:28px"></th>
+          <th style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">${rows}</tbody>
+    </table>
+    <div class="add-btns">
+      <button class="add-row chap" onclick="addChap()">+ Chapitre</button>
+      <button class="add-row cat" onclick="addCat()">+ Catégorie / séparateur</button>
+    </div>
+    <div class="legend">
+      <div class="leg-item"><span class="status-dot" style="background:var(--green)"></span>Lien configuré</div>
+      <div class="leg-item"><span class="status-dot" style="background:var(--s3)"></span>Pas de page</div>
+    </div>`;
+  updateFooter();
+}
+
+function rowHTML(c,i,total,accentColor){
+  if(c.cat){
+    return `<tr class="row-cat">
+      <td colspan="6">
+        <input type="text" value="${esc(c.cat)}" placeholder="Nom de la catégorie"
+          oninput="SITE.sommaires[currentTab][${i}].cat=this.value">
+        <span style="float:right;display:flex;gap:4px;">
+          ${i>0?`<button class="btn sec sml" onclick="moveRow(${i},-1)">↑</button>`:''}
+          ${i<total-1?`<button class="btn sec sml" onclick="moveRow(${i},1)">↓</button>`:''}
+          <button class="btn dng sml" onclick="delRow(${i})">🗑</button>
+        </span>
+      </td>
+    </tr>`;
+  }
+  const hasLink=c.file&&c.file.trim()!=='';
+  const urlCls=hasLink?'ok':'empty';
+  const dot=hasLink?'var(--green)':'var(--s3)';
+  return `<tr class="row-chap">
+    <td class="num-cell"><input class="num-inp" type="text" value="${esc(c.num||'')}" placeholder="01"
+      oninput="SITE.sommaires[currentTab][${i}].num=this.value"></td>
+    <td><input class="title-inp" type="text" value="${esc(c.title||'')}" placeholder="Titre du chapitre"
+      oninput="SITE.sommaires[currentTab][${i}].title=this.value"></td>
+    <td><input class="partie-inp" type="text" value="${esc(c.partie||'')}" placeholder="Partie (opt.)"
+      oninput="SITE.sommaires[currentTab][${i}].partie=this.value"></td>
+    <td><input class="url-inp ${urlCls}" type="text" value="${esc(c.file||'')}"
+      placeholder="${currentTab}/XX-Titre/index.html"
+      oninput="SITE.sommaires[currentTab][${i}].file=this.value;updateRowStatus(this)"></td>
+    <td><span class="status-dot" style="background:${dot}"></span></td>
+    <td><div class="act-cell">
+      ${i>0?`<button class="btn sec sml" onclick="moveRow(${i},-1)">↑</button>`:''}
+      ${i<total-1?`<button class="btn sec sml" onclick="moveRow(${i},1)">↓</button>`:''}
+      <button class="btn dng sml" onclick="delRow(${i})">🗑</button>
+    </div></td>
+  </tr>`;
+}
+
+function updateRowStatus(input){
+  const ok=input.value.trim()!=='';
+  input.className='url-inp '+(ok?'ok':'empty');
+  // update dot
+  const tr=input.closest('tr');
+  if(tr){
+    const dot=tr.querySelector('.status-dot');
+    if(dot) dot.style.background=ok?'var(--green)':'var(--s3)';
+  }
+  updateFooter();
+}
+
+// ═══════════════════════════════════════════
+// MUTATIONS
+// ═══════════════════════════════════════════
+function addChap(){
+  const arr=SITE.sommaires[currentTab];
+  const nums=arr.filter(c=>c.num).map(c=>parseInt(c.num)||0);
+  const next=nums.length?Math.max(...nums)+1:1;
+  arr.push({num:String(next).padStart(2,'0'),title:'Nouveau chapitre',partie:'',file:''});
+  render();
+}
+function addCat(){
+  SITE.sommaires[currentTab].push({cat:'Nouvelle catégorie'});
+  render();
+}
+function delRow(i){
+  SITE.sommaires[currentTab].splice(i,1);
+  render();
+}
+function moveRow(i,dir){
+  const arr=SITE.sommaires[currentTab];
+  const [item]=arr.splice(i,1);
+  arr.splice(i+dir,0,item);
+  render();
+}
+
+// ═══════════════════════════════════════════
+// FOOTER
+// ═══════════════════════════════════════════
+function updateFooter(){
+  if(!SITE||!currentTab){ return; }
+  const arr=SITE.sommaires[currentTab]||[];
+  const chaps=arr.filter(c=>c.num);
+  const withLink=chaps.filter(c=>c.file&&c.file.trim()!=='');
+  const missing=chaps.length-withLink.length;
+  document.getElementById('ft-chaps').textContent=chaps.length+' chapitre'+(chaps.length>1?'s':'');
+  document.getElementById('ft-ok').textContent=withLink.length>0?withLink.length+' lien'+(withLink.length>1?'s configurés':' configuré'):'';
+  document.getElementById('ft-warn').textContent=missing>0?`⚠ ${missing} sans page`:'';
+}
+
+// ═══════════════════════════════════════════
+// GENERATE + EXPORT
+// ═══════════════════════════════════════════
+function generateHTML(){
+  if(!SITE||!RAW_HTML) throw new Error('Aucun fichier chargé');
+
+  // Reconstruire le bloc SOMMAIRES JS
+  const somLines=Object.keys(SITE.sommaires).map(k=>{
+    const items=(SITE.sommaires[k]||[]).map(c=>{
+      if(c.cat) return `    { cat:'${jsEsc(c.cat)}' }`;
+      const partie=c.partie?`, partie:'${jsEsc(c.partie)}'`:'';
+      return `    { num:'${jsEsc(c.num||'')}', title:'${jsEsc(c.title||'')}' ${partie}, file:'${jsEsc(c.file||'')}'}`;
+    }).join(',\n');
+    return `  '${k}': [\n${items}\n  ]`;
+  });
+
+  const newSom=`const SOMMAIRES = {\n${somLines.join(',\n')}\n};`;
+
+  // Remplacer le bloc SOMMAIRES dans le HTML source
+  const updated=RAW_HTML.replace(/const SOMMAIRES\s*=\s*\{[^]*?\};/, newSom);
+  if(updated===RAW_HTML){
+    // Si le remplacement n'a pas marché, essayer une approche plus large
+    console.warn('Remplacement SOMMAIRES: aucun changement détecté');
+  }
+  return updated;
+}
+
+function exportFile(){
+  try{
+    const html=generateHTML();
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='index.html';
+    a.click();
+    toast('✓ index.html exporté','ok');
+  }catch(e){ toast('✗ '+e.message,'err'); }
+}
+
+function showCode(){
+  try{
+    document.getElementById('code-ta').value=generateHTML();
+    document.getElementById('ov-code').classList.add('open');
+  }catch(e){ toast('✗ '+e.message,'err'); }
+}
+function closeOv(){ document.getElementById('ov-code').classList.remove('open'); }
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-ta').value)
+    .then(()=>toast('Code copié !','ok'));
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function jsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+let toastTm;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast'+(type?' '+type:'')+' show';
+  clearTimeout(toastTm);
+  toastTm=setTimeout(()=>el.classList.remove('show'),3000);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOv();});
+
+// ═══════════════════════════════════════════
+// AUTO-LOAD
+// ═══════════════════════════════════════════
+function loadSite(html, label){
+  RAW_HTML=html;
+  SITE=parseIndexHTML(html);
+  document.getElementById('hdr-sub').textContent=label+' · '+SITE.title;
+  buildTabBar();
+  const firstWithChaps=[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id!=='accueil'&&(SITE.sommaires[t.id]||[]).length>0);
+  const first=firstWithChaps||[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id!=='accueil');
+  if(first) selectTab(first.id);
+}
+
+async function autoLoad(){
+  try{
+    const r=await fetch('./index.html');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const html=await r.text();
+    loadSite(html,'index.html');
+    toast('✓ index.html chargé automatiquement','ok');
+  }catch(e){
+    // Silencieux — l'utilisateur peut importer manuellement
+    console.log('Chargement auto impossible (file://?) :', e.message);
+  }
+}
+
+autoLoad();
+</script>
+</body>
+</html>
