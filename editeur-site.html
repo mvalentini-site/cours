@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Éditeur — Plan d'onglet</title>
+<title>Éditeur — Site</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -13,6 +13,8 @@
   --purple:#4f46e5;--orange:#ea580c;
 }
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ── */
 .hdr{background:var(--s);border-bottom:1px solid var(--s3);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .hdr-title{font-size:14px;font-weight:700;color:var(--purple);}
 .hdr-sub{font-size:10px;color:var(--t3);}
@@ -25,25 +27,52 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);heigh
 .dng{background:var(--red);color:#fff;}
 .ok{background:var(--green);color:#fff;}
 
-/* Tab selector bar */
-.tab-bar{background:var(--s);border-bottom:1px solid var(--s3);padding:8px 18px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
-.tab-pill{border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);transition:all .15s;opacity:.65;}
-.tab-pill:hover{opacity:.9;}
-.tab-pill.active{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.3);}
-.tab-bar-label{font-size:10px;color:var(--t3);margin-right:4px;}
+/* ── TAB BAR ── */
+.tab-bar{background:var(--s);border-bottom:1px solid var(--s3);padding:8px 18px;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.tab-pill{border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;opacity:.7;}
+.tab-pill:hover{opacity:1;}
+.tab-pill.active{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.4);}
+.tab-pill.general{background:var(--s2);color:var(--t2);border:1px solid var(--s3);opacity:1;}
+.tab-pill.general.active{background:var(--purple);color:#fff;border-color:var(--purple);}
+.tab-sep{width:1px;height:20px;background:var(--s3);margin:0 4px;}
+.tab-add{border:1px dashed var(--s4);background:transparent;border-radius:20px;padding:3px 10px;cursor:pointer;font-size:10px;color:var(--t3);transition:all .15s;}
+.tab-add:hover{border-color:var(--purple);color:var(--purple);}
 
-/* Main */
+/* ── MAIN ── */
 .main{flex:1;overflow-y:auto;padding:20px 24px;}
 
-/* Chapter table */
+/* ── CARDS (panel général) ── */
+.card{background:var(--s);border:1px solid var(--s3);border-radius:10px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title span{flex:1;}
+.field-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+.field-row label{font-size:11px;color:var(--t2);min-width:90px;}
+.field-row input{flex:1;background:var(--s2);border:1px solid var(--s3);border-radius:6px;padding:6px 9px;color:var(--t);font-size:12px;outline:none;}
+.field-row input:focus{border-color:var(--purple);}
+
+/* ── TAB EDITOR ROWS ── */
+.tab-list{display:flex;flex-direction:column;gap:6px;}
+.tab-row{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--s3);border-radius:7px;padding:8px 12px;}
+.tab-row input{background:var(--s);border:1px solid var(--s3);border-radius:5px;padding:5px 8px;color:var(--t);font-size:12px;outline:none;}
+.tab-row input:focus{border-color:var(--purple);}
+.tab-row .inp-label{flex:1;}
+.tab-row .inp-id{width:120px;font-family:monospace;font-size:11px;color:var(--t3);}
+.color-swatch{width:28px;height:28px;border-radius:5px;border:2px solid rgba(0,0,0,.12);cursor:pointer;flex-shrink:0;position:relative;}
+.color-inp{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.tab-side-badge{font-size:8px;padding:2px 6px;border-radius:4px;background:var(--s3);color:var(--t3);white-space:nowrap;}
+.add-tab-btn{border:1px dashed var(--s4);color:var(--t3);background:transparent;width:100%;padding:8px;border-radius:7px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
+.add-tab-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* ── CHAPTER TABLE ── */
 .chap-table{width:100%;border-collapse:separate;border-spacing:0 4px;}
 .chap-table th{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:4px 10px;text-align:left;font-weight:400;}
 .row-cat td{background:var(--s2);border-radius:7px;padding:8px 12px;border:1px solid var(--s3);}
 .row-cat input{background:transparent;border:none;color:var(--orange);font-size:13px;font-style:italic;font-family:'Segoe UI',sans-serif;outline:none;width:100%;}
-.row-chap td{background:var(--s);padding:6px 8px;border-top:1px solid var(--s3);border-bottom:1px solid var(--s3);}
+.row-chap td{background:var(--s);padding:6px 8px;border-top:1px solid var(--s3);border-bottom:1px solid var(--s3);transition:background .1s;}
 .row-chap td:first-child{border-radius:7px 0 0 7px;border-left:1px solid var(--s3);}
 .row-chap td:last-child{border-radius:0 7px 7px 0;border-right:1px solid var(--s3);}
 .row-chap:hover td{background:var(--s2);}
+.row-chap.hidden-row td{opacity:.45;}
 .num-cell{width:52px;}
 .num-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 7px;color:var(--t);font-size:12px;font-family:monospace;outline:none;width:46px;text-align:center;}
 .num-inp:focus{border-color:var(--purple);}
@@ -53,20 +82,19 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--t);heigh
 .partie-inp:focus{border-color:var(--blue);}
 .url-inp{background:var(--s2);border:1px solid var(--s3);border-radius:5px;padding:4px 8px;color:var(--t);font-size:10px;font-family:monospace;outline:none;width:100%;}
 .url-inp:focus{border-color:var(--blue);}
-.url-inp.ok{border-color:var(--green);}
-.url-inp.ph{border-color:var(--yellow);}
-.url-inp.empty{border-color:var(--s3);}
+.url-inp.lnk-ok{border-color:var(--green);}
+.url-inp.lnk-empty{border-color:var(--s3);}
 .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
 .act-cell{display:flex;gap:4px;align-items:center;white-space:nowrap;}
+.eye-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;transition:background .1s;}
+.eye-btn:hover{background:var(--s3);}
 
 /* Add buttons */
-.add-row{border:1px dashed var(--s3);color:var(--t3);background:transparent;width:100%;padding:9px;border-radius:8px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
+.add-row{border:1px dashed var(--s4);color:var(--t3);background:transparent;width:100%;padding:9px;border-radius:8px;cursor:pointer;font-size:11px;margin-top:6px;transition:all .15s;}
 .add-row.chap:hover{border-color:var(--blue);color:var(--blue);}
 .add-row.cat:hover{border-color:var(--orange);color:var(--orange);}
 .add-btns{display:flex;gap:8px;margin-top:10px;}
 .add-btns .add-row{margin-top:0;}
-
-/* Legend */
 .legend{display:flex;gap:14px;font-size:10px;color:var(--t3);padding:10px 0 0;}
 .leg-item{display:flex;align-items:center;gap:5px;}
 
@@ -75,7 +103,8 @@ footer{background:var(--s);border-top:1px solid var(--s3);padding:5px 18px;font-
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--s);color:var(--t);border-radius:8px;padding:10px 20px;
-  font-size:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;border:1px solid var(--s3);box-shadow:0 4px 12px rgba(0,0,0,.12);}
+  font-size:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;
+  border:1px solid var(--s3);box-shadow:0 4px 12px rgba(0,0,0,.12);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.err{border-color:var(--red);color:var(--red);}
@@ -93,7 +122,7 @@ footer{background:var(--s);border-top:1px solid var(--s3);padding:5px 18px;font-
 
 <div class="hdr">
   <div>
-    <div class="hdr-title">📋 Éditeur — Plan d'onglet</div>
+    <div class="hdr-title">🗂 Éditeur — Site</div>
     <div class="hdr-sub" id="hdr-sub">Chargez un index.html pour commencer</div>
   </div>
   <div class="sp"></div>
@@ -103,19 +132,15 @@ footer{background:var(--s);border-top:1px solid var(--s3);padding:5px 18px;font-
   <input type="file" id="file-input" accept=".html" style="display:none" onchange="handleFile(this)">
 </div>
 
-<!-- Tab selector -->
 <div class="tab-bar" id="tab-bar">
-  <span class="tab-bar-label">Onglet :</span>
-  <span style="font-size:11px;color:var(--t3)">Chargez un index.html d'abord</span>
+  <span style="font-size:10px;color:var(--t3)">Chargez un index.html d'abord</span>
 </div>
 
 <div class="main" id="main-area">
   <div class="empty-state">
     📂 <strong>Aucun fichier chargé</strong>
     <p>Cliquez sur "Charger index.html" pour ouvrir votre fichier principal.</p>
-    <p style="margin-top:16px">
-      <button class="btn sec" onclick="importFile()">📂 Charger index.html</button>
-    </p>
+    <p style="margin-top:16px"><button class="btn sec" onclick="importFile()">📂 Charger index.html</button></p>
   </div>
 </div>
 
@@ -142,14 +167,14 @@ footer{background:var(--s);border-top:1px solid var(--s3);padding:5px 18px;font-
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let RAW_HTML = '';       // HTML source de l'index.html chargé
-let SITE = null;         // données extraites : title, tagline, github, tabs_left, tabs_right, sommaires, pages
-let currentTab = '';
+let RAW_HTML = '';
+let SITE = null;
+let currentTab = '__general__';
 let uid = 100;
 function nid(){ return 'n'+(uid++); }
 
 // ═══════════════════════════════════════════
-// IMPORT
+// IMPORT / LOAD
 // ═══════════════════════════════════════════
 function importFile(){ document.getElementById('file-input').click(); }
 
@@ -157,13 +182,8 @@ function handleFile(input){
   const f=input.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=ev=>{
-    try{
-      loadSite(ev.target.result, f.name);
-      toast('✓ '+f.name+' chargé','ok');
-    }catch(e){
-      toast('✗ Erreur : '+e.message,'err');
-      console.error(e);
-    }
+    try{ loadSite(ev.target.result, f.name); toast('✓ '+f.name+' chargé','ok'); }
+    catch(e){ toast('✗ '+e.message,'err'); console.error(e); }
     input.value='';
   };
   r.readAsText(f);
@@ -172,12 +192,10 @@ function handleFile(input){
 function parseIndexHTML(html){
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([^]*?)<\/script>/gi)];
   const main=scripts.map(m=>m[1]).find(s=>s.includes('TABS_LEFT'));
-  if(!main) throw new Error('Données TABS_LEFT introuvables — est-ce bien un index.html du site ?');
-
+  if(!main) throw new Error('Données TABS_LEFT introuvables');
   const sandboxed=main
     .replace(/^\s*buildTabs\s*\(\s*\)\s*;?\s*$/mg,'//')
     .replace(/^\s*render\s*\(\s*\)\s*;?\s*$/mg,'//');
-
   const fn=new Function(`
     ${sandboxed}
     return {
@@ -192,9 +210,20 @@ function parseIndexHTML(html){
   `);
   const data=fn();
   if(!data.tabs_left) throw new Error('Structure TABS_LEFT manquante');
-  // Garantir que chaque chapitre a un champ file
-  Object.values(data.sommaires||{}).forEach(arr=>arr.forEach(c=>{if(c.num&&c.file===undefined)c.file='';}));
+  Object.values(data.sommaires||{}).forEach(arr=>arr.forEach(c=>{
+    if(c.num&&c.file===undefined) c.file='';
+    if(c.num&&c.hidden===undefined) c.hidden=false;
+  }));
   return data;
+}
+
+function loadSite(html, label){
+  RAW_HTML=html;
+  SITE=parseIndexHTML(html);
+  document.getElementById('hdr-sub').textContent=label+' · '+SITE.title;
+  currentTab='__general__';
+  buildTabBar();
+  renderPane();
 }
 
 // ═══════════════════════════════════════════
@@ -202,58 +231,181 @@ function parseIndexHTML(html){
 // ═══════════════════════════════════════════
 function buildTabBar(){
   const bar=document.getElementById('tab-bar');
-  bar.innerHTML='<span class="tab-bar-label">Onglet :</span>';
-  const allTabs=[...SITE.tabs_left,...SITE.tabs_right].filter(t=>t.id!=='accueil');
-  allTabs.forEach(t=>{
-    const btn=document.createElement('button');
-    btn.className='tab-pill'+(t.id===currentTab?' active':'');
-    btn.style.background=t.color;
-    btn.textContent=t.label;
-    btn.dataset.id=t.id;
-    btn.onclick=()=>selectTab(t.id);
-    bar.appendChild(btn);
-  });
+  bar.innerHTML='';
+
+  // Général
+  const gen=document.createElement('button');
+  gen.className='tab-pill general'+(currentTab==='__general__'?' active':'');
+  gen.textContent='⚙ Général';
+  gen.onclick=()=>{ currentTab='__general__'; updateTabPills(); renderPane(); };
+  bar.appendChild(gen);
+
+  // Séparateur
+  const sep=document.createElement('span'); sep.className='tab-sep'; bar.appendChild(sep);
+
+  // Onglets gauche
+  SITE.tabs_left.forEach(t=>bar.appendChild(makeTabPill(t)));
+
+  // Séparateur
+  const sep2=document.createElement('span'); sep2.className='tab-sep'; bar.appendChild(sep2);
+
+  // Onglets droite
+  SITE.tabs_right.forEach(t=>bar.appendChild(makeTabPill(t)));
+
+  // Boutons +
+  const addL=document.createElement('button');
+  addL.className='tab-add'; addL.textContent='+ Gauche';
+  addL.onclick=()=>addTab('left'); bar.appendChild(addL);
+
+  const addR=document.createElement('button');
+  addR.className='tab-add'; addR.textContent='+ Droite';
+  addR.onclick=()=>addTab('right'); bar.appendChild(addR);
 }
 
-function selectTab(id){
-  currentTab=id;
-  document.querySelectorAll('.tab-pill').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
-  if(!SITE.sommaires[id]) SITE.sommaires[id]=[];
-  render();
+function makeTabPill(t){
+  const btn=document.createElement('button');
+  btn.className='tab-pill'+(t.id===currentTab?' active':'');
+  btn.style.background=t.color;
+  btn.style.color='rgba(255,255,255,.9)';
+  btn.textContent=t.label;
+  btn.dataset.id=t.id;
+  btn.onclick=()=>{ currentTab=t.id; updateTabPills(); if(!SITE.sommaires[t.id]) SITE.sommaires[t.id]=[]; renderPane(); };
+  return btn;
+}
+
+function updateTabPills(){
+  document.querySelectorAll('.tab-pill[data-id]').forEach(b=>b.classList.toggle('active',b.dataset.id===currentTab));
+  document.querySelector('.tab-pill.general')?.classList.toggle('active',currentTab==='__general__');
 }
 
 // ═══════════════════════════════════════════
-// RENDER
+// PANE ROUTING
 // ═══════════════════════════════════════════
-function render(){
-  if(!SITE||!currentTab){ return; }
-  const items=SITE.sommaires[currentTab]||[];
-  const tab=[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id===currentTab);
+function renderPane(){
+  if(currentTab==='__general__') renderGeneral();
+  else renderChapitres(currentTab);
+}
+
+// ═══════════════════════════════════════════
+// PANNEAU GÉNÉRAL
+// ═══════════════════════════════════════════
+function renderGeneral(){
+  const allTabs=[
+    ...SITE.tabs_left.map(t=>({...t,side:'left'})),
+    ...SITE.tabs_right.map(t=>({...t,side:'right'}))
+  ];
+  const tabRows=allTabs.map((t,i)=>tabRowHTML(t,i,allTabs.length)).join('');
+
+  document.getElementById('main-area').innerHTML=`
+    <div class="card">
+      <div class="card-title"><span>🌐 Informations du site</span></div>
+      <div class="field-row"><label>Titre</label>
+        <input type="text" value="${esc(SITE.title)}" oninput="SITE.title=this.value;document.getElementById('hdr-sub').textContent='index.html · '+SITE.title">
+      </div>
+      <div class="field-row"><label>Sous-titre</label>
+        <input type="text" value="${esc(SITE.tagline)}" oninput="SITE.tagline=this.value">
+      </div>
+      <div class="field-row"><label>Lien GitHub</label>
+        <input type="text" value="${esc(SITE.github)}" oninput="SITE.github=this.value">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>◀ Onglets gauche</span></div>
+      <div class="tab-list" id="tabs-left-list">
+        ${SITE.tabs_left.map((t,i)=>tabRowHTML(t,i,'left')).join('')}
+      </div>
+      <button class="add-tab-btn" onclick="addTab('left')">+ Ajouter un onglet à gauche</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>▶ Onglets droite</span></div>
+      <div class="tab-list" id="tabs-right-list">
+        ${SITE.tabs_right.map((t,i)=>tabRowHTML(t,i,'right')).join('')}
+      </div>
+      <button class="add-tab-btn" onclick="addTab('right')">+ Ajouter un onglet à droite</button>
+    </div>`;
+
+  updateFooter();
+}
+
+function tabRowHTML(t, i, side){
+  const arr=side==='left'?SITE.tabs_left:SITE.tabs_right;
+  const total=arr.length;
+  return `<div class="tab-row" id="tabrow-${side}-${i}">
+    <div class="color-swatch" style="background:${t.color}" title="Couleur">
+      <input type="color" class="color-inp" value="${t.color}"
+        oninput="updateTabColor('${side}',${i},this.value)">
+    </div>
+    <input class="inp-label" type="text" value="${esc(t.label)}" placeholder="Label affiché"
+      oninput="updateTabField('${side}',${i},'label',this.value);buildTabBar()">
+    <input class="inp-id" type="text" value="${esc(t.id)}" placeholder="id-slug"
+      oninput="updateTabField('${side}',${i},'id',this.value)">
+    <span class="tab-side-badge">${side==='left'?'◀ Gauche':'▶ Droite'}</span>
+    ${i>0?`<button class="btn sec sml" onclick="moveTabRow('${side}',${i},-1)">↑</button>`:''}
+    ${i<total-1?`<button class="btn sec sml" onclick="moveTabRow('${side}',${i},1)">↓</button>`:''}
+    <button class="btn dng sml" onclick="deleteTab('${side}',${i})">🗑</button>
+  </div>`;
+}
+
+function updateTabField(side,i,key,val){
+  const arr=side==='left'?SITE.tabs_left:SITE.tabs_right;
+  arr[i][key]=val;
+}
+function updateTabColor(side,i,val){
+  updateTabField(side,i,'color',val);
+  const row=document.getElementById(`tabrow-${side}-${i}`);
+  if(row) row.querySelector('.color-swatch').style.background=val;
+  buildTabBar();
+}
+function moveTabRow(side,i,dir){
+  const arr=side==='left'?SITE.tabs_left:SITE.tabs_right;
+  const [item]=arr.splice(i,1); arr.splice(i+dir,0,item);
+  buildTabBar(); renderGeneral();
+}
+function deleteTab(side,i){
+  if(!confirm('Supprimer cet onglet ?')) return;
+  const arr=side==='left'?SITE.tabs_left:SITE.tabs_right;
+  arr.splice(i,1);
+  buildTabBar(); renderGeneral();
+}
+function addTab(side){
+  const obj={id:'nouvel-onglet-'+nid(),label:'Nouvel onglet',color:'#475569'};
+  if(side==='left') SITE.tabs_left.push(obj);
+  else SITE.tabs_right.push(obj);
+  buildTabBar(); renderGeneral();
+}
+
+// ═══════════════════════════════════════════
+// PANNEAU CHAPITRES
+// ═══════════════════════════════════════════
+function renderChapitres(tabId){
+  const items=SITE.sommaires[tabId]||[];
+  const tab=[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id===tabId);
   const color=tab?tab.color:'#555';
-
   const rows=items.map((c,i)=>rowHTML(c,i,items.length,color)).join('');
 
   document.getElementById('main-area').innerHTML=`
     <table class="chap-table">
-      <thead>
-        <tr>
-          <th style="width:52px">N°</th>
-          <th>Titre du chapitre</th>
-          <th style="width:110px">Partie</th>
-          <th>Fichier lié (chemin)</th>
-          <th style="width:28px"></th>
-          <th style="width:80px"></th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th style="width:28px"></th>
+        <th style="width:52px">N°</th>
+        <th>Titre</th>
+        <th style="width:110px">Partie</th>
+        <th>Fichier lié</th>
+        <th style="width:22px"></th>
+        <th style="width:86px"></th>
+      </tr></thead>
       <tbody id="tbody">${rows}</tbody>
     </table>
     <div class="add-btns">
-      <button class="add-row chap" onclick="addChap()">+ Chapitre</button>
-      <button class="add-row cat" onclick="addCat()">+ Catégorie / séparateur</button>
+      <button class="add-row chap" onclick="addChap('${tabId}')">+ Chapitre</button>
+      <button class="add-row cat" onclick="addCat('${tabId}')">+ Catégorie</button>
     </div>
     <div class="legend">
       <div class="leg-item"><span class="status-dot" style="background:var(--green)"></span>Lien configuré</div>
-      <div class="leg-item"><span class="status-dot" style="background:var(--s3)"></span>Pas de page</div>
+      <div class="leg-item"><span class="status-dot" style="background:var(--s3)"></span>Sans page</div>
+      <div class="leg-item"><span style="font-size:13px">👁</span>Visible &nbsp;<span style="font-size:13px">🚫</span>Masqué (lien conservé)</div>
     </div>`;
   updateFooter();
 }
@@ -261,7 +413,7 @@ function render(){
 function rowHTML(c,i,total,accentColor){
   if(c.cat){
     return `<tr class="row-cat">
-      <td colspan="6">
+      <td colspan="7">
         <input type="text" value="${esc(c.cat)}" placeholder="Nom de la catégorie"
           oninput="SITE.sommaires[currentTab][${i}].cat=this.value">
         <span style="float:right;display:flex;gap:4px;">
@@ -269,17 +421,22 @@ function rowHTML(c,i,total,accentColor){
           ${i<total-1?`<button class="btn sec sml" onclick="moveRow(${i},1)">↓</button>`:''}
           <button class="btn dng sml" onclick="delRow(${i})">🗑</button>
         </span>
-      </td>
-    </tr>`;
+      </td></tr>`;
   }
+  const hidden=!!c.hidden;
   const hasLink=c.file&&c.file.trim()!=='';
-  const urlCls=hasLink?'ok':'empty';
-  const dot=hasLink?'var(--green)':'var(--s3)';
-  return `<tr class="row-chap">
+  const urlCls=hasLink?'lnk-ok':'lnk-empty';
+  const dot=hasLink?(hidden?'var(--s4)':'var(--green)'):'var(--s3)';
+  return `<tr class="row-chap${hidden?' hidden-row':''}">
+    <td style="text-align:center">
+      <button class="eye-btn" title="${hidden?'Afficher':'Masquer'}"
+        onclick="toggleHidden(${i})">${hidden?'🚫':'👁'}</button>
+    </td>
     <td class="num-cell"><input class="num-inp" type="text" value="${esc(c.num||'')}" placeholder="01"
       oninput="SITE.sommaires[currentTab][${i}].num=this.value"></td>
     <td><input class="title-inp" type="text" value="${esc(c.title||'')}" placeholder="Titre du chapitre"
-      oninput="SITE.sommaires[currentTab][${i}].title=this.value"></td>
+      oninput="SITE.sommaires[currentTab][${i}].title=this.value"
+      style="${hidden?'text-decoration:line-through;color:var(--t3)':''}"></td>
     <td><input class="partie-inp" type="text" value="${esc(c.partie||'')}" placeholder="Partie (opt.)"
       oninput="SITE.sommaires[currentTab][${i}].partie=this.value"></td>
     <td><input class="url-inp ${urlCls}" type="text" value="${esc(c.file||'')}"
@@ -294,82 +451,106 @@ function rowHTML(c,i,total,accentColor){
   </tr>`;
 }
 
+function toggleHidden(i){
+  const c=SITE.sommaires[currentTab][i];
+  c.hidden=!c.hidden;
+  renderChapitres(currentTab);
+}
+
 function updateRowStatus(input){
   const ok=input.value.trim()!=='';
-  input.className='url-inp '+(ok?'ok':'empty');
-  // update dot
-  const tr=input.closest('tr');
-  if(tr){
-    const dot=tr.querySelector('.status-dot');
-    if(dot) dot.style.background=ok?'var(--green)':'var(--s3)';
-  }
+  input.className='url-inp '+(ok?'lnk-ok':'lnk-empty');
+  const dot=input.closest('tr')?.querySelector('.status-dot');
+  if(dot) dot.style.background=ok?'var(--green)':'var(--s3)';
   updateFooter();
 }
 
-// ═══════════════════════════════════════════
-// MUTATIONS
-// ═══════════════════════════════════════════
-function addChap(){
-  const arr=SITE.sommaires[currentTab];
+function addChap(tabId){
+  const arr=SITE.sommaires[tabId];
   const nums=arr.filter(c=>c.num).map(c=>parseInt(c.num)||0);
   const next=nums.length?Math.max(...nums)+1:1;
-  arr.push({num:String(next).padStart(2,'0'),title:'Nouveau chapitre',partie:'',file:''});
-  render();
+  arr.push({num:String(next).padStart(2,'0'),title:'Nouveau chapitre',partie:'',file:'',hidden:false});
+  renderChapitres(tabId);
 }
-function addCat(){
-  SITE.sommaires[currentTab].push({cat:'Nouvelle catégorie'});
-  render();
+function addCat(tabId){
+  SITE.sommaires[tabId].push({cat:'Nouvelle catégorie'});
+  renderChapitres(tabId);
 }
 function delRow(i){
   SITE.sommaires[currentTab].splice(i,1);
-  render();
+  renderChapitres(currentTab);
 }
 function moveRow(i,dir){
   const arr=SITE.sommaires[currentTab];
-  const [item]=arr.splice(i,1);
-  arr.splice(i+dir,0,item);
-  render();
+  const [item]=arr.splice(i,1); arr.splice(i+dir,0,item);
+  renderChapitres(currentTab);
 }
 
 // ═══════════════════════════════════════════
 // FOOTER
 // ═══════════════════════════════════════════
 function updateFooter(){
-  if(!SITE||!currentTab){ return; }
+  if(!SITE){ return; }
+  if(currentTab==='__general__'){
+    const total=[...SITE.tabs_left,...SITE.tabs_right].length;
+    document.getElementById('ft-chaps').textContent=total+' onglet'+(total>1?'s':'');
+    document.getElementById('ft-ok').textContent='';
+    document.getElementById('ft-warn').textContent='';
+    return;
+  }
   const arr=SITE.sommaires[currentTab]||[];
   const chaps=arr.filter(c=>c.num);
-  const withLink=chaps.filter(c=>c.file&&c.file.trim()!=='');
-  const missing=chaps.length-withLink.length;
-  document.getElementById('ft-chaps').textContent=chaps.length+' chapitre'+(chaps.length>1?'s':'');
-  document.getElementById('ft-ok').textContent=withLink.length>0?withLink.length+' lien'+(withLink.length>1?'s configurés':' configuré'):'';
-  document.getElementById('ft-warn').textContent=missing>0?`⚠ ${missing} sans page`:'';
+  const visible=chaps.filter(c=>!c.hidden);
+  const withLink=visible.filter(c=>c.file&&c.file.trim()!=='');
+  const hidden=chaps.filter(c=>c.hidden).length;
+  document.getElementById('ft-chaps').textContent=chaps.length+' chapitre'+(chaps.length>1?'s');
+  document.getElementById('ft-ok').textContent=withLink.length?withLink.length+' lien'+(withLink.length>1?'s':''):'';
+  document.getElementById('ft-warn').textContent=hidden?`👁 ${hidden} masqué${hidden>1?'s':''}`:''
 }
 
 // ═══════════════════════════════════════════
-// GENERATE + EXPORT
+// GÉNÉRATION HTML
 // ═══════════════════════════════════════════
 function generateHTML(){
   if(!SITE||!RAW_HTML) throw new Error('Aucun fichier chargé');
 
-  // Reconstruire le bloc SOMMAIRES JS
+  let out=RAW_HTML;
+
+  // SITE_TITLE
+  out=out.replace(/const SITE_TITLE\s*=\s*'[^']*'/, `const SITE_TITLE = '${jsEsc(SITE.title)}'`);
+  // SITE_TAGLINE
+  out=out.replace(/const SITE_TAGLINE\s*=\s*'[^']*'/, `const SITE_TAGLINE = '${jsEsc(SITE.tagline)}'`);
+  // SITE_GITHUB
+  out=out.replace(/const SITE_GITHUB\s*=\s*'[^']*'/, `const SITE_GITHUB = '${jsEsc(SITE.github)}'`);
+
+  // TABS_LEFT
+  const tabsLeftJS=JSON.stringify(SITE.tabs_left,null,2);
+  out=out.replace(/const TABS_LEFT\s*=\s*\[[^\]]*\]/s, `const TABS_LEFT = ${tabsLeftJS}`);
+
+  // TABS_RIGHT
+  const tabsRightJS=JSON.stringify(SITE.tabs_right,null,2);
+  out=out.replace(/const TABS_RIGHT\s*=\s*\[[^\]]*\]/s, `const TABS_RIGHT = ${tabsRightJS}`);
+
+  // SOMMAIRES
   const somLines=Object.keys(SITE.sommaires).map(k=>{
     const items=(SITE.sommaires[k]||[]).map(c=>{
       if(c.cat) return `    { cat:'${jsEsc(c.cat)}' }`;
       const partie=c.partie?`, partie:'${jsEsc(c.partie)}'`:'';
-      return `    { num:'${jsEsc(c.num||'')}', title:'${jsEsc(c.title||'')}' ${partie}, file:'${jsEsc(c.file||'')}'}`;
+      const hidden=c.hidden?`, hidden:true`:'';
+      return `    { num:'${jsEsc(c.num||'')}', title:'${jsEsc(c.title||'')}' ${partie}, file:'${jsEsc(c.file||'')}' ${hidden}}`;
     }).join(',\n');
     return `  '${k}': [\n${items}\n  ]`;
   });
-
   const newSom=`const SOMMAIRES = {\n${somLines.join(',\n')}\n};`;
+  out=out.replace(/const SOMMAIRES\s*=\s*\{[^]*?\};/, newSom);
 
-  // Remplacer le bloc SOMMAIRES dans le HTML source
-  const updated=RAW_HTML.replace(/const SOMMAIRES\s*=\s*\{[^]*?\};/, newSom);
-  if(updated===RAW_HTML){
-    // Si le remplacement n'a pas marché, essayer une approche plus large
-    console.warn('Remplacement SOMMAIRES: aucun changement détecté');
-  }
-  return updated;
+  // Patch chapHTML dans le site pour gérer hidden
+  out=out.replace(
+    /function chapHTML\(c,\s*color\)\s*\{/,
+    `function chapHTML(c, color){ if(c.hidden) return '';`
+  );
+
+  return out;
 }
 
 function exportFile(){
@@ -385,15 +566,12 @@ function exportFile(){
 }
 
 function showCode(){
-  try{
-    document.getElementById('code-ta').value=generateHTML();
-    document.getElementById('ov-code').classList.add('open');
-  }catch(e){ toast('✗ '+e.message,'err'); }
+  try{ document.getElementById('code-ta').value=generateHTML(); document.getElementById('ov-code').classList.add('open'); }
+  catch(e){ toast('✗ '+e.message,'err'); }
 }
 function closeOv(){ document.getElementById('ov-code').classList.remove('open'); }
 function copyCode(){
-  navigator.clipboard.writeText(document.getElementById('code-ta').value)
-    .then(()=>toast('Code copié !','ok'));
+  navigator.clipboard.writeText(document.getElementById('code-ta').value).then(()=>toast('Code copié !','ok'));
 }
 
 // ═══════════════════════════════════════════
@@ -405,39 +583,24 @@ function jsEsc(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"
 let toastTm;
 function toast(msg,type=''){
   const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.className='toast'+(type?' '+type:'')+' show';
-  clearTimeout(toastTm);
-  toastTm=setTimeout(()=>el.classList.remove('show'),3000);
+  el.textContent=msg; el.className='toast'+(type?' '+type:'')+' show';
+  clearTimeout(toastTm); toastTm=setTimeout(()=>el.classList.remove('show'),3000);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOv();});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeOv(); });
 
 // ═══════════════════════════════════════════
 // AUTO-LOAD
 // ═══════════════════════════════════════════
-function loadSite(html, label){
-  RAW_HTML=html;
-  SITE=parseIndexHTML(html);
-  document.getElementById('hdr-sub').textContent=label+' · '+SITE.title;
-  buildTabBar();
-  const firstWithChaps=[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id!=='accueil'&&(SITE.sommaires[t.id]||[]).length>0);
-  const first=firstWithChaps||[...SITE.tabs_left,...SITE.tabs_right].find(t=>t.id!=='accueil');
-  if(first) selectTab(first.id);
-}
-
 async function autoLoad(){
   try{
     const r=await fetch('./index.html');
     if(!r.ok) throw new Error('HTTP '+r.status);
-    const html=await r.text();
-    loadSite(html,'index.html');
+    loadSite(await r.text(),'index.html');
     toast('✓ index.html chargé automatiquement','ok');
   }catch(e){
-    // Silencieux — l'utilisateur peut importer manuellement
-    console.log('Chargement auto impossible (file://?) :', e.message);
+    console.log('Chargement auto impossible (file://) :', e.message);
   }
 }
-
 autoLoad();
 </script>
 </body>
