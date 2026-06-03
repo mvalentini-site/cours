@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculatrices — 1re Spé</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--paper3:#e4ddc8;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#7a6a50;--faded2:#a89070;
+  --red:#a63020;--blue:#1c3d6e;--green:#2a5c3a;
+  --grid-maj:rgba(70,90,200,0.13);--grid-min:rgba(70,90,200,0.055);
+  --margin:rgba(190,50,30,0.28);--tape:rgba(220,200,150,0.58);
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+html{scroll-behavior:smooth;}
+body{
+  min-height:100vh;
+  background:#8a8070;
+  background-image:radial-gradient(ellipse at 20% 20%,#9a9080 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 80%,#7a7060 0%,transparent 50%);
+  font-family:var(--mono);
+  padding:0 0 80px;
+}
+
+/* ── NAV ── */
+.top-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(28,18,8,.93);backdrop-filter:blur(8px);
+  border-bottom:2px solid rgba(166,48,32,.35);
+  padding:10px 24px;
+}
+.nav-title{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--paper);margin-bottom:10px;opacity:.9;}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{
+  padding:5px 14px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  background:rgba(255,255,255,.08);color:rgba(246,241,228,.6);
+  border:1px solid rgba(246,241,228,.15);border-radius:20px;
+  cursor:pointer;transition:all .15s;
+}
+.filter-btn:hover{background:rgba(255,255,255,.15);color:var(--paper);}
+.filter-btn.active{color:#fff;border-color:transparent;}
+
+/* ── WRAPPER ── */
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px 0;}
+
+/* ── PAPER ── */
+.paper{
+  background:var(--paper);position:relative;
+  padding:44px 52px 52px 80px;margin-bottom:20px;
+  box-shadow:0 6px 32px rgba(0,0,0,.28),4px 4px 0 rgba(0,0,0,.08);
+}
+.paper::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(transparent,transparent 9px,var(--grid-min) 9px,var(--grid-min) 10px),
+    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--grid-min) 9px,var(--grid-min) 10px),
+    repeating-linear-gradient(transparent,transparent 49px,var(--grid-maj) 49px,var(--grid-maj) 50px),
+    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--grid-maj) 49px,var(--grid-maj) 50px);
+}
+.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;background:var(--margin);pointer-events:none;z-index:1;}
+.paper>*{position:relative;z-index:2;}
+.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;display:flex;flex-direction:column;justify-content:space-around;padding:60px 0;pointer-events:none;}
+.hole{width:14px;height:14px;border-radius:50%;background:#8a8070;box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
+
+/* ── HEADER ── */
+.pg-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;padding-bottom:10px;border-bottom:1.5px solid var(--ink2);}
+.exp-tag{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
+h1{font-family:var(--serif);font-size:clamp(20px,3vw,34px);font-weight:700;font-style:italic;color:var(--ink);line-height:1;letter-spacing:-.5px;}
+h1 em{color:var(--red);font-style:normal;}
+.pg-meta{text-align:right;font-size:10px;color:var(--faded);line-height:1.9;}
+
+/* ── CALC CARDS GRID ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
+
+/* ── CALC CARD ── */
+.ccard{
+  background:rgba(255,255,255,.28);border:1.5px solid rgba(28,18,8,.13);
+  padding:16px 18px;display:flex;flex-direction:column;gap:10px;
+  transition:border-color .15s;
+}
+.ccard:hover{border-color:rgba(28,18,8,.25);}
+.ccard.hidden{display:none;}
+
+.ccard-head{display:flex;align-items:flex-start;gap:10px;}
+.ccard-badge{
+  font-size:7px;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 7px;color:var(--paper);white-space:nowrap;flex-shrink:0;margin-top:2px;
+}
+.ccard-info{flex:1;}
+.ccard-name{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--ink);line-height:1.2;margin-bottom:3px;}
+.ccard-formula{font-size:10px;color:var(--faded2);font-style:italic;}
+
+/* ── FIELDS ── */
+.fields{display:flex;flex-direction:column;gap:6px;}
+.field-row{display:flex;align-items:center;gap:8px;}
+.field-row label{font-size:9px;letter-spacing:.5px;color:var(--faded);min-width:140px;line-height:1.3;}
+.field-row input{
+  flex:1;background:var(--paper2);border:1px solid rgba(28,18,8,.18);
+  padding:6px 9px;font-family:var(--mono);font-size:12px;color:var(--ink);
+  outline:none;min-width:0;
+}
+.field-row input:focus{border-color:var(--blue);background:var(--paper);}
+.field-row .unit{font-size:9px;color:var(--faded2);min-width:36px;}
+.field-row input.unknown{background:rgba(28,61,110,.06);border-color:rgba(28,61,110,.2);}
+.field-sep{height:1px;background:rgba(28,18,8,.08);margin:2px 0;}
+
+/* ── ACTIONS ── */
+.ccard-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.calc-btn{
+  background:var(--ink2);color:var(--paper);border:none;cursor:pointer;
+  padding:6px 16px;font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  transition:background .15s;
+}
+.calc-btn:hover{background:var(--blue);}
+.reset-btn{
+  background:transparent;border:1px solid rgba(28,18,8,.2);color:var(--faded);
+  padding:5px 10px;font-family:var(--mono);font-size:9px;cursor:pointer;
+  transition:all .15s;
+}
+.reset-btn:hover{border-color:var(--faded);color:var(--ink);}
+.result-box{
+  margin-top:0;padding:7px 12px;
+  background:rgba(42,92,58,.09);border-left:3px solid var(--green);
+  font-size:11px;color:var(--ink);display:none;flex:1;min-width:100%;
+}
+.result-box.show{display:block;}
+.result-box.err{background:rgba(166,48,32,.07);border-left-color:var(--red);}
+.result-box strong{color:var(--green);}
+.result-box.err strong{color:var(--red);}
+
+/* ── UNKNOWN SELECT ── */
+.unknown-select{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;align-items:center;
+}
+.unknown-select span{font-size:9px;color:var(--faded);letter-spacing:.5px;}
+.unk-btn{
+  padding:3px 10px;font-size:9px;background:rgba(255,255,255,.3);
+  border:1px solid rgba(28,18,8,.15);cursor:pointer;color:var(--faded2);
+  transition:all .12s;border-radius:2px;
+}
+.unk-btn.sel{background:var(--ink2);color:var(--paper);border-color:var(--ink2);}
+
+/* ── SECTION DIVIDER ── */
+.section-divider{display:flex;align-items:center;gap:10px;margin:20px 0 14px;}
+.section-divider .sec-badge{font-size:8px;padding:2px 8px;letter-spacing:1px;color:var(--paper);text-transform:uppercase;}
+.section-divider .sec-name{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:40px;color:var(--faded2);font-style:italic;font-size:13px;display:none;}
+.empty-state.show{display:block;}
+
+/* ── CONVERTISSEUR (full width) ── */
+.conv-card{
+  background:rgba(255,255,255,.28);border:1.5px solid rgba(28,18,8,.13);
+  padding:16px 18px;
+}
+.conv-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px;}
+.conv-row input{
+  background:var(--paper2);border:1px solid rgba(28,18,8,.18);
+  padding:6px 9px;font-family:var(--mono);font-size:13px;color:var(--ink);
+  outline:none;width:130px;
+}
+.conv-row input:focus{border-color:var(--blue);}
+.conv-row select{
+  background:var(--paper2);border:1px solid rgba(28,18,8,.18);
+  padding:6px 8px;font-family:var(--mono);font-size:11px;color:var(--ink);
+  outline:none;cursor:pointer;
+}
+.conv-row select:focus{border-color:var(--blue);}
+.conv-result{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--blue);min-height:28px;margin-top:4px;}
+.conv-group-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.cg-btn{
+  padding:4px 12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  background:rgba(255,255,255,.3);border:1px solid rgba(28,18,8,.15);
+  cursor:pointer;color:var(--faded2);transition:all .12s;
+}
+.cg-btn.active{background:var(--ink2);color:var(--paper);border-color:var(--ink2);}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-title">Calculatrices — 1re Spé</div>
+  <div class="filter-row">
+    <button class="filter-btn active" style="background:#1c3d6e;border-color:#1c3d6e;color:#fff;" data-filter="all" onclick="setFilter('all',this)">Tout afficher</button>
+    <button class="filter-btn" data-filter="matiere" onclick="setFilter('matiere',this)">Quantité de matière</button>
+    <button class="filter-btn" data-filter="dilution" onclick="setFilter('dilution',this)">Dilution</button>
+    <button class="filter-btn" data-filter="ph" onclick="setFilter('ph',this)">pH</button>
+    <button class="filter-btn" data-filter="energie" onclick="setFilter('energie',this)">Énergie</button>
+    <button class="filter-btn" data-filter="mecanique" onclick="setFilter('mecanique',this)">Mécanique</button>
+    <button class="filter-btn" data-filter="fluides" onclick="setFilter('fluides',this)">Fluides</button>
+    <button class="filter-btn" data-filter="optique" onclick="setFilter('optique',this)">Optique</button>
+    <button class="filter-btn" data-filter="elec" onclick="setFilter('elec',this)">Électricité</button>
+    <button class="filter-btn" data-filter="conversion" onclick="setFilter('conversion',this)">Conversions</button>
+  </div>
+</nav>
+
+<div class="wrap">
+<div class="paper">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+  <div class="pg-header">
+    <div>
+      <div class="exp-tag">Physique-Chimie</div>
+      <h1>Outils de <em>calcul</em></h1>
+    </div>
+    <div class="pg-meta" style="font-family:var(--serif);font-size:13px;color:var(--blue);font-weight:600">1re Spé</div>
+  </div>
+
+  <div class="empty-state" id="empty">Aucune calculatrice pour ce domaine.</div>
+
+  <!-- ══════════════════ CHIMIE ══════════════════ -->
+  <div class="section-divider" data-domains="matiere dilution ph">
+    <span class="sec-badge" style="background:#1c3d6e">Chimie</span>
+    <span class="sec-name">Solutions et réactions</span>
+  </div>
+
+  <div class="cards-grid" id="grid-chimie" data-domains="matiere dilution ph">
+
+    <!-- n = m/M -->
+    <div class="ccard" data-domain="matiere">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c3d6e">Matière</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Quantité de matière</div>
+          <div class="ccard-formula">n = m / M</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'qmm')">n (mol)</button>
+        <button class="unk-btn" onclick="setUnk(this,'qmm')">m (g)</button>
+        <button class="unk-btn" onclick="setUnk(this,'qmm')">M (g/mol)</button>
+      </div>
+      <div class="fields" id="fields-qmm">
+        <div class="field-row"><label>n — quantité de matière</label><input id="qmm_n" type="number" step="any" placeholder="?"><span class="unit">mol</span></div>
+        <div class="field-row"><label>m — masse</label><input id="qmm_m" type="number" step="any" min="0"><span class="unit">g</span></div>
+        <div class="field-row"><label>M — masse molaire</label><input id="qmm_M" type="number" step="any" min="0"><span class="unit">g/mol</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcQmm()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('qmm_n','qmm_m','qmm_M','res-qmm')">Effacer</button>
+        <div class="result-box" id="res-qmm"></div>
+      </div>
+    </div>
+
+    <!-- n = C×V -->
+    <div class="ccard" data-domain="matiere">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c3d6e">Matière</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Concentration molaire</div>
+          <div class="ccard-formula">C = n / V &nbsp;·&nbsp; n = C × V</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'cv')">n (mol)</button>
+        <button class="unk-btn" onclick="setUnk(this,'cv')">C (mol/L)</button>
+        <button class="unk-btn" onclick="setUnk(this,'cv')">V (L)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>n — quantité de matière</label><input id="cv_n" type="number" step="any" class="unknown" placeholder="?"><span class="unit">mol</span></div>
+        <div class="field-row"><label>C — concentration</label><input id="cv_C" type="number" step="any" min="0"><span class="unit">mol/L</span></div>
+        <div class="field-row"><label>V — volume</label><input id="cv_V" type="number" step="any" min="0"><span class="unit">L</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcCV()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('cv_n','cv_C','cv_V','res-cv')">Effacer</button>
+        <div class="result-box" id="res-cv"></div>
+      </div>
+    </div>
+
+    <!-- Concentration massique -->
+    <div class="ccard" data-domain="matiere">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c3d6e">Matière</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Concentration massique</div>
+          <div class="ccard-formula">C<sub>m</sub> = m / V</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'cm')">C<sub>m</sub> (g/L)</button>
+        <button class="unk-btn" onclick="setUnk(this,'cm')">m (g)</button>
+        <button class="unk-btn" onclick="setUnk(this,'cm')">V (L)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>C<sub>m</sub> — concentration massique</label><input id="cm_cm" type="number" step="any" class="unknown" placeholder="?"><span class="unit">g/L</span></div>
+        <div class="field-row"><label>m — masse de soluté</label><input id="cm_m" type="number" step="any" min="0"><span class="unit">g</span></div>
+        <div class="field-row"><label>V — volume de solution</label><input id="cm_V" type="number" step="any" min="0"><span class="unit">L</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcCm()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('cm_cm','cm_m','cm_V','res-cm')">Effacer</button>
+        <div class="result-box" id="res-cm"></div>
+      </div>
+    </div>
+
+    <!-- Dilution C1V1=C2V2 -->
+    <div class="ccard" data-domain="dilution">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#3a1c6b">Dilution</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Dilution</div>
+          <div class="ccard-formula">C₁V₁ = C₂V₂ &nbsp;·&nbsp; F = V₂/V₁</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'dil')">C₁</button>
+        <button class="unk-btn" onclick="setUnk(this,'dil')">V₁</button>
+        <button class="unk-btn" onclick="setUnk(this,'dil')">C₂</button>
+        <button class="unk-btn" onclick="setUnk(this,'dil')">V₂</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>C₁ — concentration mère</label><input id="dil_C1" type="number" step="any" class="unknown" placeholder="?"><span class="unit">mol/L</span></div>
+        <div class="field-row"><label>V₁ — volume prélevé</label><input id="dil_V1" type="number" step="any" min="0"><span class="unit">L</span></div>
+        <div class="field-sep"></div>
+        <div class="field-row"><label>C₂ — concentration fille</label><input id="dil_C2" type="number" step="any" min="0"><span class="unit">mol/L</span></div>
+        <div class="field-row"><label>V₂ — volume final</label><input id="dil_V2" type="number" step="any" min="0"><span class="unit">L</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcDilution()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('dil_C1','dil_V1','dil_C2','dil_V2','res-dil')">Effacer</button>
+        <div class="result-box" id="res-dil"></div>
+      </div>
+    </div>
+
+    <!-- pH -->
+    <div class="ccard" data-domain="ph">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#3a1c6b">pH</span>
+        <div class="ccard-info">
+          <div class="ccard-name">pH ↔ [H₃O⁺]</div>
+          <div class="ccard-formula">pH = −log([H₃O⁺]) &nbsp;·&nbsp; [H₃O⁺] = 10<sup>−pH</sup></div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>pH</label><input id="ph_ph" type="number" step="0.01" min="0" max="14" placeholder="ex : 3.5"><span class="unit"></span></div>
+        <div class="field-row"><label>[H₃O⁺] — concentration</label><input id="ph_h" type="number" step="any" min="0" placeholder="ex : 3.16e-4"><span class="unit">mol/L</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPH(1)">pH → [H₃O⁺]</button>
+        <button class="calc-btn" onclick="calcPH(-1)">[H₃O⁺] → pH</button>
+        <button class="reset-btn" onclick="resetCard('ph_ph','ph_h','res-ph')">Effacer</button>
+        <div class="result-box" id="res-ph"></div>
+      </div>
+    </div>
+
+    <!-- pOH -->
+    <div class="ccard" data-domain="ph">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#3a1c6b">pH</span>
+        <div class="ccard-info">
+          <div class="ccard-name">pOH &nbsp;·&nbsp; [OH⁻]</div>
+          <div class="ccard-formula">pOH = 14 − pH &nbsp;·&nbsp; K<sub>e</sub> = [H₃O⁺][OH⁻] = 10⁻¹⁴</div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>pH connu</label><input id="poh_ph" type="number" step="0.01" min="0" max="14"><span class="unit"></span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPOH()">Calculer pOH et [OH⁻]</button>
+        <button class="reset-btn" onclick="resetCard('poh_ph','res-poh')">Effacer</button>
+        <div class="result-box" id="res-poh"></div>
+      </div>
+    </div>
+
+    <!-- Beer-Lambert -->
+    <div class="ccard" data-domain="ph">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c3d6e">Spectro</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Loi de Beer-Lambert</div>
+          <div class="ccard-formula">A = ε · l · C</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'bl')">A</button>
+        <button class="unk-btn" onclick="setUnk(this,'bl')">ε</button>
+        <button class="unk-btn" onclick="setUnk(this,'bl')">l</button>
+        <button class="unk-btn" onclick="setUnk(this,'bl')">C</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>A — absorbance</label><input id="bl_A" type="number" step="any" class="unknown" placeholder="?"><span class="unit"></span></div>
+        <div class="field-row"><label>ε — coeff. extinction</label><input id="bl_e" type="number" step="any" min="0"><span class="unit">L·mol⁻¹·cm⁻¹</span></div>
+        <div class="field-row"><label>l — longueur trajet</label><input id="bl_l" type="number" step="any" min="0"><span class="unit">cm</span></div>
+        <div class="field-row"><label>C — concentration</label><input id="bl_C" type="number" step="any" min="0"><span class="unit">mol/L</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcBL()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('bl_A','bl_e','bl_l','bl_C','res-bl')">Effacer</button>
+        <div class="result-box" id="res-bl"></div>
+      </div>
+    </div>
+
+  </div><!-- /grid-chimie -->
+
+  <!-- ══════════════════ ÉNERGIE ══════════════════ -->
+  <div class="section-divider" data-domains="energie mecanique">
+    <span class="sec-badge" style="background:#2a5c3a">Physique</span>
+    <span class="sec-name">Énergie et mécanique</span>
+  </div>
+
+  <div class="cards-grid" data-domains="energie mecanique">
+
+    <!-- Ec -->
+    <div class="ccard" data-domain="energie">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#2a5c3a">Énergie</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Énergie cinétique</div>
+          <div class="ccard-formula">E<sub>c</sub> = ½ m v²</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'ec')">E<sub>c</sub> (J)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ec')">m (kg)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ec')">v (m/s)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>E<sub>c</sub> — énergie cinétique</label><input id="ec_ec" type="number" step="any" class="unknown" placeholder="?"><span class="unit">J</span></div>
+        <div class="field-row"><label>m — masse</label><input id="ec_m" type="number" step="any" min="0"><span class="unit">kg</span></div>
+        <div class="field-row"><label>v — vitesse</label><input id="ec_v" type="number" step="any" min="0"><span class="unit">m/s</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcEc()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('ec_ec','ec_m','ec_v','res-ec')">Effacer</button>
+        <div class="result-box" id="res-ec"></div>
+      </div>
+    </div>
+
+    <!-- Ep -->
+    <div class="ccard" data-domain="energie">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#2a5c3a">Énergie</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Énergie potentielle</div>
+          <div class="ccard-formula">E<sub>p</sub> = m g h</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'ep')">E<sub>p</sub> (J)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ep')">m (kg)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ep')">h (m)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>E<sub>p</sub> — énergie potentielle</label><input id="ep_ep" type="number" step="any" class="unknown" placeholder="?"><span class="unit">J</span></div>
+        <div class="field-row"><label>m — masse</label><input id="ep_m" type="number" step="any" min="0"><span class="unit">kg</span></div>
+        <div class="field-row"><label>h — altitude (réf. 0)</label><input id="ep_h" type="number" step="any"><span class="unit">m</span></div>
+        <div class="field-row"><label>g — pesanteur</label><input id="ep_g" type="number" step="any" value="9.81"><span class="unit">m/s²</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcEp()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('ep_ep','ep_m','ep_h','res-ep');g('ep_g').value='9.81'">Effacer</button>
+        <div class="result-box" id="res-ep"></div>
+      </div>
+    </div>
+
+    <!-- Travail W = Fd cosθ -->
+    <div class="ccard" data-domain="energie mecanique">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#2a5c3a">Énergie</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Travail d'une force</div>
+          <div class="ccard-formula">W = F · d · cos θ</div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>F — force</label><input id="w_F" type="number" step="any" min="0"><span class="unit">N</span></div>
+        <div class="field-row"><label>d — déplacement</label><input id="w_d" type="number" step="any" min="0"><span class="unit">m</span></div>
+        <div class="field-row"><label>θ — angle (F⃗, dépl.)</label><input id="w_theta" type="number" step="any" value="0"><span class="unit">°</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcW()">Calculer W</button>
+        <button class="reset-btn" onclick="resetCard('w_F','w_d','res-w');g('w_theta').value='0'">Effacer</button>
+        <div class="result-box" id="res-w"></div>
+      </div>
+    </div>
+
+    <!-- Poids P = mg -->
+    <div class="ccard" data-domain="mecanique">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#3a2010">Mécanique</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Poids</div>
+          <div class="ccard-formula">P = m · g</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'poids')">P (N)</button>
+        <button class="unk-btn" onclick="setUnk(this,'poids')">m (kg)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>P — poids</label><input id="pds_P" type="number" step="any" class="unknown" placeholder="?"><span class="unit">N</span></div>
+        <div class="field-row"><label>m — masse</label><input id="pds_m" type="number" step="any" min="0"><span class="unit">kg</span></div>
+        <div class="field-row"><label>g — pesanteur</label><input id="pds_g" type="number" step="any" value="9.81"><span class="unit">m/s²</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPoids()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('pds_P','pds_m','res-poids');g('pds_g').value='9.81'">Effacer</button>
+        <div class="result-box" id="res-poids"></div>
+      </div>
+    </div>
+
+    <!-- Oscillateur masse-ressort -->
+    <div class="ccard" data-domain="mecanique energie">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#3a2010">Oscillateur</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Oscillateur masse-ressort</div>
+          <div class="ccard-formula">T = 2π √(m/k)</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'osc')">T (s)</button>
+        <button class="unk-btn" onclick="setUnk(this,'osc')">m (kg)</button>
+        <button class="unk-btn" onclick="setUnk(this,'osc')">k (N/m)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>T — période</label><input id="osc_T" type="number" step="any" class="unknown" placeholder="?"><span class="unit">s</span></div>
+        <div class="field-row"><label>m — masse</label><input id="osc_m" type="number" step="any" min="0"><span class="unit">kg</span></div>
+        <div class="field-row"><label>k — raideur</label><input id="osc_k" type="number" step="any" min="0"><span class="unit">N/m</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcOsc()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('osc_T','osc_m','osc_k','res-osc')">Effacer</button>
+        <div class="result-box" id="res-osc"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ FLUIDES ══════════════════ -->
+  <div class="section-divider" data-domains="fluides">
+    <span class="sec-badge" style="background:#1c4a4a">Physique</span>
+    <span class="sec-name">Fluides au repos</span>
+  </div>
+
+  <div class="cards-grid" data-domains="fluides">
+
+    <!-- Pression p = F/S -->
+    <div class="ccard" data-domain="fluides">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c4a4a">Fluides</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Pression</div>
+          <div class="ccard-formula">p = F / S</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'pr')">p (Pa)</button>
+        <button class="unk-btn" onclick="setUnk(this,'pr')">F (N)</button>
+        <button class="unk-btn" onclick="setUnk(this,'pr')">S (m²)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>p — pression</label><input id="pr_p" type="number" step="any" class="unknown" placeholder="?"><span class="unit">Pa</span></div>
+        <div class="field-row"><label>F — force</label><input id="pr_F" type="number" step="any" min="0"><span class="unit">N</span></div>
+        <div class="field-row"><label>S — surface</label><input id="pr_S" type="number" step="any" min="0"><span class="unit">m²</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPr()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('pr_p','pr_F','pr_S','res-pr')">Effacer</button>
+        <div class="result-box" id="res-pr"></div>
+      </div>
+    </div>
+
+    <!-- Pression hydrostatique -->
+    <div class="ccard" data-domain="fluides">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c4a4a">Fluides</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Pression hydrostatique</div>
+          <div class="ccard-formula">p = p₀ + ρ g h</div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>p₀ — pression surface</label><input id="ph_p0" type="number" step="any" value="101325"><span class="unit">Pa</span></div>
+        <div class="field-row"><label>ρ — masse volumique fluide</label><input id="ph_rho" type="number" step="any" value="1000"><span class="unit">kg/m³</span></div>
+        <div class="field-row"><label>g — pesanteur</label><input id="ph_g" type="number" step="any" value="9.81"><span class="unit">m/s²</span></div>
+        <div class="field-row"><label>h — profondeur</label><input id="ph_hd" type="number" step="any" min="0"><span class="unit">m</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPH2()">Calculer p</button>
+        <button class="reset-btn" onclick="g('ph_hd').value='';g('ph_p0').value='101325';g('ph_rho').value='1000';g('ph_g').value='9.81';resetCard('res-ph2')">Effacer</button>
+        <div class="result-box" id="res-ph2"></div>
+      </div>
+    </div>
+
+    <!-- Archimède -->
+    <div class="ccard" data-domain="fluides">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#1c4a4a">Fluides</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Poussée d'Archimède</div>
+          <div class="ccard-formula">Π = ρ<sub>f</sub> · V<sub>imm</sub> · g</div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>ρ<sub>f</sub> — masse vol. fluide</label><input id="arch_rho" type="number" step="any" value="1000"><span class="unit">kg/m³</span></div>
+        <div class="field-row"><label>V<sub>imm</sub> — volume immergé</label><input id="arch_V" type="number" step="any" min="0"><span class="unit">m³</span></div>
+        <div class="field-row"><label>g — pesanteur</label><input id="arch_g" type="number" step="any" value="9.81"><span class="unit">m/s²</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcArch()">Calculer Π</button>
+        <button class="reset-btn" onclick="g('arch_V').value='';resetCard('res-arch')">Effacer</button>
+        <div class="result-box" id="res-arch"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ OPTIQUE ══════════════════ -->
+  <div class="section-divider" data-domains="optique">
+    <span class="sec-badge" style="background:#5a3a1c">Optique</span>
+    <span class="sec-name">Ondes et optique géométrique</span>
+  </div>
+
+  <div class="cards-grid" data-domains="optique">
+
+    <!-- v = λf -->
+    <div class="ccard" data-domain="optique">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#5a3a1c">Ondes</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Relation onde</div>
+          <div class="ccard-formula">v = λ · f &nbsp;·&nbsp; T = 1/f</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'onde')">v (m/s)</button>
+        <button class="unk-btn" onclick="setUnk(this,'onde')">λ (m)</button>
+        <button class="unk-btn" onclick="setUnk(this,'onde')">f (Hz)</button>
+        <button class="unk-btn" onclick="setUnk(this,'onde')">T (s)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>v — vitesse de propagation</label><input id="onde_v" type="number" step="any" class="unknown" placeholder="?"><span class="unit">m/s</span></div>
+        <div class="field-row"><label>λ — longueur d'onde</label><input id="onde_l" type="number" step="any" min="0"><span class="unit">m</span></div>
+        <div class="field-row"><label>f — fréquence</label><input id="onde_f" type="number" step="any" min="0"><span class="unit">Hz</span></div>
+        <div class="field-row"><label>T — période</label><input id="onde_T" type="number" step="any" min="0"><span class="unit">s</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcOnde()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('onde_v','onde_l','onde_f','onde_T','res-onde')">Effacer</button>
+        <div class="result-box" id="res-onde"></div>
+      </div>
+    </div>
+
+    <!-- Lentille -->
+    <div class="ccard" data-domain="optique">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#5a3a1c">Optique</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Lentille mince</div>
+          <div class="ccard-formula">1/OA' − 1/OA = 1/f' &nbsp;·&nbsp; γ = OA'/OA</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'lent')">OA' (m)</button>
+        <button class="unk-btn" onclick="setUnk(this,'lent')">OA (m)</button>
+        <button class="unk-btn" onclick="setUnk(this,'lent')">f' (m)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>OA — position objet</label><input id="lent_OA" type="number" step="any"><span class="unit">m (négatif si réel)</span></div>
+        <div class="field-row"><label>OA' — position image</label><input id="lent_OAp" type="number" step="any" class="unknown" placeholder="?"><span class="unit">m</span></div>
+        <div class="field-row"><label>f' — distance focale image</label><input id="lent_f" type="number" step="any"><span class="unit">m (positif si convergente)</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcLent()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('lent_OA','lent_OAp','lent_f','res-lent')">Effacer</button>
+        <div class="result-box" id="res-lent"></div>
+      </div>
+    </div>
+
+    <!-- Snell-Descartes -->
+    <div class="ccard" data-domain="optique">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#5a3a1c">Optique</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Snell-Descartes</div>
+          <div class="ccard-formula">n₁ · sin i₁ = n₂ · sin i₂</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'snell')">i₂ (°)</button>
+        <button class="unk-btn" onclick="setUnk(this,'snell')">i₁ (°)</button>
+        <button class="unk-btn" onclick="setUnk(this,'snell')">n₂</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>n₁ — indice milieu 1</label><input id="sn_n1" type="number" step="any" min="1" value="1"><span class="unit"></span></div>
+        <div class="field-row"><label>i₁ — angle incidence</label><input id="sn_i1" type="number" step="any" min="0" max="90"><span class="unit">°</span></div>
+        <div class="field-row"><label>n₂ — indice milieu 2</label><input id="sn_n2" type="number" step="any" min="1"><span class="unit"></span></div>
+        <div class="field-row"><label>i₂ — angle réfraction</label><input id="sn_i2" type="number" step="any" class="unknown" placeholder="?"><span class="unit">°</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcSnell()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('sn_i1','sn_n2','sn_i2','res-snell');g('sn_n1').value='1'">Effacer</button>
+        <div class="result-box" id="res-snell"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ ÉLECTRICITÉ ══════════════════ -->
+  <div class="section-divider" data-domains="elec">
+    <span class="sec-badge" style="background:#5c2a2a">Électricité</span>
+    <span class="sec-name">Circuits électriques</span>
+  </div>
+
+  <div class="cards-grid" data-domains="elec">
+
+    <!-- Ohm -->
+    <div class="ccard" data-domain="elec">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#5c2a2a">Électricité</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Loi d'Ohm</div>
+          <div class="ccard-formula">U = R · I</div>
+        </div>
+      </div>
+      <div class="unknown-select">
+        <span>Calculer :</span>
+        <button class="unk-btn sel" onclick="setUnk(this,'ohm')">U (V)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ohm')">R (Ω)</button>
+        <button class="unk-btn" onclick="setUnk(this,'ohm')">I (A)</button>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>U — tension</label><input id="ohm_U" type="number" step="any" class="unknown" placeholder="?"><span class="unit">V</span></div>
+        <div class="field-row"><label>R — résistance</label><input id="ohm_R" type="number" step="any" min="0"><span class="unit">Ω</span></div>
+        <div class="field-row"><label>I — intensité</label><input id="ohm_I" type="number" step="any"><span class="unit">A</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcOhm()">Calculer</button>
+        <button class="reset-btn" onclick="resetCard('ohm_U','ohm_R','ohm_I','res-ohm')">Effacer</button>
+        <div class="result-box" id="res-ohm"></div>
+      </div>
+    </div>
+
+    <!-- Puissance électrique -->
+    <div class="ccard" data-domain="elec">
+      <div class="ccard-head">
+        <span class="ccard-badge" style="background:#5c2a2a">Électricité</span>
+        <div class="ccard-info">
+          <div class="ccard-name">Puissance et énergie électrique</div>
+          <div class="ccard-formula">P = U · I &nbsp;·&nbsp; E = P · t</div>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field-row"><label>U — tension</label><input id="pe_U" type="number" step="any" min="0"><span class="unit">V</span></div>
+        <div class="field-row"><label>I — intensité</label><input id="pe_I" type="number" step="any" min="0"><span class="unit">A</span></div>
+        <div class="field-row"><label>t — durée</label><input id="pe_t" type="number" step="any" min="0"><span class="unit">s</span></div>
+      </div>
+      <div class="ccard-foot">
+        <button class="calc-btn" onclick="calcPelec()">Calculer P et E</button>
+        <button class="reset-btn" onclick="resetCard('pe_U','pe_I','pe_t','res-pe')">Effacer</button>
+        <div class="result-box" id="res-pe"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ CONVERSIONS ══════════════════ -->
+  <div class="section-divider" data-domains="conversion">
+    <span class="sec-badge" style="background:#3a3a1c">Outils</span>
+    <span class="sec-name">Convertisseur d'unités</span>
+  </div>
+
+  <div data-domains="conversion">
+    <div class="conv-card" data-domain="conversion">
+      <div class="conv-group-btns">
+        <button class="cg-btn active" onclick="setConvGroup('longueur',this)">Longueur</button>
+        <button class="cg-btn" onclick="setConvGroup('masse',this)">Masse</button>
+        <button class="cg-btn" onclick="setConvGroup('volume',this)">Volume</button>
+        <button class="cg-btn" onclick="setConvGroup('temps',this)">Temps</button>
+        <button class="cg-btn" onclick="setConvGroup('energie',this)">Énergie</button>
+        <button class="cg-btn" onclick="setConvGroup('pression',this)">Pression</button>
+        <button class="cg-btn" onclick="setConvGroup('temp',this)">Température</button>
+      </div>
+      <div class="conv-row">
+        <input type="number" id="conv_val" placeholder="Valeur" step="any">
+        <select id="conv_from" onchange="doConvert()"></select>
+        <span style="font-size:18px;color:var(--faded)">→</span>
+        <select id="conv_to" onchange="doConvert()"></select>
+        <button class="calc-btn" onclick="doConvert()">Convertir</button>
+      </div>
+      <div class="conv-result" id="conv_result"></div>
+    </div>
+  </div>
+
+</div><!-- /paper -->
+</div><!-- /wrap -->
+
+<script>
+// ── UTILS ──
+const g=id=>document.getElementById(id);
+const val=id=>parseFloat(g(id).value);
+const set=id=>g(id).value.trim()!=='';
+
+function fmt(n,p=4){
+  if(n===undefined||n===null||isNaN(n)) return '?';
+  const a=Math.abs(n);
+  if(a===0) return '0';
+  if(a>=0.001&&a<1e6) return parseFloat(n.toPrecision(p)).toString();
+  return n.toExponential(3);
+}
+
+function showRes(id,html,err=false){
+  const el=g(id);
+  el.innerHTML=html;
+  el.className='result-box show'+(err?' err':'');
+}
+
+function resetCard(...ids){
+  const rid=ids[ids.length-1];
+  ids.slice(0,-1).forEach(id=>{const el=g(id);if(el)el.value='';});
+  const r=g(rid);if(r){r.className='result-box';r.innerHTML='';}
+}
+
+// ── UNKNOWN SELECTION ──
+const unknowns={};
+function setUnk(btn,group){
+  const btns=btn.closest('.ccard').querySelectorAll('.unk-btn');
+  btns.forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  unknowns[group]=Array.from(btns).indexOf(btn);
+  // Highlight unknown field
+  const inputs=btn.closest('.ccard').querySelectorAll('input');
+  inputs.forEach((inp,i)=>{ if(!inp.id.includes('_g')&&!inp.id.includes('_p0')&&!inp.id.includes('_rho')) inp.classList.remove('unknown'); });
+}
+
+// ── FILTER ──
+function setFilter(domain, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    b.classList.remove('active');
+    b.style.background='';b.style.borderColor='';b.style.color='';
+  });
+  btn.classList.add('active');
+  if(domain==='all'){
+    btn.style.background='#1c3d6e';btn.style.borderColor='#1c3d6e';btn.style.color='#fff';
+  } else {
+    btn.style.background='rgba(255,255,255,.2)';btn.style.color='#fff';btn.style.borderColor='rgba(255,255,255,.3)';
+  }
+
+  // Cards
+  document.querySelectorAll('.ccard,[data-domain]').forEach(el=>{
+    const d=el.dataset.domain||'';
+    if(domain==='all'||d.split(' ').includes(domain)) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  });
+
+  // Section dividers & grid wrappers
+  document.querySelectorAll('.section-divider,[data-domains]').forEach(el=>{
+    const ds=(el.dataset.domains||'').split(' ');
+    if(domain==='all'||ds.includes(domain)) el.style.display='';
+    else el.style.display='none';
+  });
+
+  // Also hide conv-card if not conversion
+  if(domain!=='all'&&domain!=='conversion'){
+    const cc=document.querySelector('.conv-card');
+    if(cc) cc.closest('[data-domains]').style.display='none';
+  }
+
+  const empty=g('empty');
+  const visible=document.querySelectorAll('.ccard:not(.hidden)').length;
+  const convVisible=document.querySelector('.conv-card')?.closest('[data-domains]')?.style.display!=='none';
+  empty.className='empty-state'+(visible===0&&!convVisible?' show':'');
+}
+
+// ── CHIMIE ──
+function calcQmm(){
+  const ns=set('qmm_n'),ms=set('qmm_m'),Ms=set('qmm_M');
+  const miss=[!ns,!ms,!Ms].filter(Boolean).length;
+  if(miss>1){showRes('res-qmm','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let n=val('qmm_n'),m=val('qmm_m'),M=val('qmm_M'),label;
+  if(!ns){n=m/M;label=`n = ${fmt(m)} / ${fmt(M)} = <strong>${fmt(n)} mol</strong>`;}
+  else if(!ms){m=n*M;label=`m = ${fmt(n)} × ${fmt(M)} = <strong>${fmt(m)} g</strong>`;}
+  else{M=m/n;label=`M = ${fmt(m)} / ${fmt(n)} = <strong>${fmt(M)} g/mol</strong>`;}
+  showRes('res-qmm',label);
+}
+
+function calcCV(){
+  const ns=set('cv_n'),Cs=set('cv_C'),Vs=set('cv_V');
+  if([!ns,!Cs,!Vs].filter(Boolean).length>1){showRes('res-cv','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let n=val('cv_n'),C=val('cv_C'),V=val('cv_V'),label;
+  if(!ns){n=C*V;label=`n = ${fmt(C)} × ${fmt(V)} = <strong>${fmt(n)} mol</strong>`;}
+  else if(!Cs){C=n/V;label=`C = ${fmt(n)} / ${fmt(V)} = <strong>${fmt(C)} mol/L</strong>`;}
+  else{V=n/C;label=`V = ${fmt(n)} / ${fmt(C)} = <strong>${fmt(V)} L</strong> = ${fmt(V*1000)} mL`;}
+  showRes('res-cv',label);
+}
+
+function calcCm(){
+  const cms=set('cm_cm'),ms=set('cm_m'),Vs=set('cm_V');
+  if([!cms,!ms,!Vs].filter(Boolean).length>1){showRes('res-cm','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let cm=val('cm_cm'),m=val('cm_m'),V=val('cm_V'),label;
+  if(!cms){cm=m/V;label=`C<sub>m</sub> = ${fmt(m)} / ${fmt(V)} = <strong>${fmt(cm)} g/L</strong>`;}
+  else if(!ms){m=cm*V;label=`m = ${fmt(cm)} × ${fmt(V)} = <strong>${fmt(m)} g</strong>`;}
+  else{V=m/cm;label=`V = ${fmt(m)} / ${fmt(cm)} = <strong>${fmt(V)} L</strong>`;}
+  showRes('res-cm',label);
+}
+
+function calcDilution(){
+  const s1=set('dil_C1'),s2=set('dil_V1'),s3=set('dil_C2'),s4=set('dil_V2');
+  if([!s1,!s2,!s3,!s4].filter(Boolean).length!==1){showRes('res-dil','<strong>⚠ Laissez exactement 1 champ vide.</strong>',true);return;}
+  let C1=val('dil_C1'),V1=val('dil_V1'),C2=val('dil_C2'),V2=val('dil_V2'),F,label;
+  if(!s1){C1=C2*V2/V1;F=V2/V1;label=`C₁ = <strong>${fmt(C1)} mol/L</strong> · F = ${fmt(F)}`;}
+  else if(!s2){V1=C2*V2/C1;F=V2/V1;label=`V₁ = <strong>${fmt(V1)} L = ${fmt(V1*1000)} mL</strong> · F = ${fmt(F)}`;}
+  else if(!s3){C2=C1*V1/V2;F=V2/V1;label=`C₂ = <strong>${fmt(C2)} mol/L</strong> · F = ${fmt(F)}`;}
+  else{V2=C1*V1/C2;F=V2/V1;label=`V₂ = <strong>${fmt(V2)} L = ${fmt(V2*1000)} mL</strong> · F = ${fmt(F)}`;}
+  showRes('res-dil',label);
+}
+
+function calcPH(dir){
+  if(dir===1){
+    if(!set('ph_ph')){showRes('res-ph','<strong>⚠ Entrez un pH.</strong>',true);return;}
+    const ph=val('ph_ph');
+    if(ph<0||ph>14){showRes('res-ph','<strong>⚠ pH entre 0 et 14.</strong>',true);return;}
+    const h=Math.pow(10,-ph);
+    g('ph_h').value=h.toExponential(3);
+    showRes('res-ph',`[H₃O⁺] = 10<sup>−${ph}</sup> = <strong>${h.toExponential(3)} mol/L</strong>`);
+  } else {
+    if(!set('ph_h')){showRes('res-ph','<strong>⚠ Entrez [H₃O⁺].</strong>',true);return;}
+    const h=val('ph_h');
+    if(h<=0){showRes('res-ph','<strong>⚠ Concentration > 0.</strong>',true);return;}
+    const ph=-Math.log10(h);
+    g('ph_ph').value=ph.toFixed(2);
+    showRes('res-ph',`pH = −log(${h.toExponential(3)}) = <strong>${ph.toFixed(2)}</strong>`);
+  }
+}
+
+function calcPOH(){
+  if(!set('poh_ph')){showRes('res-poh','<strong>⚠ Entrez un pH.</strong>',true);return;}
+  const ph=val('poh_ph'),poh=14-ph,oh=Math.pow(10,-poh);
+  showRes('res-poh',`pOH = 14 − ${ph} = <strong>${poh.toFixed(2)}</strong> · [OH⁻] = <strong>${oh.toExponential(3)} mol/L</strong>`);
+}
+
+function calcBL(){
+  const As=set('bl_A'),es=set('bl_e'),ls=set('bl_l'),Cs=set('bl_C');
+  if([!As,!es,!ls,!Cs].filter(Boolean).length>1){showRes('res-bl','<strong>⚠ Remplissez 3 champs.</strong>',true);return;}
+  let A=val('bl_A'),e=val('bl_e'),l=val('bl_l'),C=val('bl_C'),label;
+  if(!As){A=e*l*C;label=`A = ${fmt(e)} × ${fmt(l)} × ${fmt(C)} = <strong>${fmt(A)}</strong>`;}
+  else if(!es){e=A/(l*C);label=`ε = <strong>${fmt(e)} L·mol⁻¹·cm⁻¹</strong>`;}
+  else if(!ls){l=A/(e*C);label=`l = <strong>${fmt(l)} cm</strong>`;}
+  else{C=A/(e*l);label=`C = <strong>${fmt(C)} mol/L</strong>`;}
+  showRes('res-bl',label);
+}
+
+// ── PHYSIQUE ──
+function calcEc(){
+  const es=set('ec_ec'),ms=set('ec_m'),vs=set('ec_v');
+  if([!es,!ms,!vs].filter(Boolean).length>1){showRes('res-ec','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let ec=val('ec_ec'),m=val('ec_m'),v=val('ec_v'),label;
+  if(!es){ec=.5*m*v*v;label=`E<sub>c</sub> = ½ × ${fmt(m)} × ${fmt(v)}² = <strong>${fmt(ec)} J</strong>`;}
+  else if(!ms){m=2*ec/(v*v);label=`m = 2E<sub>c</sub>/v² = <strong>${fmt(m)} kg</strong>`;}
+  else{v=Math.sqrt(2*ec/m);label=`v = √(2E<sub>c</sub>/m) = <strong>${fmt(v)} m/s</strong>`;}
+  showRes('res-ec',label);
+}
+
+function calcEp(){
+  const eps=set('ep_ep'),ms=set('ep_m'),hs=set('ep_h');
+  if([!eps,!ms,!hs].filter(Boolean).length>1){showRes('res-ep','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  const gv=val('ep_g')||9.81;
+  let ep=val('ep_ep'),m=val('ep_m'),h=val('ep_h'),label;
+  if(!eps){ep=m*gv*h;label=`E<sub>p</sub> = ${fmt(m)} × ${fmt(gv)} × ${fmt(h)} = <strong>${fmt(ep)} J</strong>`;}
+  else if(!ms){m=ep/(gv*h);label=`m = <strong>${fmt(m)} kg</strong>`;}
+  else{h=ep/(m*gv);label=`h = <strong>${fmt(h)} m</strong>`;}
+  showRes('res-ep',label);
+}
+
+function calcW(){
+  if(!set('w_F')||!set('w_d')){showRes('res-w','<strong>⚠ Entrez F et d.</strong>',true);return;}
+  const F=val('w_F'),d=val('w_d'),theta=val('w_theta')||0;
+  const W=F*d*Math.cos(theta*Math.PI/180);
+  showRes('res-w',`W = ${fmt(F)} × ${fmt(d)} × cos(${theta}°) = <strong>${fmt(W)} J</strong>${W<0?' (force résistante)':W===0?' (force perpendiculaire)':' (force motrice)'}`);
+}
+
+function calcPoids(){
+  const Ps=set('pds_P'),ms=set('pds_m');
+  if([!Ps,!ms].filter(Boolean).length>1){showRes('res-poids','<strong>⚠ Remplissez 1 champ.</strong>',true);return;}
+  const gv=val('pds_g')||9.81;
+  let P=val('pds_P'),m=val('pds_m'),label;
+  if(!Ps){P=m*gv;label=`P = ${fmt(m)} × ${fmt(gv)} = <strong>${fmt(P)} N</strong>`;}
+  else{m=P/gv;label=`m = P/g = <strong>${fmt(m)} kg</strong>`;}
+  showRes('res-poids',label);
+}
+
+function calcOsc(){
+  const Ts=set('osc_T'),ms=set('osc_m'),ks=set('osc_k');
+  if([!Ts,!ms,!ks].filter(Boolean).length>1){showRes('res-osc','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let T=val('osc_T'),m=val('osc_m'),k=val('osc_k'),label;
+  if(!Ts){T=2*Math.PI*Math.sqrt(m/k);label=`T = 2π√(${fmt(m)}/${fmt(k)}) = <strong>${fmt(T)} s</strong> · f = ${fmt(1/T)} Hz`;}
+  else if(!ms){m=k*(T/(2*Math.PI))**2;label=`m = <strong>${fmt(m)} kg</strong>`;}
+  else{k=m*(2*Math.PI/T)**2;label=`k = <strong>${fmt(k)} N/m</strong>`;}
+  showRes('res-osc',label);
+}
+
+function calcPr(){
+  const ps=set('pr_p'),Fs=set('pr_F'),Ss=set('pr_S');
+  if([!ps,!Fs,!Ss].filter(Boolean).length>1){showRes('res-pr','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let p=val('pr_p'),F=val('pr_F'),S=val('pr_S'),label;
+  if(!ps){p=F/S;label=`p = ${fmt(F)}/${fmt(S)} = <strong>${fmt(p)} Pa</strong>`;}
+  else if(!Fs){F=p*S;label=`F = ${fmt(p)} × ${fmt(S)} = <strong>${fmt(F)} N</strong>`;}
+  else{S=F/p;label=`S = <strong>${fmt(S)} m²</strong>`;}
+  showRes('res-pr',label);
+}
+
+function calcPH2(){
+  if(!set('ph_hd')){showRes('res-ph2','<strong>⚠ Entrez la profondeur h.</strong>',true);return;}
+  const p0=val('ph_p0'),rho=val('ph_rho'),gv=val('ph_g'),h=val('ph_hd');
+  const p=p0+rho*gv*h;
+  showRes('res-ph2',`p = ${fmt(p0)} + ${fmt(rho)} × ${fmt(gv)} × ${fmt(h)} = <strong>${fmt(p)} Pa</strong> = ${fmt(p/100)} hPa`);
+}
+
+function calcArch(){
+  if(!set('arch_V')){showRes('res-arch','<strong>⚠ Entrez le volume immergé.</strong>',true);return;}
+  const rho=val('arch_rho'),V=val('arch_V'),gv=val('arch_g');
+  const pi=rho*V*gv;
+  showRes('res-arch',`Π = ${fmt(rho)} × ${fmt(V)} × ${fmt(gv)} = <strong>${fmt(pi)} N</strong>`);
+}
+
+function calcOnde(){
+  const vs=set('onde_v'),ls=set('onde_l'),fs=set('onde_f'),Ts=set('onde_T');
+  // Résoudre d'abord f↔T si nécessaire
+  let v=val('onde_v'),lambda=val('onde_l'),f=val('onde_f'),T=val('onde_T');
+  if(!fs&&Ts){f=1/T;}
+  if(!Ts&&fs){T=1/f;}
+  const miss=[!vs,!ls,(!fs&&!Ts)].filter(Boolean).length;
+  if(miss>1){showRes('res-onde','<strong>⚠ Remplissez au moins 2 champs parmi v, λ, f/T.</strong>',true);return;}
+  let label='';
+  if(!vs){v=lambda*f;label=`v = λ × f = ${fmt(lambda)} × ${fmt(f)} = <strong>${fmt(v)} m/s</strong>`;}
+  else if(!ls){lambda=v/f;label=`λ = v/f = ${fmt(v)}/${fmt(f)} = <strong>${fmt(lambda)} m</strong>`;}
+  else{f=v/lambda;T=1/f;label=`f = v/λ = ${fmt(v)}/${fmt(lambda)} = <strong>${fmt(f)} Hz</strong> · T = ${fmt(T)} s`;}
+  showRes('res-onde',label);
+}
+
+function calcLent(){
+  const OAs=set('lent_OA'),OAps=set('lent_OAp'),fs=set('lent_f');
+  if([!OAs,!OAps,!fs].filter(Boolean).length>1){showRes('res-lent','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let OA=val('lent_OA'),OAp=val('lent_OAp'),f=val('lent_f'),gamma,label;
+  if(!OAps){OAp=1/(1/f+1/OA);gamma=OAp/OA;label=`OA' = <strong>${fmt(OAp)} m</strong> · γ = ${fmt(gamma)}`;}
+  else if(!OAs){OA=1/(1/OAp-1/f);gamma=OAp/OA;label=`OA = <strong>${fmt(OA)} m</strong> · γ = ${fmt(gamma)}`;}
+  else{f=1/(1/OAp-1/OA);gamma=OAp/OA;label=`f' = <strong>${fmt(f)} m</strong> · V = ${fmt(1/f)} δ · γ = ${fmt(gamma)}`;}
+  showRes('res-lent',label);
+}
+
+function calcSnell(){
+  const n1s=set('sn_n1'),i1s=set('sn_i1'),n2s=set('sn_n2'),i2s=set('sn_i2');
+  if([!n1s,!i1s,!n2s,!i2s].filter(Boolean).length>1){showRes('res-snell','<strong>⚠ Remplissez 3 champs.</strong>',true);return;}
+  let n1=val('sn_n1'),i1=val('sn_i1'),n2=val('sn_n2'),i2=val('sn_i2'),label;
+  if(!i2s){const si2=n1*Math.sin(i1*Math.PI/180)/n2;if(Math.abs(si2)>1){showRes('res-snell','<strong>⚠ Réflexion totale interne (sin i₂ > 1).</strong>',true);return;}i2=Math.asin(si2)*180/Math.PI;label=`i₂ = <strong>${fmt(i2,4)}°</strong>`;}
+  else if(!i1s){const si1=n2*Math.sin(i2*Math.PI/180)/n1;i1=Math.asin(si1)*180/Math.PI;label=`i₁ = <strong>${fmt(i1,4)}°</strong>`;}
+  else{n2=n1*Math.sin(i1*Math.PI/180)/Math.sin(i2*Math.PI/180);label=`n₂ = <strong>${fmt(n2,4)}</strong>`;}
+  showRes('res-snell',label);
+}
+
+function calcOhm(){
+  const Us=set('ohm_U'),Rs=set('ohm_R'),Is=set('ohm_I');
+  if([!Us,!Rs,!Is].filter(Boolean).length>1){showRes('res-ohm','<strong>⚠ Remplissez 2 champs.</strong>',true);return;}
+  let U=val('ohm_U'),R=val('ohm_R'),I=val('ohm_I'),label;
+  if(!Us){U=R*I;label=`U = ${fmt(R)} × ${fmt(I)} = <strong>${fmt(U)} V</strong>`;}
+  else if(!Rs){R=U/I;label=`R = ${fmt(U)}/${fmt(I)} = <strong>${fmt(R)} Ω</strong>`;}
+  else{I=U/R;label=`I = ${fmt(U)}/${fmt(R)} = <strong>${fmt(I)} A</strong>`;}
+  showRes('res-ohm',label);
+}
+
+function calcPelec(){
+  if(!set('pe_U')||!set('pe_I')){showRes('res-pe','<strong>⚠ Entrez U et I.</strong>',true);return;}
+  const U=val('pe_U'),I=val('pe_I'),t=val('pe_t');
+  const P=U*I;
+  let label=`P = ${fmt(U)} × ${fmt(I)} = <strong>${fmt(P)} W</strong>`;
+  if(set('pe_t')) label+=` · E = ${fmt(P)} × ${fmt(t)} = <strong>${fmt(P*t)} J</strong>`;
+  showRes('res-pe',label);
+}
+
+// ── CONVERTISSEUR ──
+const CONV_GROUPS={
+  longueur:{units:[{n:'pm',f:1e-12},{n:'nm',f:1e-9},{n:'μm',f:1e-6},{n:'mm',f:1e-3},{n:'cm',f:1e-2},{n:'dm',f:1e-1},{n:'m',f:1},{n:'km',f:1e3}]},
+  masse:{units:[{n:'μg',f:1e-9},{n:'mg',f:1e-6},{n:'g',f:1e-3},{n:'kg',f:1},{n:'t',f:1e3}]},
+  volume:{units:[{n:'μL',f:1e-6},{n:'mL',f:1e-3},{n:'cL',f:1e-2},{n:'dL',f:1e-1},{n:'L',f:1},{n:'m³',f:1e3}]},
+  temps:{units:[{n:'ms',f:1e-3},{n:'s',f:1},{n:'min',f:60},{n:'h',f:3600},{n:'jour',f:86400}]},
+  energie:{units:[{n:'J',f:1},{n:'kJ',f:1e3},{n:'cal',f:4.184},{n:'kcal',f:4184},{n:'eV',f:1.602e-19}]},
+  pression:{units:[{n:'Pa',f:1},{n:'hPa',f:100},{n:'bar',f:1e5},{n:'atm',f:101325},{n:'mmHg',f:133.322}]},
+  temp:{units:[{n:'°C'},{n:'K'},{n:'°F'}]}
+};
+let curConv='longueur';
+
+function setConvGroup(gid,btn){
+  curConv=gid;
+  document.querySelectorAll('.cg-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const grp=CONV_GROUPS[gid];
+  g('conv_from').innerHTML=grp.units.map((u,i)=>`<option value="${i}">${u.n}</option>`).join('');
+  g('conv_to').innerHTML=grp.units.map((u,i)=>`<option value="${i}">${u.n}</option>`).join('');
+  g('conv_to').selectedIndex=Math.min(2,grp.units.length-1);
+  g('conv_result').textContent='';
+}
+
+function doConvert(){
+  const v=parseFloat(g('conv_val').value);
+  if(isNaN(v)){g('conv_result').textContent='';return;}
+  const grp=CONV_GROUPS[curConv];
+  const fi=parseInt(g('conv_from').value),ti=parseInt(g('conv_to').value);
+  const from=grp.units[fi],to=grp.units[ti];
+  let result;
+  if(curConv==='temp'){
+    let c;
+    if(from.n==='°C') c=v;
+    else if(from.n==='K') c=v-273.15;
+    else c=(v-32)*5/9;
+    if(to.n==='°C') result=c;
+    else if(to.n==='K') result=c+273.15;
+    else result=c*9/5+32;
+  } else {
+    result=v*from.f/to.f;
+  }
+  g('conv_result').textContent=`${fmt(v,6)} ${from.n}  =  ${fmt(result,6)} ${to.n}`;
+}
+
+g('conv_val').addEventListener('input',doConvert);
+setConvGroup('longueur',null);
+</script>
+</body>
+</html>
