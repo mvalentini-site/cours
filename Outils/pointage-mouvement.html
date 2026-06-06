@@ -148,6 +148,14 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
     <div class="card">
       <div class="card-title">1 — Vidéo</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="field">
+          <label>Vidéo intégrée</label>
+          <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:180px;">
+            <option value="">— Choisir —</option>
+            <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
+          </select>
+        </div>
+        <button onclick="loadDemo()" title="Charge la vidéo avec le pointage complet — idéal pour une démo">⚡ Démo pointée</button>
         <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo</button>
         <input type="file" id="input-video" accept="video/*" style="display:none;">
         <div class="field"><label>Fréquence (img/s)</label>
@@ -420,20 +428,43 @@ let points=[],derived=[],GRANDEURS=[],lignes=[];
 let graphs=[],graphCount=0;
 
 // ══ VIDÉO ══
-$('input-video').addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;
-  const vid=$('vid');vid.src=URL.createObjectURL(f);vid.load();
+const PRESET_VIDEOS=[
+  {url:'LancerFranc_mp4.mp4', label:'Lancer franc (basket)', fps:25},
+];
+
+function initVideoSrc(src, label){
+  const vid=$('vid');
+  vid.src=src;vid.load();
   vid.addEventListener('loadedmetadata',()=>{
     duration=vid.duration;fps=parseFloat($('fps').value)||25;
     totalFrames=Math.floor(duration*fps);videoLoaded=true;currentFrame=0;
     const sc=$('scrubber');sc.max=totalFrames-1;sc.value=0;
     seekToFrame(0);resizeCanvases();
     $('video-container').classList.remove('hidden');
-    $('pill-video').textContent='Vidéo chargée · '+fmtTime(duration);$('pill-video').className='info-pill ok';
+    $('pill-video').textContent=(label||'Vidéo chargée')+' · '+fmtTime(duration);$('pill-video').className='info-pill ok';
     $('btn-calib-start').disabled=false;$('btn-prev').disabled=false;$('btn-next').disabled=false;
     updatePillFrame();$('pill-calib').textContent='Clique "Étalonner" puis sélectionne 2 points.';$('pill-calib').className='info-pill warn';
   },{once:true});
   vid.addEventListener('error',()=>{$('pill-video').textContent='Format non supporté — convertis en MP4';$('pill-video').className='info-pill err';},{once:true});
+}
+
+function loadPresetVideo(url){
+  if(!url)return;
+  const preset=PRESET_VIDEOS.find(v=>v.url===url);
+  if(preset?.fps){$('fps').value=preset.fps;}
+  initVideoSrc(url, preset?.label);
+}
+
+$('input-video').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  $('sel-video-preset').value='';
+  initVideoSrc(URL.createObjectURL(f), f.name);
+});
+
+// Chargement automatique de la vidéo par défaut
+window.addEventListener('DOMContentLoaded',()=>{
+  const def=PRESET_VIDEOS[0];
+  if(def){$('sel-video-preset').value=def.url;loadPresetVideo(def.url);}
 });
 $('fps').addEventListener('change',()=>{fps=parseFloat($('fps').value)||25;if(videoLoaded){totalFrames=Math.floor(duration*fps);$('scrubber').max=totalFrames-1;updatePillFrame();}});
 function seekToFrame(n,fromScrubber){
@@ -1535,42 +1566,50 @@ $('input-session').addEventListener('change',e=>{
   const f=e.target.files[0];if(!f)return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    try{
-      const s=JSON.parse(ev.target.result);
-      if(!s.version||!s.calibration||!s.points)throw new Error('Format invalide');
-      // Restaurer étalonnage
-      calibPts=s.calibration.pts||[];
-      pxPerUnit=s.calibration.pxPerUnit;
-      originPx=s.calibration.originPx||{x:0,y:0};
-      calibUnit=s.calibration.calibUnit||'m';
-      calibDone=!!(pxPerUnit&&pxPerUnit>0);
-      // Restaurer paramètres
-      if(s.fps)$('fps').value=fps=s.fps;
-      if(s.masse)$('masse').value=s.masse;
-      if(s.autoStep)$('auto-step').value=s.autoStep;
-      if(s.calibration.dist)$('calib-dist').value=s.calibration.dist;
-      $('calib-unite').value=calibUnit;
-      // Restaurer points
-      points=s.points||[];
-      // Mettre à jour UI
-      if(calibDone){
-        $('pill-calib').textContent='✓ Session chargée — étalon : '+pxPerUnit.toFixed(2)+' px/'+calibUnit;
-        $('pill-calib').className='info-pill ok';
-        $('btn-calib-reset').disabled=false;$('btn-point').disabled=false;
-        $('btn-add-graph').disabled=false;
-        buildGrandeurs();buildColToggles();refreshTableHeader();
-      }
-      if(points.length){
-        $('btn-undo').disabled=false;$('btn-clear-pts').disabled=false;
-        $('btn-export-csv').disabled=false;$('btn-export-session').disabled=false;$('btn-chrono').disabled=false;
-        computeDerived();refreshTableHeader();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();updateTraitementHint();
-      }
-      drawOverlay();
-      alert('Session chargée : '+points.length+' points.');
-    }catch(err){alert('Erreur lors du chargement : '+err.message);}
+    try{applySession(JSON.parse(ev.target.result));}
+    catch(err){alert('Erreur lors du chargement : '+err.message);}
   };
   reader.readAsText(f);e.target.value='';
 });
+
+function applySession(s, silent){
+  if(!s.version||!s.calibration||!s.points)throw new Error('Format invalide');
+  calibPts=s.calibration.pts||[];
+  pxPerUnit=s.calibration.pxPerUnit;
+  originPx=s.calibration.originPx||{x:0,y:0};
+  calibUnit=s.calibration.calibUnit||'m';
+  calibDone=!!(pxPerUnit&&pxPerUnit>0);
+  if(s.fps)$('fps').value=fps=s.fps;
+  if(s.masse)$('masse').value=s.masse;
+  if(s.autoStep)$('auto-step').value=s.autoStep;
+  if(s.calibration.dist)$('calib-dist').value=s.calibration.dist;
+  $('calib-unite').value=calibUnit;
+  points=s.points||[];
+  if(calibDone){
+    $('pill-calib').textContent='✓ Session chargée — étalon : '+pxPerUnit.toFixed(2)+' px/'+calibUnit;
+    $('pill-calib').className='info-pill ok';
+    $('btn-calib-reset').disabled=false;$('btn-point').disabled=false;
+    $('btn-add-graph').disabled=false;
+    buildGrandeurs();buildColToggles();refreshTableHeader();
+  }
+  if(points.length){
+    $('btn-undo').disabled=false;$('btn-clear-pts').disabled=false;
+    $('btn-export-csv').disabled=false;$('btn-export-session').disabled=false;$('btn-chrono').disabled=false;
+    computeDerived();refreshTableHeader();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();updateTraitementHint();
+  }
+  drawOverlay();
+  if(!silent)alert('Session chargée : '+points.length+' points.');
+}
+
+const DEMO_SESSION={"version":1,"calibration":{"pts":[{"px":634.3333129882812,"py":198.3333282470703},{"px":641.3333129882812,"py":274.3333282470703}],"pxPerUnit":76.32168761236873,"originPx":{"x":634.3333129882812,"y":198.3333282470703},"calibUnit":"m","dist":1},"fps":25,"masse":"","autoStep":"1","points":[{"frame":2,"t_raw":0.08,"xPx":257.33331298828125,"yPx":318.33333587646484,"xReal":-4.939618236886355,"yReal":-1.572292376956655,"vecActif":true},{"frame":4,"t_raw":0.16,"xPx":283.33331298828125,"yPx":286.33333587646484,"xReal":-4.5989549102045375,"yReal":-1.1530144364251873,"vecActif":true},{"frame":6,"t_raw":0.24,"xPx":311.33331298828125,"yPx":256.33333587646484,"xReal":-4.232086712239503,"yReal":-0.7599413671769362,"vecActif":true},{"frame":8,"t_raw":0.32,"xPx":337.33331298828125,"yPx":231.3333282470703,"xReal":-3.8914233855576854,"yReal":-0.4323803761730762,"vecActif":true},{"frame":10,"t_raw":0.4,"xPx":365.33331298828125,"yPx":213.3333282470703,"xReal":-3.524555187592651,"yReal":-0.19653653462412551,"vecActif":true},{"frame":12,"t_raw":0.48,"xPx":391.33331298828125,"yPx":199.3333282470703,"xReal":-3.1838918609108333,"yReal":-0.013102435641608368,"vecActif":true},{"frame":14,"t_raw":0.56,"xPx":417.33331298828125,"yPx":188.3333282470703,"xReal":-2.843228534229016,"yReal":0.13102435641608368,"vecActif":true},{"frame":16,"t_raw":0.64,"xPx":445.33331298828125,"yPx":184.3333282470703,"xReal":-2.4763603362639817,"yReal":0.18343409898251717,"vecActif":true},{"frame":18,"t_raw":0.72,"xPx":470.33331298828125,"yPx":186.3333282470703,"xReal":-2.1487994452237724,"yReal":0.15722922769930042,"vecActif":true},{"frame":20,"t_raw":0.8,"xPx":499.33331298828125,"yPx":190.3333282470703,"xReal":-1.7688288116171298,"yReal":0.10481948513286694,"vecActif":true},{"frame":22,"t_raw":0.88,"xPx":525.3333129882812,"yPx":197.3333282470703,"xReal":-1.4281654849353123,"yReal":0.013102435641608368,"vecActif":true},{"frame":24,"t_raw":0.96,"xPx":552.3333129882812,"yPx":212.3333282470703,"xReal":-1.0743997226118862,"yReal":-0.18343409898251717,"vecActif":true},{"frame":26,"t_raw":1.04,"xPx":580.3333129882812,"yPx":233.3333282470703,"xReal":-0.7075315246468519,"yReal":-0.4585852474562929,"vecActif":true}]};
+
+function loadDemo(){
+  if($('sel-video-preset').value!=='LancerFranc_mp4.mp4'){
+    $('sel-video-preset').value='LancerFranc_mp4.mp4';
+    loadPresetVideo('LancerFranc_mp4.mp4');
+  }
+  applySession(DEMO_SESSION, true);
+}
 
 // ══ UTILS ══
 function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
