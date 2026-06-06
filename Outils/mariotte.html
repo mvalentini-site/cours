@@ -2,434 +2,1467 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Loi de Mariotte — Arduino</title>
+<title>Atelier Scientifique — Mode libre</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, sans-serif; background: #f5f5f3; color: #1a1a18; min-height: 100vh; padding: 1.5rem; }
-
-h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.2rem; }
-.subtitle { font-size: 14px; color: #888; margin-bottom: 1.5rem; }
-
-/* SECTIONS */
-.section { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-.section-title { font-size: 13px; color: #888; font-weight: 400; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
-
-/* CONNEXION */
-.conn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-button { padding: 8px 18px; border-radius: 8px; border: 0.5px solid #bbb; background: #fff; font-size: 14px; cursor: pointer; transition: background 0.15s; }
-button:hover:not(:disabled) { background: #f0f0ee; }
-button:disabled { opacity: 0.35; cursor: default; }
-button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
-button.primary:hover:not(:disabled) { background: #0c4a84; }
-.status-pill { font-size: 13px; display: flex; align-items: center; gap: 6px; color: #888; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
-.dot.on { background: #2ecc71; }
-
-/* AFFICHAGE DIGITAL */
-.digital-wrap { display: flex; align-items: flex-end; gap: 0.5rem; justify-content: center; padding: 1rem 0; }
-.digital-value {
-  font-family: 'Courier New', monospace;
-  font-size: 72px;
-  font-weight: 700;
-  letter-spacing: -2px;
-  color: #185FA5;
-  line-height: 1;
-  min-width: 200px;
-  text-align: right;
+:root{
+  --cream:#f6f1e4;--cream2:#ede8d6;--cream3:#e3ddc8;
+  --ink:#1a1814;--ink2:#4a4640;--ink3:#8a8070;
+  --red:#c0392b;--blue:#185FA5;--blue-bg:#e8f0fb;
+  --green:#1a6e3c;--green-bg:#e4f2eb;
+  --amber:#8a5a00;--amber-bg:#fdf3dc;
+  --orange:#c05a00;--orange-bg:#fdebd8;
+  --border:#ccc5b0;--mm:3.78px;
 }
-.digital-unit { font-size: 24px; color: #888; padding-bottom: 10px; }
-.digital-label { font-size: 13px; color: #aaa; text-align: center; margin-top: 0.25rem; }
-
-/* CAPTURE MARIOTTE */
-.capture-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 13px; color: #888; }
-.field input[type=number] {
-  width: 120px; padding: 8px 12px; border-radius: 8px;
-  border: 0.5px solid #bbb; font-size: 20px; font-weight: 500;
-  text-align: center; color: #1a1a18; background: #fff;
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-height:100vh;padding:2rem 1.5rem;}
+.page{max-width:940px;margin:0 auto;background:var(--cream);border-radius:2px;
+  box-shadow:4px 4px 0 #b8b2a0,8px 8px 0 #a8a290,0 0 40px rgba(0,0,0,.15);
+  position:relative;overflow:hidden;}
+.page::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--cream2) 1px,transparent 1px),linear-gradient(90deg,var(--cream2) 1px,transparent 1px);
+  background-size:calc(var(--mm)*5) calc(var(--mm)*5);pointer-events:none;z-index:0;}
+.page::after{content:'';position:absolute;left:52px;top:0;bottom:0;width:1.5px;
+  background:var(--red);opacity:.5;z-index:1;pointer-events:none;}
+.holes{position:absolute;left:0;top:0;bottom:0;width:52px;display:flex;flex-direction:column;
+  justify-content:space-around;align-items:center;z-index:2;pointer-events:none;}
+.hole{width:18px;height:18px;border-radius:50%;background:#d8d2c0;border:1px solid #b8b2a0;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
+.content{position:relative;z-index:3;padding:2rem 2rem 2rem 4.5rem;}
+.header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;
+  padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.tape-label{background:rgba(255,240,180,.85);border:.5px solid rgba(200,180,80,.4);
+  padding:4px 14px;font-size:11px;letter-spacing:.1em;color:var(--ink2);white-space:nowrap;}
+.title-block{flex:1;}
+.title-block h1{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink);}
+.title-block .subtitle{font-size:11px;color:var(--ink3);margin-top:3px;}
+.card{background:rgba(255,255,255,.5);border:.5px solid var(--border);border-radius:3px;
+  padding:1rem 1.25rem;margin-bottom:1rem;}
+.card-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  margin-bottom:.75rem;font-weight:500;}
+button{font-family:'DM Mono',monospace;font-size:12px;padding:6px 16px;border-radius:2px;
+  border:.5px solid var(--border);background:var(--cream);color:var(--ink);cursor:pointer;transition:background .1s;}
+button:hover:not(:disabled){background:var(--cream2);}
+button:disabled{opacity:.35;cursor:default;}
+button.primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+button.primary:hover:not(:disabled){background:var(--ink2);}
+button.danger{color:var(--red);border-color:rgba(192,57,43,.3);}
+button.danger:hover:not(:disabled){background:#fdf0ef;}
+.conn-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+.dot.on{background:var(--green);}
+.log-line{font-size:10px;color:var(--ink3);margin-top:6px;font-style:italic;}
+/* Chips capteurs */
+.sensors-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.sensor-chip{display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,.6);
+  border:.5px solid var(--border);border-radius:2px;padding:6px 10px;min-width:170px;}
+.sensor-color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.sensor-info{flex:1;}
+.sensor-lbl{font-size:10px;color:var(--ink3);}
+.sensor-val{font-size:20px;font-weight:500;line-height:1.1;}
+.sensor-config{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.sensor-config input{font-family:'DM Mono',monospace;font-size:10px;border:.5px solid var(--border);
+  border-radius:2px;background:var(--cream);color:var(--ink);padding:2px 5px;width:72px;}
+/* Fields */
+.param-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10px;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;}
+.field select,.field input[type=number],.field input[type=text]{
+  font-family:'DM Mono',monospace;font-size:12px;border:.5px solid var(--border);
+  border-radius:2px;background:var(--cream);color:var(--ink);padding:5px 8px;min-width:120px;}
+.field select:focus,.field input:focus{outline:1.5px solid var(--blue);border-color:transparent;}
+.mode-tabs{display:flex;border:.5px solid var(--border);border-radius:2px;overflow:hidden;}
+.mode-tab{font-family:'DM Mono',monospace;font-size:11px;padding:5px 14px;
+  background:var(--cream);color:var(--ink2);border:none;border-right:.5px solid var(--border);
+  cursor:pointer;transition:background .1s;}
+.mode-tab:last-child{border-right:none;}
+.mode-tab.active{background:var(--ink);color:var(--cream);}
+.mode-tab:hover:not(.active){background:var(--cream2);}
+/* Grandeurs */
+.grandeur-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:2px;
+  border:.5px solid var(--border);background:rgba(255,255,255,.5);margin-bottom:4px;flex-wrap:wrap;}
+.grandeur-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;}
+.grandeur-col{font-size:10px;color:var(--ink3);}
+/* Afficheurs */
+.display-bar{display:flex;gap:10px;flex-wrap:wrap;}
+.display-card{flex:1;min-width:110px;background:rgba(255,255,255,.5);border:.5px solid var(--border);
+  border-radius:2px;padding:8px 12px;}
+.display-label{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
+.display-value{font-size:26px;font-weight:500;line-height:1;}
+.display-unit{font-size:10px;color:var(--ink3);}
+/* Tableau */
+table{width:100%;font-size:11px;border-collapse:collapse;}
+th{text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:400;padding:3px 8px 6px 0;border-bottom:.5px solid var(--border);}
+td{padding:4px 8px 4px 0;border-bottom:.5px solid var(--cream3);vertical-align:middle;}
+td input[type=number]{font-family:'DM Mono',monospace;font-size:11px;width:80px;
+  border:.5px solid var(--border);border-radius:2px;background:var(--cream2);
+  padding:2px 4px;text-align:center;}
+td button{padding:1px 6px;font-size:10px;}
+.no-data{color:var(--ink3);font-size:11px;padding:.75rem 0;font-style:italic;}
+.table-wrap{max-height:260px;overflow-y:auto;}
+/* Graphique */
+.graph-card{border:.5px solid var(--border);border-radius:3px;padding:.75rem;
+  background:rgba(255,255,255,.4);margin-bottom:.75rem;position:relative;}
+.graph-header{display:flex;align-items:center;gap:8px;margin-bottom:.5rem;flex-wrap:wrap;}
+.graph-sel{font-family:'DM Mono',monospace;font-size:11px;border:.5px solid var(--border);
+  border-radius:2px;background:var(--cream);padding:3px 6px;}
+canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--ink3);margin-top:4px;align-items:center;}
+.leg-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+/* Modélisation */
+.model-box{border:.5px solid var(--border);border-radius:2px;padding:.6rem .75rem;font-size:11px;margin-top:.5rem;}
+.model-box.ok{background:var(--green-bg);border-color:#a8d8bc;color:var(--green);}
+.model-box.warn{background:var(--amber-bg);border-color:#f0d090;color:var(--amber);}
+.model-box.bad{background:#fdf0ef;border-color:#f7c1c1;color:var(--red);}
+.model-eqn{font-size:13px;font-weight:500;margin:.15rem 0 .1rem;}
+.model-r2{font-size:10px;opacity:.85;}
+/* Traitement */
+.sub-section{padding-top:.75rem;border-top:.5px solid var(--border);margin-top:.75rem;}
+.sub-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:.5rem;}
+.info-box{font-size:11px;color:var(--blue);background:var(--blue-bg);border:.5px solid #b5d4f4;
+  border-radius:2px;padding:6px 10px;margin-bottom:.75rem;}
+.calc-error{font-size:10px;color:var(--red);margin-top:3px;}
+.sc-btn{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
+  padding:2px 8px;border-radius:2px;border:.5px solid var(--border);
+  background:var(--cream);color:var(--ink);cursor:pointer;line-height:1;}
+.sc-btn:hover{background:var(--cream2);}
+.sc-val{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+  color:var(--ink);background:rgba(255,255,255,.5);border:.5px solid var(--border);
+  border-radius:2px;padding:2px 5px;display:inline-block;}
+.hidden{display:none!important;}
+@media print{
+  body{background:white;padding:0;}
+  .page{box-shadow:none;max-width:100%;}
+  .page::before,.page::after,.holes{display:none;}
+  .content{padding:1rem 1rem 1rem 1rem;}
+  .no-print{display:none!important;}
+  .card{break-inside:avoid;margin-bottom:.75rem;border:.5px solid #ccc;}
+  .table-wrap{max-height:none;overflow:visible;}
+  canvas.chart-cv{page-break-inside:avoid;}
+  #section-capteurs{display:none!important;}
+  .graph-card{break-inside:avoid;}
+  button{display:none!important;}
+  input,select{border:none;background:transparent;padding:0;}
+  .print-title{display:block!important;font-family:'Fraunces',serif;font-size:18px;
+    font-weight:600;margin-bottom:.5rem;border-bottom:1px solid #ccc;padding-bottom:.5rem;}
 }
-.field input:focus { outline: 2px solid #185FA5; border-color: transparent; }
-.field .unit-hint { font-size: 12px; color: #aaa; text-align: center; }
-
-button.capture { background: #185FA5; color: #fff; border-color: #185FA5; font-size: 15px; padding: 10px 24px; }
-button.capture:hover:not(:disabled) { background: #0c4a84; }
-
-/* TABLEAU */
-table { width: 100%; font-size: 14px; border-collapse: collapse; }
-th { text-align: left; color: #888; font-weight: 400; padding: 4px 8px 8px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
-td { padding: 6px 8px 6px 0; border-bottom: 0.5px solid #f2f2f0; }
-td button.del { padding: 2px 8px; font-size: 12px; color: #c0392b; border-color: #e8c5c2; }
-td button.del:hover { background: #fdf0ef; }
-.no-data { color: #bbb; font-size: 14px; padding: 1rem 0; }
-
-/* MODÉLISATION */
-.model-box { background: #EBF4FF; border: 0.5px solid #B5D4F4; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #0c447c; margin-bottom: 1rem; }
-.model-box strong { font-weight: 500; }
-.model-eqn { font-family: 'Courier New', monospace; font-size: 16px; margin: 0.25rem 0; }
-.model-r2 { font-size: 13px; color: #378ADD; }
-
-/* GRAPHIQUE */
-canvas { width: 100%; display: block; cursor: crosshair; }
-
-/* EXPORT */
-.bottom-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.75rem; }
-
-/* LOG */
-.log { font-size: 12px; color: #aaa; font-family: monospace; margin-top: 0.75rem; }
+.print-title{display:none;}
 </style>
 </head>
 <body>
+<div class="page">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+  <div class="content">
 
-<h1>Loi de Mariotte</h1>
-<p class="subtitle">Capteur de pression Grove MPX5700AP · Arduino Uno · Web Serial</p>
-
-<!-- CONNEXION -->
-<div class="section">
-  <div class="section-title">Connexion Arduino</div>
-  <div class="conn-row">
-    <button class="primary" id="btn-connect">Connecter l'Arduino</button>
-    <button id="btn-disconnect" disabled>Déconnecter</button>
-    <div class="status-pill"><span class="dot" id="dot"></span><span id="statut-txt">Déconnecté</span></div>
-  </div>
-  <div class="log" id="log">—</div>
-</div>
-
-<!-- AFFICHAGE DIGITAL -->
-<div class="section">
-  <div class="section-title">Pression en temps réel</div>
-  <div class="digital-wrap">
-    <div>
-      <div class="digital-value" id="digital">—</div>
-      <div class="digital-label">Pression absolue</div>
+    <div class="header">
+      <div class="tape-label">ATELIER SCIENTIFIQUE</div>
+      <div class="title-block">
+        <h1>Mode libre</h1>
+        <div class="subtitle">Arduino · Web Serial · acquisition multi-capteurs</div>
+      </div>
+      <div class="field no-print" style="min-width:200px;">
+        <label>Nom de l'expérience</label>
+        <input type="text" id="exp-nom" placeholder="ex : Loi de Mariotte"
+               style="font-size:12px;border:.5px solid var(--border);border-radius:2px;
+                      background:var(--cream);padding:4px 8px;font-family:'DM Mono',monospace;">
+      </div>
+      <button class="no-print" id="btn-pdf" title="Exporter en PDF"
+              style="align-self:flex-start;margin-top:4px;">↓ PDF</button>
     </div>
-    <div class="digital-unit">kPa</div>
-  </div>
-</div>
+    <div class="print-title" id="print-title">Expérience</div>
 
-<!-- CAPTURE -->
-<div class="section">
-  <div class="section-title">Acquisition d'un point — Loi de Mariotte</div>
-  <p style="font-size:14px;color:#666;margin-bottom:1rem;">
-    Règle le volume de la seringue, attends que la pression se stabilise, puis clique sur <strong>Capturer</strong>.
-  </p>
-  <div class="capture-row">
-    <div class="field">
-      <label for="vol-input">Volume (mL)</label>
-      <input type="number" id="vol-input" min="1" max="60" step="1" value="60" placeholder="V">
-      <span class="unit-hint">1 – 60 mL</span>
+    <!-- 1. CONNEXION -->
+    <div class="card">
+      <div class="card-title">1 — Connexion Arduino</div>
+      <div class="conn-row">
+        <button class="primary" id="btn-connect">Connecter</button>
+        <button id="btn-disconnect" disabled>Déconnecter</button>
+        <div class="status-pill"><span class="dot" id="dot"></span><span id="statut-txt">Déconnecté</span></div>
+      </div>
+      <div class="log-line" id="log">—</div>
+      <div style="font-size:10px;color:var(--ink3);margin-top:4px;">
+        Format attendu depuis l'Arduino : <code>capteur:valeur</code> — ex : <code>pression:101.3,tension:3.21</code><br>
+        Les capteurs détectés apparaissent automatiquement dans la section Grandeurs.
+      </div>
     </div>
-    <button class="capture" id="btn-capture" disabled>Capturer ce point</button>
+
+    <!-- 2. CAPTEURS EN DIRECT -->
+    <div class="card hidden" id="section-capteurs">
+      <div class="card-title">2 — Capteurs détectés</div>
+      <div class="display-bar" id="display-bar"></div>
+    </div>
+
+    <!-- 3. GRANDEURS -->
+    <div class="card">
+      <div class="card-title">3 — Grandeurs de l'expérience</div>
+      <div style="style="font-size:10px;color:var(--ink3);font-style:italic;margin-bottom:.6rem;line-height:1.5;"">
+        Liste toutes les quantités mesurées ou contrôlées. Chaque grandeur devient une colonne dans le tableau.
+        Les capteurs Arduino s'ajoutent automatiquement à la connexion.
+      </div>
+      <div id="grandeurs-list" style="margin-bottom:.75rem;">
+        <div style="font-size:11px;color:var(--ink3);font-style:italic;">Aucune grandeur définie — connecte un Arduino ou ajoute une grandeur manuelle ci-dessous.</div>
+      </div>
+      <!-- Ajouter une grandeur manuelle -->
+      <div style="background:var(--cream2);border:.5px solid var(--border);border-radius:2px;padding:.6rem .75rem;">
+        <div class="sub-label">Ajouter une grandeur manuelle</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field">
+            <label>Nom</label>
+            <input type="text" id="add-nom" placeholder="ex : Volume" style="min-width:110px;">
+          </div>
+          <div class="field">
+            <label>Unité</label>
+            <input type="text" id="add-unite" placeholder="ex : mL" style="min-width:70px;">
+          </div>
+          <div class="field">
+            <label>Source</label>
+            <select id="add-source" style="min-width:130px;">
+              <option value="manuel">Saisie manuelle</option>
+            </select>
+          </div>
+          <button id="btn-add-grandeur">+ Ajouter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. ACQUISITION -->
+    <div class="card">
+      <div class="card-title">4 — Acquisition</div>
+
+      <!-- Onglets mode -->
+      <div class="mode-tabs" style="margin-bottom:.75rem;">
+        <button class="mode-tab active" id="tab-temporelle" onclick="setModeAcq('temporelle')">Temporelle</button>
+        <button class="mode-tab"        id="tab-manuel"     onclick="setModeAcq('manuel')">Pas à pas</button>
+      </div>
+
+      <!-- Mode temporelle -->
+      <div id="acq-temporelle">
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:.5rem;font-style:italic;">
+          La grandeur <strong>Temps (s)</strong> est automatiquement ajoutée en colonne 0.
+          Les capteurs Arduino alimentent les autres colonnes en continu.
+        </div>
+        <div class="param-row" style="margin-bottom:.75rem;">
+          <div class="field">
+            <label>Durée max (s)</label>
+            <input type="number" id="duree-max" value="60" min="5" max="3600" step="5" style="min-width:80px;">
+          </div>
+          <div class="field">
+            <label>Intervalle (ms)</label>
+            <input type="number" id="intervalle-ms" value="200" min="50" max="5000" step="50" style="min-width:80px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode pas à pas -->
+      <div id="acq-manuel" class="hidden">
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:.5rem;font-style:italic;">
+          L'abscisse est saisie à la main. Les capteurs Arduino donnent les ordonnées au moment de la capture.
+          Les grandeurs sans capteur sont saisies manuellement.
+        </div>
+      </div>
+
+      <!-- Boutons communs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="primary" id="btn-start">▶ Démarrer</button>
+        <button id="btn-stop" disabled>■ Arrêter</button>
+        <span style="color:var(--border);margin:0 4px;">|</span>
+        <button id="btn-clear" disabled>Effacer tout</button>
+        <button id="btn-csv" disabled>Exporter CSV</button>
+        <button id="btn-import">Importer CSV</button>
+        <input type="file" id="input-csv" accept=".csv" style="display:none;">
+      </div>
+    </div>
+
+    <!-- 5. TABLEAU -->
+    <div class="card">
+      <div class="card-title">5 — Points enregistrés</div>
+      <div style="font-size:10px;color:var(--ink3);font-style:italic;margin-bottom:.6rem;line-height:1.5;">
+        En mode <strong>Temporelle</strong> : les lignes s'ajoutent automatiquement à chaque intervalle.
+        En mode <strong>Pas à pas</strong> : saisis les valeurs manuelles et clique sur <em>Capturer ce point</em>.
+        Tu peux supprimer un point en cliquant ✕ sur sa ligne.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead id="thead-pts"><tr><td class="no-data" colspan="20">Définis les grandeurs et démarre l'acquisition.</td></tr></thead>
+          <tbody id="tbody-pts"></tbody>
+        </table>
+      </div>
+      <!-- Barre de capture manuelle -->
+      <div id="capture-bar" class="hidden" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;
+           margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border);">
+        <div id="capture-fields" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;"></div>
+        <button class="primary" id="btn-capture">+ Capturer ce point</button>
+      </div>
+    </div>
+
+    <!-- 6. GRAPHIQUES -->
+    <div class="card">
+      <div class="card-title">6 — Graphiques</div>
+      <div style="font-size:10px;color:var(--ink3);font-style:italic;margin-bottom:.6rem;line-height:1.5;">
+        Choisis la grandeur en Y et en X pour chaque graphique. Tu peux créer autant de graphiques que nécessaire.
+        Utilise les boutons − / + pour ajuster les échelles, ou <em>Auto</em> pour un recadrage automatique.
+        Le curseur affiche les coordonnées au survol.
+      </div>
+      <div id="graphs-container"></div>
+      <button id="btn-add-graph" style="margin-top:.5rem;">+ Ajouter un graphique</button>
+    </div>
+
+    <!-- 7. MODÉLISATION -->
+    <div class="card">
+      <div class="card-title">7 — Modélisation</div>
+      <div style="font-size:10px;color:var(--ink3);font-style:italic;margin-bottom:.6rem;line-height:1.5;">
+        Sélectionne un graphique et un modèle mathématique, puis clique sur <em>Modéliser</em>.
+        Le R² indique la qualité de l'ajustement (1.000 = parfait). Si un point dégrade fortement le R²,
+        il est signalé en rouge — tu peux le supprimer ou le remesurer.
+      </div>
+      <div class="param-row" style="margin-bottom:.75rem;">
+        <div class="field">
+          <label>Graphique</label>
+          <select id="sel-modele-graph" style="min-width:120px;"></select>
+        </div>
+        <div class="field">
+          <label>Modèle</label>
+          <select id="sel-modele">
+            <option value="none">— Aucun —</option>
+            <option value="affine">y = ax + b</option>
+            <option value="proportionnel">y = ax</option>
+            <option value="puissance">y = a·xⁿ</option>
+            <option value="exponentiel">y = a·eᵏˣ</option>
+            <option value="reciproque">y = a/x</option>
+            <option value="logarithme">y = a·ln(x)+b</option>
+          </select>
+        </div>
+        <div class="field" style="justify-content:flex-end;">
+          <button id="btn-modeliser" disabled>Modéliser</button>
+        </div>
+      </div>
+      <div id="model-result" class="hidden"></div>
+    </div>
+
+    <!-- 8. TRAITEMENT -->
+    <div class="card">
+      <div class="card-title">8 — Traitement des données</div>
+      <div class="info-box" id="traitement-hint">Enregistre des points pour activer le traitement.</div>
+      <div class="mode-tabs" style="margin-bottom:.75rem;">
+        <button class="mode-tab active" id="tab-lissage"   onclick="setTraitement('lissage')">Lissage</button>
+        <button class="mode-tab"        id="tab-calcul"    onclick="setTraitement('calcul')">Grandeur calculée</button>
+        <button class="mode-tab"        id="tab-derivee"   onclick="setTraitement('derivee')">Dérivée</button>
+        <button class="mode-tab"        id="tab-integrale" onclick="setTraitement('integrale')">Intégrale</button>
+      </div>
+
+      <div id="tr-lissage">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div class="field"><label>Grandeur</label>
+            <select id="lissage-gid" style="min-width:130px;"></select></div>
+          <div class="field"><label>Fenêtre N</label>
+            <input type="number" id="lissage-n" value="3" min="2" max="30" step="1" style="min-width:60px;"></div>
+          <button id="btn-lisser" disabled>Appliquer</button>
+          <button id="btn-lisser-rm" class="danger" disabled>Supprimer</button>
+        </div>
+        <div style="font-size:10px;color:var(--ink3);font-style:italic;">
+          Remplace chaque valeur par la moyenne de ses N voisins. Utile pour lisser le bruit d'un capteur.
+          Les données originales ne sont pas modifiées — le résultat est affiché séparément.
+        </div>
+      </div>
+
+      <div id="tr-calcul" class="hidden">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div class="field"><label>Nom résultat</label>
+            <input type="text" id="calc-nom" placeholder="ex : 1/V" style="min-width:80px;"></div>
+          <div class="field"><label>Unité</label>
+            <input type="text" id="calc-unite" placeholder="ex : mL⁻¹" style="min-width:70px;"></div>
+          <div class="field" style="flex:1;">
+            <label>Expression (gid = id grandeur, ex : g0*g1, 1/g0)</label>
+            <input type="text" id="calc-expr" placeholder="ex : 1/g0   ou   g0*g1   ou   Math.log(g0)" style="min-width:200px;">
+            <div class="calc-error hidden" id="calc-error"></div>
+          </div>
+          <div class="field" style="justify-content:flex-end;gap:4px;">
+            <button id="btn-calc-apply" disabled>Calculer</button>
+            <button id="btn-calc-rm" class="danger" disabled>Supprimer</button>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--ink3);font-style:italic;">
+          <strong>g0</strong> = 1ʳᵉ colonne, <strong>g1</strong> = 2ᵉ colonne, etc. dans l'ordre du tableau.
+          Exemples : <code>1/g0</code> · <code>g0*g1</code> · <code>Math.log(g0)</code> · <code>Math.sqrt(g1)</code>
+        </div>
+      </div>
+
+      <div id="tr-derivee" class="hidden">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div class="field"><label>Grandeur X</label>
+            <select id="deriv-gx" style="min-width:120px;"></select></div>
+          <div class="field"><label>Grandeur Y</label>
+            <select id="deriv-gy" style="min-width:120px;"></select></div>
+          <div class="field"><label>Méthode</label>
+            <select id="deriv-methode" style="min-width:160px;">
+              <option value="central">Différences centrées</option>
+              <option value="forward">Différences avancées</option>
+            </select>
+          </div>
+          <button id="btn-derivee" disabled>Calculer dy/dx</button>
+          <button id="btn-derivee-rm" class="danger" disabled>Supprimer</button>
+        </div>
+      </div>
+
+      <div id="tr-integrale" class="hidden">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div class="field"><label>Grandeur X</label>
+            <select id="integ-gx" style="min-width:120px;"></select></div>
+          <div class="field"><label>Grandeur Y</label>
+            <select id="integ-gy" style="min-width:120px;"></select></div>
+          <div class="field"><label>Méthode</label>
+            <select id="integ-methode" style="min-width:160px;">
+              <option value="trapezes">Trapèzes</option>
+              <option value="rectangles">Rectangles</option>
+            </select>
+          </div>
+          <button id="btn-integrale" disabled>Calculer ∫y dx</button>
+          <button id="btn-integrale-rm" class="danger" disabled>Supprimer</button>
+        </div>
+      </div>
+
+      <!-- Tableau + graphique traitement -->
+      <div class="table-wrap" style="margin-top:.75rem;">
+        <table>
+          <thead id="thead-tr"><tr><td class="no-data" colspan="6">Applique un traitement.</td></tr></thead>
+          <tbody id="tbody-tr"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:.75rem;position:relative;">
+        <canvas id="chart-tr" class="chart-cv" height="200"></canvas>
+        <div class="chart-legend" id="chart-tr-legend"></div>
+        <button id="btn-tr-csv" disabled style="margin-top:.5rem;">Exporter résultats CSV</button>
+      </div>
+    </div>
+
   </div>
 </div>
-
-<!-- TABLEAU -->
-<div class="section">
-  <div class="section-title">Points mesurés</div>
-  <table>
-    <thead><tr><th>#</th><th>Volume V (mL)</th><th>Pression P (kPa)</th><th>P × V (kPa·mL)</th><th>1/V (mL⁻¹)</th><th></th></tr></thead>
-    <tbody id="tbody"><tr><td colspan="6" class="no-data">Aucun point enregistré.</td></tr></tbody>
-  </table>
-  <div class="bottom-row">
-    <button id="btn-clear-pts" disabled>Effacer tous les points</button>
-    <button id="btn-export" disabled>Exporter CSV</button>
-  </div>
-</div>
-
-<!-- GRAPHIQUE -->
-<div class="section">
-  <div class="section-title">Graphique P = f(V) avec modélisation P = k / V</div>
-  <div class="model-box" id="model-box" style="display:none">
-    <div class="model-eqn" id="model-eqn"></div>
-    <div class="model-r2" id="model-r2"></div>
-  </div>
-  <canvas id="chart" height="340"></canvas>
-  <p style="font-size:12px;color:#bbb;margin-top:0.5rem;text-align:center;">Les points expérimentaux sont en bleu · La courbe modèle P = k/V est en orange</p>
-</div>
-
 <script>
-// ── État global ──────────────────────────────────────────────
-let port, reader;
-let pCourante = null;
-let points = []; // { V, P }
+// ═══════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════
+const COLORS=['#185FA5','#c0392b','#1a6e3c','#8a5a00','#6c3483','#0e6b6b','#117a8b','#a04000'];
+const CHART_AXIS='#8a8070', CHART_GRID='rgba(200,190,170,0.28)', MODEL_COLOR='#E07820';
+const VIOLET='#6c3483', VERT_TR='#1a6e3c';
 
-// ── Éléments DOM ────────────────────────────────────────────
-const btnConnect    = document.getElementById('btn-connect');
-const btnDisconnect = document.getElementById('btn-disconnect');
-const btnCapture    = document.getElementById('btn-capture');
-const btnClearPts   = document.getElementById('btn-clear-pts');
-const btnExport     = document.getElementById('btn-export');
-const digital       = document.getElementById('digital');
-const dot           = document.getElementById('dot');
-const statutTxt     = document.getElementById('statut-txt');
-const logEl         = document.getElementById('log');
-const tbody         = document.getElementById('tbody');
-const volInput      = document.getElementById('vol-input');
-const modelBox      = document.getElementById('model-box');
-const modelEqn      = document.getElementById('model-eqn');
-const modelR2       = document.getElementById('model-r2');
-const canvas        = document.getElementById('chart');
-const ctx           = canvas.getContext('2d');
+// ═══════════════════════════════════════
+// ÉTAT GLOBAL
+// ═══════════════════════════════════════
+const $=id=>document.getElementById(id);
 
-// ── Connexion ────────────────────────────────────────────────
-btnConnect.addEventListener('click', async () => {
-  if (!('serial' in navigator)) {
-    alert('Web Serial non supporté.\nUtilise Google Chrome ou Microsoft Edge.');
-    return;
-  }
-  try {
-    port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 115200 });
-    setConnected(true);
-    readLoop();
-  } catch(e) {
-    log('Connexion annulée : ' + e.message);
-  }
+// Grandeurs : [{id, nom, unite, source:'arduino'|'manuel', arduinoKey, colorIdx}]
+let grandeurs=[];
+let gColorIdx=0;
+
+// Lignes de données : [{gid0: val, gid1: val, ...}]  (gid = grandeur.id)
+let lignes=[];
+
+// Arduino
+let port=null, reader=null;
+let arduinoVals={};   // {key: valeur}  — dernières valeurs reçues
+
+// Acquisition
+let modeAcq='temporelle';  // 'temporelle' | 'manuel'
+let acqTimer=null;
+let running=false;
+let startTime=null;
+
+// Graphiques : [{id, gx, gy, canvas, ctx, modele}]
+let graphs=[];
+let graphCount=0;
+let btnModeliser; // déclaré ici, initialisé après le DOM
+
+// Traitement
+let traitementMode='lissage';
+const trStates={
+  lissage:  {data:[], label:''},
+  calcul:   {data:[], label:''},
+  derivee:  {data:[], label:''},
+  integrale:{data:[], label:''},
+};
+
+// ═══════════════════════════════════════
+// CONNEXION ARDUINO
+// ═══════════════════════════════════════
+$('btn-connect').addEventListener('click', async()=>{
+  if(!('serial' in navigator)){alert('Web Serial non supporté. Utilise Chrome ou Edge.');return;}
+  try{
+    port=await navigator.serial.requestPort();
+    await port.open({baudRate:115200});
+    setConnected(true); readLoop();
+  }catch(e){log('Connexion annulée : '+e.message);}
 });
-
-btnDisconnect.addEventListener('click', async () => {
-  try { if (reader) { await reader.cancel(); reader = null; } } catch(e) {}
-  try { if (port)   { await port.close();   port = null;   } } catch(e) {}
-  setConnected(false);
-  digital.textContent = '—';
-  pCourante = null;
-  btnCapture.disabled = true;
+$('btn-disconnect').addEventListener('click', async()=>{
+  running=false;
+  try{if(reader){await reader.cancel();reader=null;}}catch(e){}
+  try{if(port){await port.close();port=null;}}catch(e){}
+  setConnected(false); log('Déconnecté.');
 });
-
-function setConnected(on) {
-  dot.className        = 'dot' + (on ? ' on' : '');
-  statutTxt.textContent = on ? 'Connecté' : 'Déconnecté';
-  btnConnect.disabled    = on;
-  btnDisconnect.disabled = !on;
+function setConnected(on){
+  $('dot').className='dot'+(on?' on':'');
+  $('statut-txt').textContent=on?'Connecté':'Déconnecté';
+  $('btn-connect').disabled=on; $('btn-disconnect').disabled=!on;
+  if(!on){running=false;updateStartStop();}
 }
+function log(msg){$('log').textContent=msg;}
 
-function log(msg) { logEl.textContent = msg; }
-
-// ── Lecture port série ───────────────────────────────────────
-async function readLoop() {
-  const decoder = new TextDecoderStream();
-  port.readable.pipeTo(decoder.writable);
-  reader = decoder.readable.getReader();
-  let buf = '';
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += value;
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      lines.forEach(l => traiter(l.trim()));
+async function readLoop(){
+  const dec=new TextDecoderStream();
+  port.readable.pipeTo(dec.writable);
+  reader=dec.readable.getReader();
+  let buf='';
+  try{
+    while(true){
+      const{value,done}=await reader.read();
+      if(done)break;
+      buf+=value;
+      const lines=buf.split('\n'); buf=lines.pop();
+      lines.forEach(l=>parseLine(l.trim()));
     }
-  } catch(e) {
-    log('Lecture interrompue : ' + e.message);
-    setConnected(false);
-  }
+  }catch(e){log('Lecture interrompue : '+e.message);setConnected(false);}
 }
 
-function traiter(ligne) {
-  const m = ligne.match(/FZ\d:pre:([\d.\-]+)/i);
-  if (!m) return;
-  const p = parseFloat(m[1]);
-  if (isNaN(p)) return;
-  pCourante = p;
-  digital.textContent = p.toFixed(1);
-  btnCapture.disabled = false;
-  log('Dernière valeur reçue : ' + p.toFixed(1) + ' kPa');
-}
-
-// ── Capture d'un point ───────────────────────────────────────
-btnCapture.addEventListener('click', () => {
-  if (pCourante === null) return;
-  const V = parseFloat(volInput.value);
-  if (isNaN(V) || V <= 0 || V > 60) {
-    volInput.focus();
-    return;
-  }
-  points.push({ V, P: pCourante });
-  points.sort((a, b) => a.V - b.V);
-  refreshTable();
-  drawChart();
-});
-
-// ── Tableau ──────────────────────────────────────────────────
-function refreshTable() {
-  if (points.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="no-data">Aucun point enregistré.</td></tr>';
-    btnClearPts.disabled = true;
-    btnExport.disabled   = true;
-    return;
-  }
-  btnClearPts.disabled = false;
-  btnExport.disabled   = false;
-  tbody.innerHTML = points.map((pt, i) => `
-    <tr>
-      <td>${i+1}</td>
-      <td>${pt.V.toFixed(0)}</td>
-      <td>${pt.P.toFixed(1)}</td>
-      <td>${(pt.P * pt.V).toFixed(0)}</td>
-      <td>${(1/pt.V).toFixed(4)}</td>
-      <td><button class="del" onclick="supprimerPoint(${i})">✕</button></td>
-    </tr>`).join('');
-}
-
-function supprimerPoint(i) {
-  points.splice(i, 1);
-  refreshTable();
-  drawChart();
-}
-
-btnClearPts.addEventListener('click', () => {
-  points = [];
-  refreshTable();
-  drawChart();
-});
-
-// ── Export CSV ───────────────────────────────────────────────
-btnExport.addEventListener('click', () => {
-  let csv = 'N,Volume_mL,Pression_kPa,PxV_kPa_mL,InvV_mL-1\n';
-  points.forEach((pt, i) => {
-    csv += `${i+1},${pt.V},${pt.P.toFixed(1)},${(pt.P*pt.V).toFixed(1)},${(1/pt.V).toFixed(5)}\n`;
+function parseLine(ligne){
+  const parts=ligne.split(',');
+  let updated=false;
+  parts.forEach(part=>{
+    const m=part.trim().match(/^([a-zA-Z_][a-zA-Z0-9_]{1,}):([\d.\-]+)$/i);
+    if(!m)return;
+    const key=m[1].toLowerCase(), val=parseFloat(m[2]);
+    if(isNaN(val))return;
+    arduinoVals[key]=val;
+    // Enregistrer automatiquement comme grandeur Arduino si pas encore connu
+    autoRegisterArduino(key, val);
+    updated=true;
   });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = 'mariotte_' + new Date().toISOString().slice(0,10) + '.csv';
+  if(updated){
+    refreshDisplayBar();
+    // En mode temporelle, l'acquisition est gérée par le timer (setInterval)
+    // En mode manuel, on ne fait rien automatiquement
+  }
+}
+
+function autoRegisterArduino(key, val){
+  // Déjà enregistré ?
+  if(grandeurs.find(g=>g.arduinoKey===key))return;
+  // Defaults
+  const defauts={
+    pression:{nom:'Pression',unite:'hPa'}, temperature:{nom:'Température',unite:'°C'},
+    temp:{nom:'Température',unite:'°C'}, lumiere:{nom:'Luminosité',unite:'%'},
+    ph:{nom:'pH',unite:''}, tension:{nom:'Tension',unite:'V'},
+    courant:{nom:'Courant',unite:'mA'}, distance:{nom:'Distance',unite:'cm'},
+  };
+  const d=defauts[key]||{nom:key,unite:''};
+  const g={id:'g'+Date.now()+Math.random().toString(36).slice(2),
+           nom:d.nom, unite:d.unite, source:'arduino',
+           arduinoKey:key, colorIdx:gColorIdx%COLORS.length};
+  gColorIdx++;
+  grandeurs.push(g);
+  $('section-capteurs').classList.remove('hidden');
+  renderGrandeursList();
+  refreshDisplayBar();
+  refreshTableHeader();
+  refreshCaptureFields();
+  refreshTraitementSelects();
+  refreshGraphSelects();
+  refreshModelGraph();
+  // Mettre à jour le select source dans l'ajout de grandeur
+  refreshAddSource();
+}
+
+function refreshAddSource(){
+  const sel=$('add-source');
+  const existing=sel.innerHTML;
+  // Garder seulement les options Arduino non encore listées
+  const arduinoOpts=Object.keys(arduinoVals).filter(k=>!grandeurs.find(g=>g.arduinoKey===k))
+    .map(k=>`<option value="arduino:${k}">${k} (Arduino)</option>`).join('');
+  sel.innerHTML=`<option value="manuel">Saisie manuelle</option>${arduinoOpts}`;
+}
+
+// ═══════════════════════════════════════
+// AFFICHEURS TEMPS RÉEL
+// ═══════════════════════════════════════
+function refreshDisplayBar(){
+  const bar=$('display-bar'); bar.innerHTML='';
+  grandeurs.filter(g=>g.source==='arduino').forEach(g=>{
+    const val=arduinoVals[g.arduinoKey];
+    const c=document.createElement('div'); c.className='display-card';
+    c.innerHTML=`<div class="display-label" style="color:${COLORS[g.colorIdx]}">${g.nom}</div>
+      <div class="display-value" style="color:${COLORS[g.colorIdx]}">${val!==undefined?fmtLive(val):'—'}</div>
+      <div class="display-unit">${g.unite||''}</div>`;
+    bar.appendChild(c);
+  });
+}
+
+// ═══════════════════════════════════════
+// GESTION DES GRANDEURS
+// ═══════════════════════════════════════
+$('btn-add-grandeur').addEventListener('click',()=>{
+  const nom=$('add-nom').value.trim();
+  const unite=$('add-unite').value.trim();
+  const src=$('add-source').value;
+  if(!nom){$('add-nom').focus();return;}
+  const g={id:'g'+Date.now()+Math.random().toString(36).slice(2),
+           nom, unite, source:src.startsWith('arduino:')?'arduino':'manuel',
+           arduinoKey:src.startsWith('arduino:')?src.slice(8):null,
+           colorIdx:gColorIdx%COLORS.length};
+  gColorIdx++;
+  grandeurs.push(g);
+  $('add-nom').value=''; $('add-unite').value='';
+  renderGrandeursList();
+  refreshTableHeader();
+  refreshCaptureFields();
+  refreshTraitementSelects();
+  refreshGraphSelects();
+  refreshModelGraph();
+  log('Grandeur "'+nom+'" ajoutée.');
+});
+
+function renderGrandeursList(){
+  const el=$('grandeurs-list'); el.innerHTML='';
+  if(!grandeurs.length){
+    el.innerHTML='<div style="font-size:11px;color:var(--ink3);font-style:italic;">Aucune grandeur définie.</div>';
+    return;
+  }
+  grandeurs.forEach((g,i)=>{
+    const row=document.createElement('div'); row.className='grandeur-row';
+    row.innerHTML=`
+      <span style="width:8px;height:8px;border-radius:50%;background:${COLORS[g.colorIdx]};flex-shrink:0;display:inline-block;"></span>
+      <span class="grandeur-badge" style="color:${COLORS[g.colorIdx]};min-width:120px;">${g.nom}</span>
+      <span style="font-size:10px;color:var(--ink3);min-width:50px;">${g.unite||'—'}</span>
+      <span style="font-size:10px;color:var(--ink3);flex:1;">${g.source==='arduino'?'Arduino ('+g.arduinoKey+')':'Manuel'}</span>
+      <span style="font-size:9px;color:var(--ink3);">col ${i}</span>
+      <button class="danger" onclick="removeGrandeur('${g.id}')" style="padding:1px 6px;font-size:10px;">✕</button>`;
+    el.appendChild(row);
+  });
+}
+
+function removeGrandeur(gid){
+  grandeurs=grandeurs.filter(g=>g.id!==gid);
+  // Supprimer cette colonne des lignes
+  lignes.forEach(l=>delete l[gid]);
+  renderGrandeursList();
+  refreshTableHeader(); refreshTable();
+  refreshCaptureFields(); refreshTraitementSelects();
+  refreshGraphSelects(); refreshModelGraph();
+  // Supprimer les graphiques qui utilisent cette grandeur
+  graphs.filter(gr=>gr.gx===gid||gr.gy===gid).forEach(gr=>removeGraph(gr.id));
+}
+
+// ═══════════════════════════════════════
+// ACQUISITION
+// ═══════════════════════════════════════
+function setModeAcq(m){
+  modeAcq=m;
+  $('tab-temporelle').classList.toggle('active',m==='temporelle');
+  $('tab-manuel').classList.toggle('active',m==='manuel');
+  $('acq-temporelle').classList.toggle('hidden',m!=='temporelle');
+  $('acq-manuel').classList.toggle('hidden',m!=='manuel');
+  $('capture-bar').classList.toggle('hidden',m!=='manuel'||!running);
+  // En mode temporelle, ajouter automatiquement la grandeur Temps si absente
+  if(m==='temporelle') ensureTemps();
+}
+// init différée — voir DOMContentLoaded
+
+function ensureTemps(){
+  if(grandeurs.find(g=>g.id==='g_temps'))return;
+  const g={id:'g_temps',nom:'Temps',unite:'s',source:'temps',arduinoKey:null,colorIdx:gColorIdx%COLORS.length};
+  gColorIdx++;
+  grandeurs.unshift(g); // toujours en colonne 0
+  renderGrandeursList(); refreshTableHeader(); refreshCaptureFields();
+  refreshTraitementSelects(); refreshGraphSelects(); refreshModelGraph();
+}
+
+$('btn-start').addEventListener('click',()=>{
+  if(!grandeurs.length){log('Ajoute au moins une grandeur.');return;}
+  if(lignes.length>0){
+    if(!confirm('Des données existent déjà.\n\nOK → remplacer\nAnnuler → conserver')){
+      return; // annuler = on ne fait rien
+    }
+    lignes=[];
+  }
+  // Mode temporelle : s'assurer que la grandeur Temps est présente
+  if(modeAcq==='temporelle') ensureTemps();
+
+  startTime=Date.now(); running=true; updateStartStop();
+
+  if(modeAcq==='manuel'){
+    $('capture-bar').classList.remove('hidden');
+    $('btn-capture').disabled=false;
+  } else {
+    // Acquisition automatique avec intervalle
+    const intervMs=Math.max(50,parseInt($('intervalle-ms')?.value)||200);
+    acqTimer=setInterval(()=>{
+      if(!running){clearInterval(acqTimer);return;}
+      recordLigne();
+    }, intervMs);
+  }
+  refreshTable();
+  log('Acquisition démarrée · mode '+modeAcq+'.');
+});
+
+$('btn-stop').addEventListener('click',()=>{
+  running=false;
+  if(acqTimer){clearInterval(acqTimer);acqTimer=null;}
+  $('btn-capture').disabled=true;
+  $('capture-bar').classList.add('hidden');
+  updateStartStop();
+  btnModeliser.disabled=lignes.length<2;
+  updateTraitementHint();
+  log('Arrêt · '+lignes.length+' points.');
+});
+
+function updateStartStop(){
+  $('btn-start').disabled=running;
+  $('btn-stop').disabled=!running;
+}
+
+// Enregistrement temps réel
+function recordLigne(){
+  if(!running)return;
+  const t=(Date.now()-startTime)/1000;
+  const dureeMax=parseFloat($('duree-max').value)||60;
+  if(t>dureeMax){running=false;updateStartStop();log('Durée max atteinte · '+lignes.length+' pts.');return;}
+  const ligne={};
+  grandeurs.forEach(g=>{
+    if(g.id==='g_temps')      ligne[g.id]=parseFloat(t.toFixed(3));
+    else if(g.source==='arduino') ligne[g.id]=arduinoVals[g.arduinoKey]??null;
+    else                          ligne[g.id]=null;
+  });
+  lignes.push(ligne);
+  refreshTable(); setBtnsData(true);
+  graphs.forEach(gr=>drawGraph(gr));
+}
+
+// Capture manuelle
+$('btn-capture').addEventListener('click',()=>{
+  if(!running||!grandeurs.length)return;
+  const ligne={};
+  grandeurs.forEach(g=>{
+    if(g.source==='arduino'){
+      ligne[g.id]=arduinoVals[g.arduinoKey]??null;
+    } else {
+      const inp=$('cap-'+g.id);
+      ligne[g.id]=inp?parseFloat(inp.value):null;
+    }
+  });
+  // Trier par première grandeur si possible
+  lignes.push(ligne);
+  const g0=grandeurs[0];
+  if(g0) lignes.sort((a,b)=>(a[g0.id]??0)-(b[g0.id]??0));
+  refreshTable(); setBtnsData(true);
+  graphs.forEach(gr=>drawGraph(gr));
+});
+
+function refreshCaptureFields(){
+  const container=$('capture-fields'); container.innerHTML='';
+  grandeurs.filter(g=>g.source==='manuel').forEach(g=>{
+    const wrap=document.createElement('div'); wrap.className='field';
+    wrap.innerHTML=`<label style="color:${COLORS[g.colorIdx]}">${g.nom}${g.unite?' ('+g.unite+')':''}</label>
+      <input type="number" id="cap-${g.id}" step="any" value="0"
+             style="min-width:80px;font-size:15px;text-align:center;">`;
+    container.appendChild(wrap);
+  });
+}
+
+// ═══════════════════════════════════════
+// TABLEAU
+// ═══════════════════════════════════════
+function refreshTableHeader(){
+  if(!grandeurs.length){
+    $('thead-pts').innerHTML='<tr><td class="no-data" colspan="20">Définis les grandeurs.</td></tr>'; return;
+  }
+  const ths=grandeurs.map((g,i)=>
+    `<th style="color:${COLORS[g.colorIdx]}">${g.nom}${g.unite?' ('+g.unite+')':''}</th>`
+  ).join('');
+  $('thead-pts').innerHTML=`<tr><th>#</th>${ths}<th></th></tr>`;
+}
+
+function refreshTable(){
+  if(!lignes.length){
+    $('tbody-pts').innerHTML='<tr><td colspan="20" class="no-data">Aucun point.</td></tr>'; return;
+  }
+  $('tbody-pts').innerHTML=lignes.map((l,i)=>{
+    const cells=grandeurs.map(g=>`<td>${l[g.id]!==null&&l[g.id]!==undefined?fmtN4(l[g.id]):'—'}</td>`).join('');
+    return `<tr><td>${i+1}</td>${cells}<td><button class="danger" onclick="delLigne(${i})">✕</button></td></tr>`;
+  }).join('');
+}
+
+function delLigne(i){
+  lignes.splice(i,1); refreshTable();
+  setBtnsData(lignes.length>0);
+  graphs.forEach(gr=>drawGraph(gr));
+  if(modele)runModel();
+}
+
+function setBtnsData(has){
+  $('btn-clear').disabled=!has;
+  $('btn-csv').disabled=!has;
+  btnModeliser.disabled=!has||lignes.length<2;
+  updateTraitementHint();
+}
+
+// ═══════════════════════════════════════
+// CLEAR & CSV
+// ═══════════════════════════════════════
+$('btn-clear').addEventListener('click',()=>{
+  lignes=[]; modele=null;
+  Object.keys(trStates).forEach(k=>{trStates[k].data=[];trStates[k].label='';});
+  refreshTable(); graphs.forEach(gr=>drawGraph(gr));
+  $('model-result').classList.add('hidden');
+  setBtnsData(false);
+});
+
+$('btn-csv').addEventListener('click',()=>{
+  if(!lignes.length)return;
+  const heads=grandeurs.map(g=>(g.nom+(g.unite?'_'+g.unite:''))).join(',');
+  let csv=`N,${heads}\n`;
+  lignes.forEach((l,i)=>{
+    csv+=`${i+1},`+grandeurs.map(g=>l[g.id]??'').join(',')+'\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='acquisition_'+new Date().toISOString().slice(0,16).replace('T','_')+'.csv';
   a.click();
 });
 
-// ── Modélisation P = k / V ───────────────────────────────────
-// Régression linéaire de P sur 1/V → P = k * (1/V)  (sans constante)
-function modeliser() {
-  if (points.length < 2) return null;
-  // Moindres carrés forcé à l'origine : k = Σ(P/V) / Σ(1/V²)
-  let num = 0, den = 0;
-  points.forEach(pt => {
-    num += pt.P / pt.V;
-    den += 1 / (pt.V * pt.V);
-  });
-  const k = num / den;
+// Import CSV
+// Export PDF
+$('btn-pdf').addEventListener('click',()=>{
+  const nom=$('exp-nom').value.trim()||'Expérience';
+  $('print-title').textContent=nom+' — '+new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  // S'assurer que tous les canvas sont à jour
+  graphs.forEach(gr=>drawGraph(gr));
+  setTimeout(()=>window.print(), 200);
+});
 
-  // R² par rapport à la moyenne de P
-  const mP = points.reduce((s, pt) => s + pt.P, 0) / points.length;
-  let ss_res = 0, ss_tot = 0;
-  points.forEach(pt => {
-    const pred = k / pt.V;
-    ss_res += (pt.P - pred) ** 2;
-    ss_tot += (pt.P - mP) ** 2;
-  });
-  const r2 = ss_tot > 0 ? 1 - ss_res / ss_tot : 1;
-  return { k, r2 };
-}
-
-// ── Graphique ─────────────────────────────────────────────────
-function drawChart() {
-  const W = canvas.offsetWidth || 700;
-  const H = 340;
-  canvas.width  = W;
-  canvas.height = H;
-  ctx.clearRect(0, 0, W, H);
-
-  const pad = { top: 30, right: 30, bottom: 50, left: 65 };
-  const cw  = W - pad.left - pad.right;
-  const ch  = H - pad.top  - pad.bottom;
-
-  // Plage axes
-  const allV = points.map(p => p.V);
-  const allP = points.map(p => p.P);
-  const Vmin = points.length ? Math.max(0, Math.min(...allV) - 5)  : 0;
-  const Vmax = points.length ? Math.min(...allV) > 0 ? Math.max(...allV) + 5 : 60 : 60;
-  const Pmin = points.length ? Math.max(0, Math.min(...allP) - 10) : 0;
-  const Pmax = points.length ? Math.max(...allP) + 20 : 300;
-
-  function xPos(v) { return pad.left + (v - Vmin) / (Vmax - Vmin) * cw; }
-  function yPos(p) { return pad.top  + ch - (p - Pmin) / (Pmax - Pmin) * ch; }
-
-  // Fond axes
-  ctx.strokeStyle = '#e0e0de';
-  ctx.lineWidth   = 0.5;
-
-  // Grille H
-  const nH = 5;
-  for (let i = 0; i <= nH; i++) {
-    const p = Pmin + (Pmax - Pmin) * i / nH;
-    const y = yPos(p);
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
-    ctx.fillStyle = '#999'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
-    ctx.fillText(p.toFixed(0), pad.left - 8, y + 4);
-  }
-
-  // Grille V
-  const nV = 6;
-  for (let i = 0; i <= nV; i++) {
-    const v = Vmin + (Vmax - Vmin) * i / nV;
-    const x = xPos(v);
-    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + ch); ctx.stroke();
-    ctx.fillStyle = '#999'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(v.toFixed(0), x, pad.top + ch + 18);
-  }
-
-  // Axes labels
-  ctx.fillStyle = '#666'; ctx.font = '13px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('Volume V (mL)', pad.left + cw / 2, H - 6);
-  ctx.save();
-  ctx.translate(14, pad.top + ch / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText('Pression P (kPa)', 0, 0);
-  ctx.restore();
-
-  if (points.length === 0) {
-    ctx.fillStyle = '#ccc'; ctx.font = '14px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText('Capturez des points pour afficher le graphique', pad.left + cw / 2, pad.top + ch / 2);
-    modelBox.style.display = 'none';
-    return;
-  }
-
-  // Courbe modèle P = k/V
-  const mod = modeliser();
-  if (mod && points.length >= 2) {
-    ctx.beginPath();
-    let first = true;
-    const steps = 200;
-    for (let i = 0; i <= steps; i++) {
-      const v = Vmin + 1 + (Vmax - Vmin - 1) * i / steps;
-      if (v <= 0) continue;
-      const p = mod.k / v;
-      if (p < Pmin - 50 || p > Pmax + 50) continue;
-      const x = xPos(v), y = yPos(p);
-      if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+$('btn-import').addEventListener('click',()=>$('input-csv').click());
+$('input-csv').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=evt=>{
+    const rows=evt.target.result.split('\n').filter(l=>l.trim());
+    if(rows.length<2)return;
+    const headers=rows[0].split(',').map(h=>h.trim()).slice(1); // skip N
+    // Créer les grandeurs
+    grandeurs=[];
+    headers.forEach((h,i)=>{
+      const parts=h.split('_');
+      const unite=parts.length>1?parts[parts.length-1]:'';
+      const nom=parts.length>1?parts.slice(0,-1).join(' '):h;
+      grandeurs.push({id:'g'+i,nom,unite,source:'manuel',arduinoKey:null,colorIdx:i%COLORS.length});
+    });
+    gColorIdx=grandeurs.length;
+    // Lire les lignes
+    lignes=[];
+    for(let i=1;i<rows.length;i++){
+      const cols=rows[i].split(',');
+      if(cols.length<2)continue;
+      const ligne={};
+      grandeurs.forEach((g,j)=>{ ligne[g.id]=parseFloat(cols[j+1]); });
+      lignes.push(ligne);
     }
-    ctx.strokeStyle = '#E07820';
-    ctx.lineWidth   = 2;
-    ctx.setLineDash([6, 3]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    renderGrandeursList(); refreshTableHeader(); refreshTable();
+    refreshCaptureFields(); refreshTraitementSelects();
+    refreshGraphSelects(); refreshModelGraph();
+    // Créer un graphique par défaut si il n'y en a pas
+    if(!graphs.length&&grandeurs.length>=2) addGraph();
+    setBtnsData(lignes.length>0);
+    autoScale(graphs[0]);
+    log('CSV importé · '+lignes.length+' points · '+grandeurs.length+' grandeurs.');
+  };
+  reader.readAsText(file); e.target.value='';
+});
 
-    modelBox.style.display = 'block';
-    modelEqn.textContent = `P = ${mod.k.toFixed(0)} / V     (k = ${mod.k.toFixed(0)} kPa·mL)`;
-    modelR2.textContent  = `Coefficient de détermination R² = ${mod.r2.toFixed(4)}${mod.r2 > 0.99 ? ' ✓ Excellente modélisation' : mod.r2 > 0.95 ? ' — Bonne modélisation' : ' — Vérifier les mesures'}`;
-  }
+// ═══════════════════════════════════════
+// GRAPHIQUES
+// ═══════════════════════════════════════
+$('btn-add-graph').addEventListener('click',addGraph);
 
-  // Points expérimentaux
-  points.forEach((pt, i) => {
-    const x = xPos(pt.V), y = yPos(pt.P);
-    ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-    ctx.fillStyle   = '#185FA5';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth   = 2;
-    ctx.stroke();
+function addGraph(){
+  if(grandeurs.length<2)return;
+  const id='gr'+(++graphCount);
+  const gx=grandeurs[0].id;
+  const gy=grandeurs[Math.min(1,grandeurs.length-1)].id;
+  const gr={id, gx, gy,
+    scaleXmin:null,scaleXmax:null,scaleYmin:null,scaleYmax:null,
+    modele:null};
+  graphs.push(gr);
+  const container=$('graphs-container');
+  const div=document.createElement('div'); div.className='graph-card'; div.id='gc-'+id;
+  div.innerHTML=`
+    <div class="graph-header">
+      <select class="graph-sel" id="gsel-y-${id}" onchange="setGraphY('${id}',this.value)"></select>
+      <span style="font-size:11px;color:var(--ink3);">= f(</span>
+      <select class="graph-sel" id="gsel-x-${id}" onchange="setGraphX('${id}',this.value)"></select>
+      <span style="font-size:11px;color:var(--ink3);">)</span>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--ink3);">
+          X <button class="sc-btn" onclick="gScaleStep('${id}','xmin',-1)">−</button>
+          <span class="sc-val" id="lbl-${id}-xmin" style="min-width:45px;text-align:center;font-size:10px;"></span>
+          <button class="sc-btn" onclick="gScaleStep('${id}','xmin',+1)">+</button>
+          →
+          <button class="sc-btn" onclick="gScaleStep('${id}','xmax',-1)">−</button>
+          <span class="sc-val" id="lbl-${id}-xmax" style="min-width:45px;text-align:center;font-size:10px;"></span>
+          <button class="sc-btn" onclick="gScaleStep('${id}','xmax',+1)">+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--ink3);">
+          Y <button class="sc-btn" onclick="gScaleStep('${id}','ymin',-1)">−</button>
+          <span class="sc-val" id="lbl-${id}-ymin" style="min-width:45px;text-align:center;font-size:10px;"></span>
+          <button class="sc-btn" onclick="gScaleStep('${id}','ymin',+1)">+</button>
+          →
+          <button class="sc-btn" onclick="gScaleStep('${id}','ymax',-1)">−</button>
+          <span class="sc-val" id="lbl-${id}-ymax" style="min-width:45px;text-align:center;font-size:10px;"></span>
+          <button class="sc-btn" onclick="gScaleStep('${id}','ymax',+1)">+</button>
+        </div>
+        <button onclick="gAutoScale('${id}')" style="font-size:10px;padding:3px 8px;">Auto</button>
+        <button class="danger" onclick="removeGraph('${id}')" style="font-size:10px;padding:3px 8px;">✕</button>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <canvas id="cv-${id}" class="chart-cv" height="260"></canvas>
+      <canvas id="ov-${id}" class="chart-cv" height="260" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+    </div>
+    <div class="chart-legend" id="leg-${id}"></div>
+    <div id="cur-${id}" style="display:none;font-size:11px;color:var(--blue);background:var(--blue-bg);
+         border:.5px solid #b5d4f4;border-radius:2px;padding:3px 8px;margin-top:3px;font-weight:500;"></div>`;
+  container.appendChild(div);
 
-    // Étiquette numéro
-    ctx.fillStyle  = '#185FA5';
-    ctx.font       = '11px system-ui';
-    ctx.textAlign  = 'center';
-    ctx.fillText(i + 1, x, y - 12);
+  gr.canvas=$('cv-'+id); gr.ctx=gr.canvas.getContext('2d');
+  gr.overlay=$('ov-'+id); gr.octx=gr.overlay.getContext('2d');
+
+  // Curseur
+  gr.canvas.addEventListener('mousemove',ev=>handleCursor(gr,ev));
+  gr.canvas.addEventListener('mouseleave',()=>{$('cur-'+gr.id).style.display='none';gr.octx.clearRect(0,0,gr.overlay.width,gr.overlay.height);});
+
+  refreshGraphSelects();
+  autoScale(gr);
+  drawGraph(gr);
+  refreshModelGraph();
+}
+
+function removeGraph(id){
+  graphs=graphs.filter(g=>g.id!==id);
+  const el=$('gc-'+id); if(el)el.remove();
+  refreshModelGraph();
+}
+
+function setGraphX(id,val){ const gr=graphs.find(g=>g.id===id); if(gr){gr.gx=val;gAutoScale(id);drawGraph(gr);} }
+function setGraphY(id,val){ const gr=graphs.find(g=>g.id===id); if(gr){gr.gy=val;gAutoScale(id);drawGraph(gr);} }
+
+function refreshGraphSelects(){
+  graphs.forEach(gr=>{
+    ['x','y'].forEach(xy=>{
+      const sel=$(`gsel-${xy}-${gr.id}`); if(!sel)return;
+      const cur=sel.value;
+      sel.innerHTML=grandeurs.map(g=>`<option value="${g.id}">${g.nom}</option>`).join('');
+      if(grandeurs.find(g=>g.id===cur))sel.value=cur;
+      else sel.value=xy==='x'?(grandeurs[0]?.id||''):(grandeurs[1]?.id||grandeurs[0]?.id||'');
+      if(xy==='x')gr.gx=sel.value; else gr.gy=sel.value;
+    });
   });
 }
 
-window.addEventListener('resize', () => { if (points.length || true) drawChart(); });
-drawChart();
+function refreshModelGraph(){
+  const sel=$('sel-modele-graph');
+  sel.innerHTML=graphs.map((gr,i)=>{
+    const gx=grandeurs.find(g=>g.id===gr.gx), gy=grandeurs.find(g=>g.id===gr.gy);
+    return `<option value="${gr.id}">${gy?.nom||'?'} = f(${gx?.nom||'?'})</option>`;
+  }).join('');
+  btnModeliser.disabled=!graphs.length||lignes.length<2;
+}
+
+// ═══════════════════════════════════════
+// DESSIN GRAPHIQUE
+// ═══════════════════════════════════════
+function getPts(gr){
+  const gx=grandeurs.find(g=>g.id===gr.gx);
+  const gy=grandeurs.find(g=>g.id===gr.gy);
+  if(!gx||!gy)return[];
+  return lignes.map(l=>({x:l[gx.id],y:l[gy.id]}))
+               .filter(p=>p.x!=null&&p.y!=null&&isFinite(p.x)&&isFinite(p.y));
+}
+
+function drawGraph(gr){
+  const cv=gr.canvas, ctx=gr.ctx;
+  const W=cv.offsetWidth||700, H=260, dpr=devicePixelRatio;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  gr.overlay.width=W*dpr; gr.overlay.height=H*dpr;
+  gr.overlay.style.width=W+'px'; gr.overlay.style.height=H+'px';
+  ctx.scale(dpr,dpr); ctx.clearRect(0,0,W,H);
+
+  const pad={t:20,r:28,b:44,l:62};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const pts=getPts(gr);
+  const gy=grandeurs.find(g=>g.id===gr.gy);
+  const gx=grandeurs.find(g=>g.id===gr.gx);
+  const couleur=gy?COLORS[gy.colorIdx]:'#185FA5';
+  const xl=(gx?.nom||'x')+(gx?.unite?' ('+gx.unite+')':'');
+  const yl=(gy?.nom||'y')+(gy?.unite?' ('+gy.unite+')':'');
+
+  if(!pts.length){
+    ctx.fillStyle='#b0a898';ctx.font='11px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('Aucune donnée à afficher',W/2,H/2);
+    drawAxesG(ctx,pad,cw,ch,W,H,xl,yl,0,10,0,10); return;
+  }
+
+  // Bornes
+  let xMin=gr.scaleXmin??Math.min(...pts.map(p=>p.x));
+  let xMax=gr.scaleXmax??Math.max(...pts.map(p=>p.x));
+  let yMin=gr.scaleYmin??Math.min(...pts.map(p=>p.y));
+  let yMax=gr.scaleYmax??Math.max(...pts.map(p=>p.y));
+  // Modele : étendre yMin/yMax
+  if(gr.modele&&!gr.modele.invalid){
+    for(let i=0;i<=50;i++){const xv=xMin+(xMax-xMin)*i/50;try{const yv=gr.modele.fn(xv);if(isFinite(yv)){yMin=Math.min(yMin,yv);yMax=Math.max(yMax,yv);}}catch{}}
+  }
+  if(gr.scaleXmin===null){const dx=xMax-xMin||1;xMin=niceFloor(xMin-dx*.05,dx);xMax=niceCeil(xMax+dx*.05,dx);}
+  if(gr.scaleYmin===null){const dy=yMax-yMin||1;yMin=niceFloor(yMin-dy*.08,dy);yMax=niceCeil(yMax+dy*.12,dy);}
+  gr._xMin=xMin;gr._xMax=xMax;gr._yMin=yMin;gr._yMax=yMax;
+
+  function xp(v){return pad.l+(v-xMin)/(xMax-xMin)*cw;}
+  function yp(v){return pad.t+ch-(v-yMin)/(yMax-yMin)*ch;}
+
+  drawAxesG(ctx,pad,cw,ch,W,H,xl,yl,xMin,xMax,yMin,yMax);
+
+  // Modele
+  if(gr.modele&&!gr.modele.invalid){
+    ctx.beginPath();let first=true;
+    for(let i=0;i<=300;i++){
+      const xv=xMin+(xMax-xMin)*i/300;
+      try{const yv=gr.modele.fn(xv);if(!isFinite(yv)){first=true;continue;}
+        const x=xp(xv),y=yp(yv);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }catch{first=true;}
+    }
+    ctx.strokeStyle=MODEL_COLOR;ctx.lineWidth=2;ctx.setLineDash([6,3]);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // Ligne (temps réel)
+  if(modeAcq==='temps'&&pts.length>=2){
+    ctx.beginPath();pts.forEach((p,i)=>{const x=xp(p.x),y=yp(p.y);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.strokeStyle=couleur;ctx.lineWidth=1.5;ctx.stroke();
+  }
+
+  // Points
+  const ptR=modeAcq==='temps'?2.5:5;
+  pts.forEach((p,i)=>{
+    const x=xp(p.x),y=yp(p.y);
+    const isOut=gr.modele&&gr.modele.outliers?.some(o=>o.idx===i+1);
+    ctx.beginPath();ctx.arc(x,y,ptR,0,Math.PI*2);
+    ctx.fillStyle=isOut?'#c0392b':couleur;ctx.fill();
+    if(isOut){ctx.beginPath();ctx.arc(x,y,ptR+3,0,Math.PI*2);ctx.strokeStyle='#c0392b';ctx.lineWidth=1.5;ctx.stroke();}
+    if(modeAcq==='manuel'){
+      ctx.strokeStyle='rgba(246,241,228,.9)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(x,y,ptR,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=isOut?'#c0392b':couleur;ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+      ctx.fillText(i+1,x,y-9);
+    }
+  });
+
+  // Légende
+  let html=`<span><span class="leg-dot" style="background:${couleur}"></span>${gy?.nom||'y'}</span>`;
+  if(gr.modele&&!gr.modele.invalid)html+=`<span><span style="display:inline-block;width:18px;height:0;border-top:2px dashed ${MODEL_COLOR};vertical-align:middle;margin-right:2px;"></span>${gr.modele.label}</span>`;
+  $('leg-'+gr.id).innerHTML=html;
+  gUpdateScaleLabels(gr);
+}
+
+function drawAxesG(ctx,pad,cw,ch,W,H,xl,yl,xMin,xMax,yMin,yMax){
+  function xp(v){return pad.l+(v-xMin)/(xMax-xMin)*cw;}
+  function yp(v){return pad.t+ch-(v-yMin)/(yMax-yMin)*ch;}
+  for(let i=0;i<=4;i++){
+    const v=yMin+(yMax-yMin)*i/4,y=yp(v);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);
+    ctx.strokeStyle=CHART_GRID;ctx.lineWidth=.5;ctx.stroke();
+    ctx.fillStyle=CHART_AXIS;ctx.font='9px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(fmtN(v),pad.l-5,y+3);
+  }
+  for(let i=0;i<=5;i++){
+    const v=xMin+(xMax-xMin)*i/5,x=xp(v);
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ch);
+    ctx.strokeStyle=CHART_GRID;ctx.lineWidth=.5;ctx.stroke();
+    ctx.fillStyle=CHART_AXIS;ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText(fmtN(v),x,pad.t+ch+14);
+  }
+  ctx.fillStyle=CHART_AXIS;ctx.font='10px DM Mono,monospace';ctx.textAlign='center';
+  ctx.fillText(xl,pad.l+cw/2,H-4);
+  ctx.save();ctx.translate(13,pad.t+ch/2);ctx.rotate(-Math.PI/2);ctx.fillText(yl,0,0);ctx.restore();
+}
+
+// Curseur
+function handleCursor(gr,e){
+  const rect=gr.canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const pad={t:20,r:28,b:44,l:62};
+  const cw=rect.width-pad.l-pad.r, ch=rect.height-pad.t-pad.b;
+  if(mx<pad.l||mx>pad.l+cw||my<pad.t||my>pad.t+ch){
+    $('cur-'+gr.id).style.display='none'; gr.octx.clearRect(0,0,gr.overlay.width,gr.overlay.height); return;
+  }
+  const xMin=gr._xMin??0,xMax=gr._xMax??10,yMin=gr._yMin??0,yMax=gr._yMax??10;
+  const xVal=xMin+(mx-pad.l)/cw*(xMax-xMin);
+  const yVal=yMax-(my-pad.t)/ch*(yMax-yMin);
+  const gx=grandeurs.find(g=>g.id===gr.gx), gy=grandeurs.find(g=>g.id===gr.gy);
+  const cur=$('cur-'+gr.id);
+  cur.style.display='block';
+  cur.textContent=`${gx?.nom||'x'} = ${fmtN4(xVal)}    ${gy?.nom||'y'} = ${fmtN4(yVal)}`;
+  // Croix overlay
+  const oct=gr.octx, dpr=devicePixelRatio;
+  const W=gr.overlay.width/dpr, H=gr.overlay.height/dpr;
+  oct.clearRect(0,0,gr.overlay.width,gr.overlay.height);
+  const px=mx*dpr,py=my*dpr,pl=pad.l*dpr,pt=pad.t*dpr,pcw=cw*dpr,pch=ch*dpr;
+  oct.save();oct.strokeStyle='rgba(24,95,165,0.5)';oct.lineWidth=dpr;oct.setLineDash([4*dpr,3*dpr]);
+  oct.beginPath();oct.moveTo(px,pt);oct.lineTo(px,pt+pch);oct.stroke();
+  oct.beginPath();oct.moveTo(pl,py);oct.lineTo(pl+pcw,py);oct.stroke();
+  oct.setLineDash([]);oct.beginPath();oct.arc(px,py,4*dpr,0,Math.PI*2);
+  oct.fillStyle='rgba(24,95,165,0.75)';oct.fill();oct.restore();
+}
+
+// ═══════════════════════════════════════
+// ÉCHELLES PAR GRAPHIQUE
+// ═══════════════════════════════════════
+function autoScale(gr){
+  if(!gr)return;
+  const pts=getPts(gr);
+  if(!pts.length){gUpdateScaleLabels(gr);return;}
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const dx=Math.max(...xs)-Math.min(...xs)||1, dy=Math.max(...ys)-Math.min(...ys)||1;
+  gr.scaleXmin=niceFloor(Math.min(...xs)-dx*.05,dx);
+  gr.scaleXmax=niceCeil(Math.max(...xs)+dx*.05,dx);
+  gr.scaleYmin=niceFloor(Math.min(...ys)-dy*.08,dy);
+  gr.scaleYmax=niceCeil(Math.max(...ys)+dy*.12,dy);
+  gUpdateScaleLabels(gr); drawGraph(gr);
+}
+function gAutoScale(id){const gr=graphs.find(g=>g.id===id);if(gr)autoScale(gr);}
+
+function gScaleStep(id,axis,dir){
+  const gr=graphs.find(g=>g.id===id); if(!gr)return;
+  const pts=getPts(gr); if(!pts.length)return;
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const spanX=(gr.scaleXmax??Math.max(...xs))-(gr.scaleXmin??Math.min(...xs));
+  const spanY=(gr.scaleYmax??Math.max(...ys))-(gr.scaleYmin??Math.min(...ys));
+  function cands(ref,span){
+    const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));
+    const v=[];
+    for(let e=-3;e<=3;e++) for(const f of [1,2,2.5,5])
+      v.push(parseFloat((f*Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1))+e)).toPrecision(4)));
+    for(let m=-20;m<=20;m++) v.push(parseFloat((ref+m*mag*.5).toPrecision(5)));
+    return [...new Set(v)].sort((a,b)=>a-b);
+  }
+  if(axis==='xmin'){const cur=gr.scaleXmin??niceFloor(Math.min(...xs)-spanX*.05,spanX);const c=cands(cur,spanX).filter(v=>v<(gr.scaleXmax??Math.max(...xs)));const i=c.findIndex(v=>v>=cur);gr.scaleXmin=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='xmax'){const cur=gr.scaleXmax??niceCeil(Math.max(...xs)+spanX*.05,spanX);const c=cands(cur,spanX).filter(v=>v>(gr.scaleXmin??Math.min(...xs)));const i=c.findIndex(v=>v>=cur);gr.scaleXmax=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='ymin'){const cur=gr.scaleYmin??niceFloor(Math.min(...ys)-spanY*.08,spanY);const c=cands(cur,spanY).filter(v=>v<(gr.scaleYmax??Math.max(...ys)));const i=c.findIndex(v=>v>=cur);gr.scaleYmin=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='ymax'){const cur=gr.scaleYmax??niceCeil(Math.max(...ys)+spanY*.12,spanY);const c=cands(cur,spanY).filter(v=>v>(gr.scaleYmin??Math.min(...ys)));const i=c.findIndex(v=>v>=cur);gr.scaleYmax=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  gUpdateScaleLabels(gr); drawGraph(gr);
+}
+function gUpdateScaleLabels(gr){
+  ['xmin','xmax','ymin','ymax'].forEach(k=>{
+    const el=$(`lbl-${gr.id}-${k}`); if(el)el.textContent=gr['scale'+k.charAt(0).toUpperCase()+k.slice(1)]!==null?fmtN(gr['scale'+k.charAt(0).toUpperCase()+k.slice(1)]):'auto';
+  });
+}
+
+// ═══════════════════════════════════════
+// MODÉLISATION
+// ═══════════════════════════════════════
+let modele=null;
+// btnModeliser initialisé dans DOMContentLoaded
+
+function runModel(){
+  const gid=$('sel-modele-graph').value;
+  const gr=graphs.find(g=>g.id===gid); if(!gr)return;
+  const type=$('sel-modele').value;
+  const pts=getPts(gr);
+  if(type==='none'||pts.length<2){gr.modele=null;$('model-result').classList.add('hidden');drawGraph(gr);return;}
+  modele=ajuster(type,pts); gr.modele=modele;
+  afficherModele(type,modele); drawGraph(gr);
+}
+
+function ajuster(type,pts){
+  let r={};
+  if(type==='affine'){
+    const n=pts.length,sx=sum(pts,p=>p.x),sy=sum(pts,p=>p.y),
+          sxy=sum(pts,p=>p.x*p.y),sx2=sum(pts,p=>p.x*p.x),D=n*sx2-sx*sx;
+    const a=(n*sxy-sx*sy)/D, b=(sy-a*sx)/n;
+    r={a,b,fn:x=>a*x+b,label:`y = ${fc(a)}·x ${b>=0?'+':'-'} ${fc(Math.abs(b))}`};
+  } else if(type==='proportionnel'){
+    const a=sum(pts,p=>p.x*p.y)/sum(pts,p=>p.x*p.x);
+    r={a,fn:x=>a*x,label:`y = ${fc(a)}·x`};
+  } else if(type==='puissance'){
+    const v=pts.filter(p=>p.x>0&&p.y>0);
+    if(v.length<2)return{invalid:true};
+    const af=ajuster('affine',v.map(p=>({x:Math.log(p.x),y:Math.log(p.y)})));
+    const n=af.a,a=Math.exp(af.b);
+    r={a,n,fn:x=>a*Math.pow(x,n),label:`y = ${fc(a)}·x^${fc(n)}`};
+  } else if(type==='exponentiel'){
+    const v=pts.filter(p=>p.y>0);
+    if(v.length<2)return{invalid:true};
+    const af=ajuster('affine',v.map(p=>({x:p.x,y:Math.log(p.y)})));
+    const k=af.a,a=Math.exp(af.b);
+    r={a,k,fn:x=>a*Math.exp(k*x),label:`y = ${fc(a)}·e^(${fc(k)}·x)`};
+  } else if(type==='reciproque'){
+    const v=pts.filter(p=>p.x!==0);
+    if(v.length<2)return{invalid:true};
+    const a=sum(v,p=>(1/p.x)*p.y)/sum(v,p=>(1/p.x)**2);
+    r={a,fn:x=>a/x,label:`y = ${fc(a)}/x`};
+  } else if(type==='logarithme'){
+    const v=pts.filter(p=>p.x>0);
+    if(v.length<2)return{invalid:true};
+    const af=ajuster('affine',v.map(p=>({x:Math.log(p.x),y:p.y})));
+    r={a:af.a,b:af.b,fn:x=>af.a*Math.log(x)+af.b,
+       label:`y = ${fc(af.a)}·ln(x) ${af.b>=0?'+':'-'} ${fc(Math.abs(af.b))}`};
+  }
+  r.r2=calcR2(pts,r.fn);
+  // Outlier : point dont la suppression améliore le plus R²
+  r.outliers=[];
+  if(pts.length>=4){
+    let bestGain=0,bestIdx=-1,bestR2=0;
+    for(let i=0;i<pts.length;i++){
+      const sans=pts.filter((_,j)=>j!==i);
+      const r2s=calcR2(sans,r.fn);
+      if(r2s-r.r2>bestGain){bestGain=r2s-r.r2;bestIdx=i;bestR2=r2s;}
+    }
+    if(bestGain>0.002)r.outliers=[{idx:bestIdx+1,r2new:bestR2,gain:bestGain}];
+  }
+  return r;
+}
+
+function sum(arr,fn){return arr.reduce((s,x)=>s+fn(x),0);}
+function calcR2(pts,fn){
+  const mY=sum(pts,p=>p.y)/pts.length;
+  let ss_res=0,ss_tot=0;
+  pts.forEach(p=>{try{ss_res+=(p.y-fn(p.x))**2;}catch{}ss_tot+=(p.y-mY)**2;});
+  return ss_tot>0?1-ss_res/ss_tot:1;
+}
+
+function afficherModele(type,m){
+  const res=$('model-result');
+  if(m.invalid){res.className='model-box bad';res.innerHTML='Ce modèle nécessite des valeurs strictement positives.';res.classList.remove('hidden');return;}
+  const r2=m.r2;
+  const q=r2>=0.99?'✓ Excellente':r2>=0.95?'✓ Bonne':r2>=0.85?'△ Approximative':'✗ Insuffisante';
+  const cls=r2>=0.99?'ok':r2>=0.90?'':r2>=0.85?'warn':'bad';
+  let outlierHtml='';
+  if(m.outliers?.length){
+    const o=m.outliers[0];
+    outlierHtml=`<div style="margin-top:.4rem;padding:.3rem .5rem;background:#fdf0ef;border:.5px solid #f7c1c1;border-radius:2px;font-size:10px;color:var(--red);">
+      ⚠ Point ${o.idx} dégrade la modélisation — sans lui R²=${o.r2new.toFixed(4)} (gain ${o.gain>=0?'+':''}${o.gain.toFixed(4)})
+    </div>`;
+  }
+  res.className='model-box '+cls;
+  res.innerHTML=`<div class="model-eqn">${m.label}</div>
+    <div class="model-r2">R² = ${r2.toFixed(5)} — ${q}</div>${outlierHtml}`;
+  res.classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════
+// TRAITEMENT
+// ═══════════════════════════════════════
+function setTraitement(m){
+  traitementMode=m;
+  ['lissage','calcul','derivee','integrale'].forEach(t=>{
+    $('tab-'+t).classList.toggle('active',t===m);
+    $('tr-'+t).classList.toggle('hidden',t!==m);
+  });
+  const st=trStates[m];
+  if(st.data.length)refreshTrTable(st.label);
+  else{$('thead-tr').innerHTML='<tr><td class="no-data" colspan="6">Applique un traitement.</td></tr>';$('tbody-tr').innerHTML='';}
+  drawTrChart(st.data.length?m:null);
+  $('btn-tr-csv').disabled=!st.data.length;
+}
+// init différée — voir DOMContentLoaded
+
+function updateTraitementHint(){
+  const has=lignes.length>0;
+  $('traitement-hint').classList.toggle('hidden',has);
+  $('btn-lisser').disabled=!has||lignes.length<3;
+  $('btn-calc-apply').disabled=!has;
+  $('btn-derivee').disabled=!has||lignes.length<2;
+  $('btn-integrale').disabled=!has||lignes.length<2;
+}
+
+function refreshTraitementSelects(){
+  const opts=grandeurs.map(g=>`<option value="${g.id}">${g.nom}</option>`).join('');
+  ['lissage-gid','deriv-gx','deriv-gy','integ-gx','integ-gy'].forEach(id=>{
+    const el=$(id); if(el)el.innerHTML=opts;
+  });
+  // Valeurs par défaut sensées
+  if(grandeurs.length>=2){
+    const gx=$('deriv-gx'); if(gx)gx.value=grandeurs[0].id;
+    const gy=$('deriv-gy'); if(gy)gy.value=grandeurs[1].id;
+    const ix=$('integ-gx'); if(ix)ix.value=grandeurs[0].id;
+    const iy=$('integ-gy'); if(iy)iy.value=grandeurs[1].id;
+  }
+}
+
+// Lissage
+$('btn-lisser').addEventListener('click',()=>{
+  const gid=$('lissage-gid').value;
+  const g=grandeurs.find(gr=>gr.id===gid); if(!g||lignes.length<3)return;
+  const n=Math.max(2,Math.min(30,parseInt($('lissage-n').value)||3));
+  const vals=lignes.map(l=>l[gid]);
+  const lissed=vals.map((_,i)=>{
+    const seg=vals.slice(Math.max(0,i-Math.floor(n/2)),Math.min(vals.length,i-Math.floor(n/2)+n));
+    return seg.filter(v=>v!=null).reduce((s,v)=>s+v,0)/seg.filter(v=>v!=null).length;
+  });
+  // Construire data traitement avec x=première autre grandeur, y=lissé
+  const gx=grandeurs.find(gr=>gr.id!==gid)||grandeurs[0];
+  const label=`Lissage ${g.nom} N=${n}`;
+  trStates.lissage.data=lignes.map((l,i)=>({x:l[gx?.id]??i,y:l[gid],tr:lissed[i]}));
+  trStates.lissage.label=label;
+  if(traitementMode==='lissage'){refreshTrTable(label);drawTrChart('lissage');}
+  $('btn-lisser-rm').disabled=false;$('btn-tr-csv').disabled=false;
+  log('Lissage de "'+g.nom+'" calculé.');
+});
+$('btn-lisser-rm').addEventListener('click',()=>{trStates.lissage.data=[];if(traitementMode==='lissage'){refreshTrTable();drawTrChart(null);}$('btn-lisser-rm').disabled=true;$('btn-tr-csv').disabled=true;});
+
+// Grandeur calculée
+$('btn-calc-apply').addEventListener('click',()=>{
+  const nom=$('calc-nom').value.trim()||'calc';
+  const unite=$('calc-unite').value.trim();
+  const expr=$('calc-expr').value.trim();
+  const errEl=$('calc-error');
+  if(!expr){errEl.textContent='Saisis une expression.';errEl.classList.remove('hidden');return;}
+  // Créer les variables g0, g1, ...
+  let fn;
+  try{
+    const args=grandeurs.map((_,i)=>'g'+i).join(',');
+    fn=new Function(args,'return ('+expr+');');
+    fn(...grandeurs.map(()=>1));
+    errEl.classList.add('hidden');
+  }catch(e){errEl.textContent='Expression invalide : '+e.message;errEl.classList.remove('hidden');return;}
+  const gx=grandeurs[0], gy=grandeurs[1]||grandeurs[0];
+  const data=lignes.map(l=>{
+    const vals=grandeurs.map(g=>l[g.id]??0);
+    let tr; try{tr=parseFloat(fn(...vals));}catch{tr=null;}
+    return{x:l[gx.id],y:l[gy.id],tr:isFinite(tr)?tr:null};
+  });
+  const label=nom+(unite?' ('+unite+')':'');
+  trStates.calcul.data=data; trStates.calcul.label=label;
+  if(traitementMode==='calcul'){refreshTrTable(label);drawTrChart('calcul');}
+  $('btn-calc-rm').disabled=false;$('btn-tr-csv').disabled=false;
+  log('Grandeur "'+nom+'" calculée.');
+});
+$('btn-calc-rm').addEventListener('click',()=>{trStates.calcul.data=[];if(traitementMode==='calcul'){refreshTrTable();drawTrChart(null);}$('btn-calc-rm').disabled=true;$('btn-tr-csv').disabled=true;});
+
+// Dérivée
+$('btn-derivee').addEventListener('click',()=>{
+  const gxid=$('deriv-gx').value, gyid=$('deriv-gy').value;
+  const methode=$('deriv-methode').value;
+  const pts=lignes.map(l=>({x:l[gxid],y:l[gyid]})).filter(p=>p.x!=null&&p.y!=null);
+  if(pts.length<2)return;
+  const data=pts.map((p,i)=>{
+    let d;
+    if(methode==='central'){
+      if(i===0)d=(pts[1].y-pts[0].y)/(pts[1].x-pts[0].x);
+      else if(i===pts.length-1)d=(pts[i].y-pts[i-1].y)/(pts[i].x-pts[i-1].x);
+      else d=(pts[i+1].y-pts[i-1].y)/(pts[i+1].x-pts[i-1].x);
+    }else{
+      if(i===pts.length-1)d=(pts[i].y-pts[i-1].y)/(pts[i].x-pts[i-1].x);
+      else d=(pts[i+1].y-pts[i].y)/(pts[i+1].x-pts[i].x);
+    }
+    return{x:p.x,y:p.y,tr:isFinite(d)?parseFloat(d.toFixed(5)):null};
+  });
+  const label='d('+( grandeurs.find(g=>g.id===gyid)?.nom||'y')+')/d('+(grandeurs.find(g=>g.id===gxid)?.nom||'x')+')';
+  trStates.derivee.data=data;trStates.derivee.label=label;
+  if(traitementMode==='derivee'){refreshTrTable(label);drawTrChart('derivee');}
+  $('btn-derivee-rm').disabled=false;$('btn-tr-csv').disabled=false;
+  log('Dérivée calculée.');
+});
+$('btn-derivee-rm').addEventListener('click',()=>{trStates.derivee.data=[];if(traitementMode==='derivee'){refreshTrTable();drawTrChart(null);}$('btn-derivee-rm').disabled=true;$('btn-tr-csv').disabled=true;});
+
+// Intégrale
+$('btn-integrale').addEventListener('click',()=>{
+  const gxid=$('integ-gx').value, gyid=$('integ-gy').value;
+  const methode=$('integ-methode').value;
+  const pts=lignes.map(l=>({x:l[gxid],y:l[gyid]})).filter(p=>p.x!=null&&p.y!=null);
+  if(pts.length<2)return;
+  let cumul=0;
+  const data=pts.map((p,i)=>{
+    if(i>0){const prev=pts[i-1],dx=p.x-prev.x;
+      cumul+=methode==='trapezes'?(prev.y+p.y)/2*dx:prev.y*dx;}
+    return{x:p.x,y:p.y,tr:parseFloat(cumul.toFixed(6))};
+  });
+  const label='∫('+(grandeurs.find(g=>g.id===gyid)?.nom||'y')+')d('+(grandeurs.find(g=>g.id===gxid)?.nom||'x')+')';
+  trStates.integrale.data=data;trStates.integrale.label=label;
+  if(traitementMode==='integrale'){refreshTrTable(label);drawTrChart('integrale');}
+  $('btn-integrale-rm').disabled=false;$('btn-tr-csv').disabled=false;
+  log('Intégrale calculée · valeur finale = '+data[data.length-1].tr);
+});
+$('btn-integrale-rm').addEventListener('click',()=>{trStates.integrale.data=[];if(traitementMode==='integrale'){refreshTrTable();drawTrChart(null);}$('btn-integrale-rm').disabled=true;$('btn-tr-csv').disabled=true;});
+
+function refreshTrTable(label){
+  const data=trStates[traitementMode].data;
+  if(!data.length){$('thead-tr').innerHTML='<tr><td class="no-data" colspan="6">Applique un traitement.</td></tr>';$('tbody-tr').innerHTML='';return;}
+  $('thead-tr').innerHTML=`<tr><th>#</th><th>X</th><th>Y</th><th style="color:${VIOLET}">${label||'résultat'}</th></tr>`;
+  $('tbody-tr').innerHTML=data.map((p,i)=>`<tr><td>${i+1}</td><td>${fmtN4(p.x)}</td><td>${fmtN4(p.y)}</td><td style="color:${VIOLET};font-weight:500">${p.tr!=null?fmtN4(p.tr):'—'}</td></tr>`).join('');
+}
+
+function drawTrChart(type){
+  const cv=$('chart-tr'),c=cv.getContext('2d');
+  const W=cv.offsetWidth||700,H=200,dpr=devicePixelRatio;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  c.scale(dpr,dpr);c.clearRect(0,0,W,H);
+  const data=type?trStates[traitementMode].data:[];
+  const pad={t:14,r:24,b:36,l:55};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  if(!data.length||!type){c.fillStyle='#b0a898';c.font='11px DM Mono,monospace';c.textAlign='center';c.fillText('Applique un traitement pour voir le graphique',W/2,H/2);return;}
+  const allTr=data.map(p=>p.tr).filter(v=>v!=null&&isFinite(v));
+  const allY=type==='derivee'?allTr:[...data.map(p=>p.y),...allTr];
+  let xMin=Math.min(...data.map(p=>p.x)),xMax=Math.max(...data.map(p=>p.x));
+  let yMin=Math.min(...allY),yMax=Math.max(...allY);
+  const dx=xMax-xMin||1,dy=yMax-yMin||1;
+  xMin=niceFloor(xMin-dx*.05,dx);xMax=niceCeil(xMax+dx*.05,dx);
+  yMin=niceFloor(yMin-dy*.08,dy);yMax=niceCeil(yMax+dy*.12,dy);
+  function xp(v){return pad.l+(v-xMin)/(xMax-xMin)*cw;}
+  function yp(v){return pad.t+ch-(v-yMin)/(yMax-yMin)*ch;}
+  for(let i=0;i<=4;i++){const v=yMin+(yMax-yMin)*i/4,y=yp(v);c.beginPath();c.moveTo(pad.l,y);c.lineTo(pad.l+cw,y);c.strokeStyle=CHART_GRID;c.lineWidth=.5;c.stroke();c.fillStyle=CHART_AXIS;c.font='8px DM Mono,monospace';c.textAlign='right';c.fillText(fmtN(v),pad.l-3,y+3);}
+  for(let i=0;i<=5;i++){const v=xMin+(xMax-xMin)*i/5,x=xp(v);c.beginPath();c.moveTo(x,pad.t);c.lineTo(x,pad.t+ch);c.strokeStyle=CHART_GRID;c.lineWidth=.5;c.stroke();c.fillStyle=CHART_AXIS;c.font='8px DM Mono,monospace';c.textAlign='center';c.fillText(fmtN(v),x,pad.t+ch+13);}
+  if(type==='integrale'){
+    c.beginPath();c.moveTo(xp(data[0].x),yp(0));data.forEach(p=>c.lineTo(xp(p.x),yp(p.y)));c.lineTo(xp(data[data.length-1].x),yp(0));c.closePath();c.fillStyle='rgba(26,110,60,0.1)';c.fill();
+    c.beginPath();data.forEach((p,i)=>{const x=xp(p.x),y=yp(p.y);i===0?c.moveTo(x,y):c.lineTo(x,y);});c.strokeStyle=COLORS[1];c.lineWidth=1.5;c.stroke();
+    c.beginPath();data.forEach((p,i)=>{const x=xp(p.x),y=yp(p.tr??0);i===0?c.moveTo(x,y):c.lineTo(x,y);});c.strokeStyle=VIOLET;c.lineWidth=2;c.stroke();
+    $('chart-tr-legend').innerHTML=`<span><span class="leg-dot" style="background:${COLORS[1]}"></span>Y original</span><span><span class="leg-dot" style="background:${VIOLET}"></span>${trStates.integrale.label}</span>`;
+  }else if(type==='lissage'){
+    c.beginPath();data.forEach((p,i)=>{const x=xp(p.x),y=yp(p.y);i===0?c.moveTo(x,y):c.lineTo(x,y);});c.strokeStyle=COLORS[0];c.lineWidth=1;c.setLineDash([3,3]);c.stroke();c.setLineDash([]);
+    c.beginPath();data.forEach((p,i)=>{const x=xp(p.x),y=yp(p.tr??p.y);i===0?c.moveTo(x,y):c.lineTo(x,y);});c.strokeStyle=VERT_TR;c.lineWidth=2;c.stroke();
+    $('chart-tr-legend').innerHTML=`<span><span class="leg-dot" style="background:${COLORS[0]}"></span>original</span><span><span class="leg-dot" style="background:${VERT_TR}"></span>lissé</span>`;
+  }else{
+    c.beginPath();let first=true;data.forEach(p=>{if(p.tr==null){first=true;return;}const x=xp(p.x),y=yp(p.tr);if(first){c.moveTo(x,y);first=false;}else c.lineTo(x,y);});c.strokeStyle=VIOLET;c.lineWidth=2;c.stroke();
+    data.forEach(p=>{if(p.tr==null)return;c.beginPath();c.arc(xp(p.x),yp(p.tr),4,0,Math.PI*2);c.fillStyle=VIOLET;c.fill();c.strokeStyle='rgba(246,241,228,.9)';c.lineWidth=1.5;c.stroke();});
+    $('chart-tr-legend').innerHTML=`<span><span class="leg-dot" style="background:${VIOLET}"></span>${trStates[traitementMode].label}</span>`;
+  }
+}
+
+// Export traitement
+$('btn-tr-csv').addEventListener('click',()=>{
+  const data=trStates[traitementMode].data; if(!data.length)return;
+  const label=trStates[traitementMode].label;
+  let csv=`N,X,Y,${label}\n`;
+  data.forEach((p,i)=>{csv+=`${i+1},${p.x},${p.y},${p.tr??''}\n`;});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='traitement_'+new Date().toISOString().slice(0,16).replace('T','_')+'.csv';
+  a.click();
+});
+
+// ═══════════════════════════════════════
+// UTILITAIRES NUMÉRIQUES
+// ═══════════════════════════════════════
+function niceFloor(v,span){const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));const step=[1,2,2.5,5,10].map(f=>f*mag).reduce((a,b)=>Math.abs(b-span/5)<Math.abs(a-span/5)?b:a);return Math.floor(v/step)*step;}
+function niceCeil(v,span){const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));const step=[1,2,2.5,5,10].map(f=>f*mag).reduce((a,b)=>Math.abs(b-span/5)<Math.abs(a-span/5)?b:a);return Math.ceil(v/step)*step;}
+function fmtN(v){if(!isFinite(v))return'—';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(2);if(a>=1000)return v.toFixed(0);if(a>=100)return v.toFixed(1);if(a>=10)return v.toFixed(2);return v.toFixed(3);}
+function fmtN4(v){if(!isFinite(v))return'—';const a=Math.abs(v);if(a>=10000||(a<0.0001&&a>0))return v.toExponential(3);if(a>=100)return v.toFixed(2);return v.toFixed(4);}
+function fmtLive(v){if(!isFinite(v))return'—';const a=Math.abs(v);return a>=1000?v.toFixed(0):a>=10?v.toFixed(2):v.toFixed(3);}
+function fc(v){if(!isFinite(v))return'?';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(3);return v.toPrecision(4);}
+
+window.addEventListener('resize',()=>{graphs.forEach(gr=>drawGraph(gr));});
+
+// ── Initialisation après chargement complet du DOM ───────
+// Init directe (script en fin de body, DOM déjà prêt)
+btnModeliser=$('btn-modeliser');
+btnModeliser.addEventListener('click',runModel);
+$('sel-modele').addEventListener('change',()=>{if(modele)runModel();});
+setModeAcq('temporelle');
+setTraitement('lissage');
 </script>
 </body>
 </html>

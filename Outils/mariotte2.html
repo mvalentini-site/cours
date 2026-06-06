@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Loi de Mariotte — Arduino</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f5f5f3; color: #1a1a18; min-height: 100vh; padding: 1.5rem; }
+
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.2rem; }
+.subtitle { font-size: 14px; color: #888; margin-bottom: 1.5rem; }
+
+/* SECTIONS */
+.section { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+.section-title { font-size: 13px; color: #888; font-weight: 400; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* CONNEXION */
+.conn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+button { padding: 8px 18px; border-radius: 8px; border: 0.5px solid #bbb; background: #fff; font-size: 14px; cursor: pointer; transition: background 0.15s; }
+button:hover:not(:disabled) { background: #f0f0ee; }
+button:disabled { opacity: 0.35; cursor: default; }
+button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+button.primary:hover:not(:disabled) { background: #0c4a84; }
+.status-pill { font-size: 13px; display: flex; align-items: center; gap: 6px; color: #888; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.dot.on { background: #2ecc71; }
+
+/* AFFICHAGE DIGITAL */
+.digital-wrap { display: flex; align-items: flex-end; gap: 0.5rem; justify-content: center; padding: 1rem 0; }
+.digital-value {
+  font-family: 'Courier New', monospace;
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: #185FA5;
+  line-height: 1;
+  min-width: 200px;
+  text-align: right;
+}
+.digital-unit { font-size: 24px; color: #888; padding-bottom: 10px; }
+.digital-label { font-size: 13px; color: #aaa; text-align: center; margin-top: 0.25rem; }
+
+/* CAPTURE MARIOTTE */
+.capture-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 13px; color: #888; }
+.field input[type=number] {
+  width: 120px; padding: 8px 12px; border-radius: 8px;
+  border: 0.5px solid #bbb; font-size: 20px; font-weight: 500;
+  text-align: center; color: #1a1a18; background: #fff;
+}
+.field input:focus { outline: 2px solid #185FA5; border-color: transparent; }
+.field .unit-hint { font-size: 12px; color: #aaa; text-align: center; }
+
+button.capture { background: #185FA5; color: #fff; border-color: #185FA5; font-size: 15px; padding: 10px 24px; }
+button.capture:hover:not(:disabled) { background: #0c4a84; }
+
+/* TABLEAU */
+table { width: 100%; font-size: 14px; border-collapse: collapse; }
+th { text-align: left; color: #888; font-weight: 400; padding: 4px 8px 8px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+td { padding: 6px 8px 6px 0; border-bottom: 0.5px solid #f2f2f0; }
+td button.del { padding: 2px 8px; font-size: 12px; color: #c0392b; border-color: #e8c5c2; }
+td button.del:hover { background: #fdf0ef; }
+.no-data { color: #bbb; font-size: 14px; padding: 1rem 0; }
+
+/* MODÉLISATION */
+.model-box { background: #EBF4FF; border: 0.5px solid #B5D4F4; border-radius: 8px; padding: 0.75rem 1rem; font-size: 14px; color: #0c447c; margin-bottom: 1rem; }
+.model-box strong { font-weight: 500; }
+.model-eqn { font-family: 'Courier New', monospace; font-size: 16px; margin: 0.25rem 0; }
+.model-r2 { font-size: 13px; color: #378ADD; }
+
+/* GRAPHIQUE */
+canvas { width: 100%; display: block; cursor: crosshair; }
+
+/* EXPORT */
+.bottom-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.75rem; }
+
+/* LOG */
+.log { font-size: 12px; color: #aaa; font-family: monospace; margin-top: 0.75rem; }
+</style>
+</head>
+<body>
+
+<h1>Loi de Mariotte</h1>
+<p class="subtitle">Capteur de pression Grove MPX5700AP · Arduino Uno · Web Serial</p>
+
+<!-- CONNEXION -->
+<div class="section">
+  <div class="section-title">Connexion Arduino</div>
+  <div class="conn-row">
+    <button class="primary" id="btn-connect">Connecter l'Arduino</button>
+    <button id="btn-disconnect" disabled>Déconnecter</button>
+    <div class="status-pill"><span class="dot" id="dot"></span><span id="statut-txt">Déconnecté</span></div>
+  </div>
+  <div class="log" id="log">—</div>
+</div>
+
+<!-- AFFICHAGE DIGITAL -->
+<div class="section">
+  <div class="section-title">Pression en temps réel</div>
+  <div class="digital-wrap">
+    <div>
+      <div class="digital-value" id="digital">—</div>
+      <div class="digital-label">Pression absolue</div>
+    </div>
+    <div class="digital-unit">kPa</div>
+  </div>
+</div>
+
+<!-- CAPTURE -->
+<div class="section">
+  <div class="section-title">Acquisition d'un point — Loi de Mariotte</div>
+  <p style="font-size:14px;color:#666;margin-bottom:1rem;">
+    Règle le volume de la seringue, attends que la pression se stabilise, puis clique sur <strong>Capturer</strong>.
+  </p>
+  <div class="capture-row">
+    <div class="field">
+      <label for="vol-input">Volume (mL)</label>
+      <input type="number" id="vol-input" min="1" max="60" step="1" value="60" placeholder="V">
+      <span class="unit-hint">1 – 60 mL</span>
+    </div>
+    <button class="capture" id="btn-capture" disabled>Capturer ce point</button>
+  </div>
+</div>
+
+<!-- TABLEAU -->
+<div class="section">
+  <div class="section-title">Points mesurés</div>
+  <table>
+    <thead><tr><th>#</th><th>Volume V (mL)</th><th>Pression P (kPa)</th><th>P × V (kPa·mL)</th><th>1/V (mL⁻¹)</th><th></th></tr></thead>
+    <tbody id="tbody"><tr><td colspan="6" class="no-data">Aucun point enregistré.</td></tr></tbody>
+  </table>
+  <div class="bottom-row">
+    <button id="btn-clear-pts" disabled>Effacer tous les points</button>
+    <button id="btn-export" disabled>Exporter CSV</button>
+  </div>
+</div>
+
+<!-- GRAPHIQUE -->
+<div class="section">
+  <div class="section-title">Graphique P = f(V) avec modélisation P = k / V</div>
+  <div class="model-box" id="model-box" style="display:none">
+    <div class="model-eqn" id="model-eqn"></div>
+    <div class="model-r2" id="model-r2"></div>
+  </div>
+  <canvas id="chart" height="340"></canvas>
+  <p style="font-size:12px;color:#bbb;margin-top:0.5rem;text-align:center;">Les points expérimentaux sont en bleu · La courbe modèle P = k/V est en orange</p>
+</div>
+
+<script>
+// ── État global ──────────────────────────────────────────────
+let port, reader;
+let pCourante = null;
+let points = []; // { V, P }
+
+// ── Éléments DOM ────────────────────────────────────────────
+const btnConnect    = document.getElementById('btn-connect');
+const btnDisconnect = document.getElementById('btn-disconnect');
+const btnCapture    = document.getElementById('btn-capture');
+const btnClearPts   = document.getElementById('btn-clear-pts');
+const btnExport     = document.getElementById('btn-export');
+const digital       = document.getElementById('digital');
+const dot           = document.getElementById('dot');
+const statutTxt     = document.getElementById('statut-txt');
+const logEl         = document.getElementById('log');
+const tbody         = document.getElementById('tbody');
+const volInput      = document.getElementById('vol-input');
+const modelBox      = document.getElementById('model-box');
+const modelEqn      = document.getElementById('model-eqn');
+const modelR2       = document.getElementById('model-r2');
+const canvas        = document.getElementById('chart');
+const ctx           = canvas.getContext('2d');
+
+// ── Connexion ────────────────────────────────────────────────
+btnConnect.addEventListener('click', async () => {
+  if (!('serial' in navigator)) {
+    alert('Web Serial non supporté.\nUtilise Google Chrome ou Microsoft Edge.');
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    setConnected(true);
+    readLoop();
+  } catch(e) {
+    log('Connexion annulée : ' + e.message);
+  }
+});
+
+btnDisconnect.addEventListener('click', async () => {
+  try { if (reader) { await reader.cancel(); reader = null; } } catch(e) {}
+  try { if (port)   { await port.close();   port = null;   } } catch(e) {}
+  setConnected(false);
+  digital.textContent = '—';
+  pCourante = null;
+  btnCapture.disabled = true;
+});
+
+function setConnected(on) {
+  dot.className        = 'dot' + (on ? ' on' : '');
+  statutTxt.textContent = on ? 'Connecté' : 'Déconnecté';
+  btnConnect.disabled    = on;
+  btnDisconnect.disabled = !on;
+}
+
+function log(msg) { logEl.textContent = msg; }
+
+// ── Lecture port série ───────────────────────────────────────
+async function readLoop() {
+  const decoder = new TextDecoderStream();
+  port.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
+  let buf = '';
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      lines.forEach(l => traiter(l.trim()));
+    }
+  } catch(e) {
+    log('Lecture interrompue : ' + e.message);
+    setConnected(false);
+  }
+}
+
+function traiter(ligne) {
+  const m = ligne.match(/FZ\d:pre:([\d.\-]+)/i);
+  if (!m) return;
+  const p = parseFloat(m[1]);
+  if (isNaN(p)) return;
+  pCourante = p;
+  digital.textContent = p.toFixed(1);
+  btnCapture.disabled = false;
+  log('Dernière valeur reçue : ' + p.toFixed(1) + ' kPa');
+}
+
+// ── Capture d'un point ───────────────────────────────────────
+btnCapture.addEventListener('click', () => {
+  if (pCourante === null) return;
+  const V = parseFloat(volInput.value);
+  if (isNaN(V) || V <= 0 || V > 60) {
+    volInput.focus();
+    return;
+  }
+  points.push({ V, P: pCourante });
+  points.sort((a, b) => a.V - b.V);
+  refreshTable();
+  drawChart();
+});
+
+// ── Tableau ──────────────────────────────────────────────────
+function refreshTable() {
+  if (points.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="no-data">Aucun point enregistré.</td></tr>';
+    btnClearPts.disabled = true;
+    btnExport.disabled   = true;
+    return;
+  }
+  btnClearPts.disabled = false;
+  btnExport.disabled   = false;
+  tbody.innerHTML = points.map((pt, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${pt.V.toFixed(0)}</td>
+      <td>${pt.P.toFixed(1)}</td>
+      <td>${(pt.P * pt.V).toFixed(0)}</td>
+      <td>${(1/pt.V).toFixed(4)}</td>
+      <td><button class="del" onclick="supprimerPoint(${i})">✕</button></td>
+    </tr>`).join('');
+}
+
+function supprimerPoint(i) {
+  points.splice(i, 1);
+  refreshTable();
+  drawChart();
+}
+
+btnClearPts.addEventListener('click', () => {
+  points = [];
+  refreshTable();
+  drawChart();
+});
+
+// ── Export CSV ───────────────────────────────────────────────
+btnExport.addEventListener('click', () => {
+  let csv = 'N,Volume_mL,Pression_kPa,PxV_kPa_mL,InvV_mL-1\n';
+  points.forEach((pt, i) => {
+    csv += `${i+1},${pt.V},${pt.P.toFixed(1)},${(pt.P*pt.V).toFixed(1)},${(1/pt.V).toFixed(5)}\n`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'mariotte_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+});
+
+// ── Modélisation P = k / V ───────────────────────────────────
+// Régression linéaire de P sur 1/V → P = k * (1/V)  (sans constante)
+function modeliser() {
+  if (points.length < 2) return null;
+  // Moindres carrés forcé à l'origine : k = Σ(P/V) / Σ(1/V²)
+  let num = 0, den = 0;
+  points.forEach(pt => {
+    num += pt.P / pt.V;
+    den += 1 / (pt.V * pt.V);
+  });
+  const k = num / den;
+
+  // R² par rapport à la moyenne de P
+  const mP = points.reduce((s, pt) => s + pt.P, 0) / points.length;
+  let ss_res = 0, ss_tot = 0;
+  points.forEach(pt => {
+    const pred = k / pt.V;
+    ss_res += (pt.P - pred) ** 2;
+    ss_tot += (pt.P - mP) ** 2;
+  });
+  const r2 = ss_tot > 0 ? 1 - ss_res / ss_tot : 1;
+  return { k, r2 };
+}
+
+// ── Graphique ─────────────────────────────────────────────────
+function drawChart() {
+  const W = canvas.offsetWidth || 700;
+  const H = 340;
+  canvas.width  = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { top: 30, right: 30, bottom: 50, left: 65 };
+  const cw  = W - pad.left - pad.right;
+  const ch  = H - pad.top  - pad.bottom;
+
+  // Plage axes
+  const allV = points.map(p => p.V);
+  const allP = points.map(p => p.P);
+  const Vmin = points.length ? Math.max(0, Math.min(...allV) - 5)  : 0;
+  const Vmax = points.length ? Math.min(...allV) > 0 ? Math.max(...allV) + 5 : 60 : 60;
+  const Pmin = points.length ? Math.max(0, Math.min(...allP) - 10) : 0;
+  const Pmax = points.length ? Math.max(...allP) + 20 : 300;
+
+  function xPos(v) { return pad.left + (v - Vmin) / (Vmax - Vmin) * cw; }
+  function yPos(p) { return pad.top  + ch - (p - Pmin) / (Pmax - Pmin) * ch; }
+
+  // Fond axes
+  ctx.strokeStyle = '#e0e0de';
+  ctx.lineWidth   = 0.5;
+
+  // Grille H
+  const nH = 5;
+  for (let i = 0; i <= nH; i++) {
+    const p = Pmin + (Pmax - Pmin) * i / nH;
+    const y = yPos(p);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    ctx.fillStyle = '#999'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(p.toFixed(0), pad.left - 8, y + 4);
+  }
+
+  // Grille V
+  const nV = 6;
+  for (let i = 0; i <= nV; i++) {
+    const v = Vmin + (Vmax - Vmin) * i / nV;
+    const x = xPos(v);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + ch); ctx.stroke();
+    ctx.fillStyle = '#999'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(v.toFixed(0), x, pad.top + ch + 18);
+  }
+
+  // Axes labels
+  ctx.fillStyle = '#666'; ctx.font = '13px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('Volume V (mL)', pad.left + cw / 2, H - 6);
+  ctx.save();
+  ctx.translate(14, pad.top + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Pression P (kPa)', 0, 0);
+  ctx.restore();
+
+  if (points.length === 0) {
+    ctx.fillStyle = '#ccc'; ctx.font = '14px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Capturez des points pour afficher le graphique', pad.left + cw / 2, pad.top + ch / 2);
+    modelBox.style.display = 'none';
+    return;
+  }
+
+  // Courbe modèle P = k/V
+  const mod = modeliser();
+  if (mod && points.length >= 2) {
+    ctx.beginPath();
+    let first = true;
+    const steps = 200;
+    for (let i = 0; i <= steps; i++) {
+      const v = Vmin + 1 + (Vmax - Vmin - 1) * i / steps;
+      if (v <= 0) continue;
+      const p = mod.k / v;
+      if (p < Pmin - 50 || p > Pmax + 50) continue;
+      const x = xPos(v), y = yPos(p);
+      if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#E07820';
+    ctx.lineWidth   = 2;
+    ctx.setLineDash([6, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    modelBox.style.display = 'block';
+    modelEqn.textContent = `P = ${mod.k.toFixed(0)} / V     (k = ${mod.k.toFixed(0)} kPa·mL)`;
+    modelR2.textContent  = `Coefficient de détermination R² = ${mod.r2.toFixed(4)}${mod.r2 > 0.99 ? ' ✓ Excellente modélisation' : mod.r2 > 0.95 ? ' — Bonne modélisation' : ' — Vérifier les mesures'}`;
+  }
+
+  // Points expérimentaux
+  points.forEach((pt, i) => {
+    const x = xPos(pt.V), y = yPos(pt.P);
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fillStyle   = '#185FA5';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth   = 2;
+    ctx.stroke();
+
+    // Étiquette numéro
+    ctx.fillStyle  = '#185FA5';
+    ctx.font       = '11px system-ui';
+    ctx.textAlign  = 'center';
+    ctx.fillText(i + 1, x, y - 12);
+  });
+}
+
+window.addEventListener('resize', () => { if (points.length || true) drawChart(); });
+drawChart();
+</script>
+</body>
+</html>
