@@ -120,6 +120,41 @@ body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-hei
 .t-preset{padding:4px 10px;background:var(--cream2);color:var(--ink2);border:.5px solid var(--border);border-radius:2px;cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;}
 .t-preset:hover{background:var(--cream3);}
 
+/* ── PLEIN ÉCRAN OUTILS ── */
+#fs-overlay{display:none;position:fixed;inset:0;z-index:500;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--cream2);transition:background .35s;}
+#fs-overlay.open{display:flex;}
+#fs-close{position:absolute;top:14px;right:18px;background:rgba(0,0,0,.18);color:white;border:none;border-radius:2px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.05em;z-index:10;}
+#fs-close:hover{background:rgba(0,0,0,.35);}
+#fs-feu-btns{display:flex;gap:6px;margin-bottom:2.5rem;}
+.fs-fb{padding:8px 18px;border:none;border-radius:2px;cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Mono',monospace;opacity:.7;transition:opacity .15s,transform .1s;color:white;}
+.fs-fb:hover{opacity:1;transform:scale(1.04);}
+.fs-fb.feu-active{opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.6);}
+.fs-fb-rouge{background:#C0392B;}.fs-fb-orange{background:#D35400;}.fs-fb-vert{background:#1a6e3c;}.fs-fb-bleu{background:#185FA5;}
+#fs-feu-main{text-align:center;margin-bottom:3.5rem;}
+#fs-feu-icon{font-size:100px;line-height:1;display:block;margin-bottom:.75rem;}
+#fs-feu-label{font-size:clamp(28px,5vw,56px);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:white;text-shadow:0 2px 12px rgba(0,0,0,.25);}
+#fs-feu-sub{font-size:clamp(13px,2vw,20px);opacity:.8;margin-top:.4rem;color:white;}
+#fs-timer-display{font-size:clamp(72px,14vw,160px);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:6px;color:white;line-height:1;text-shadow:0 2px 20px rgba(0,0,0,.2);font-family:'DM Mono',monospace;transition:color .3s;}
+#fs-timer-display.t-running{color:rgba(255,255,255,.95);}
+#fs-timer-display.t-done{animation:blink .5s infinite;}
+#fs-timer-controls{display:flex;gap:10px;margin-top:1.5rem;align-items:center;flex-wrap:wrap;justify-content:center;}
+.fs-t-btn{padding:10px 28px;border:none;border-radius:2px;cursor:pointer;font-size:15px;font-weight:500;font-family:'DM Mono',monospace;background:rgba(255,255,255,.25);color:white;border:.5px solid rgba(255,255,255,.4);transition:background .15s;}
+.fs-t-btn:hover{background:rgba(255,255,255,.38);}
+.fs-t-btn.primary{background:rgba(255,255,255,.9);color:var(--ink);}
+.fs-t-btn.primary:hover{background:white;}
+.fs-presets{display:flex;gap:5px;margin-top:.75rem;flex-wrap:wrap;justify-content:center;}
+.fs-preset{padding:5px 12px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border:.5px solid rgba(255,255,255,.3);border-radius:2px;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;}
+.fs-preset:hover{background:rgba(255,255,255,.28);}
+#fs-overlay.fs-neutre{background:var(--ink);}
+#fs-overlay.fs-neutre #fs-feu-label{color:var(--cream);}
+#fs-overlay.fs-neutre #fs-feu-sub{color:var(--ink3);}
+#fs-overlay.fs-neutre #fs-feu-icon{}
+#fs-overlay.fs-neutre #fs-timer-display{color:var(--cream);}
+#fs-overlay.fs-neutre .fs-t-btn{background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.2);}
+#fs-overlay.fs-neutre .fs-t-btn.primary{background:var(--cream);color:var(--ink);}
+#fs-overlay.fs-neutre .fs-preset{background:rgba(255,255,255,.08);color:var(--cream3);border-color:rgba(255,255,255,.15);}
+
 /* ── NOTES PANEL ── */
 #notes-panel{max-width:900px;}
 .notes-top-bar{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;background:rgba(255,255,255,.4);padding:8px 12px;border:.5px solid var(--border);border-radius:2px;}
@@ -315,6 +350,9 @@ body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-hei
 
     <!-- OUTILS -->
     <div id="outils-panel" style="display:none">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem;">
+        <button onclick="openFullscreen()" style="font-family:'DM Mono',monospace;font-size:11px;padding:5px 14px;background:var(--ink);color:var(--cream);border:none;border-radius:2px;cursor:pointer;letter-spacing:.04em;">⛶ Plein écran</button>
+      </div>
       <div class="feu-card">
         <h3>🚦 Mode de travail</h3>
         <div class="feu-buttons">
@@ -348,6 +386,38 @@ body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-hei
             <button class="t-reset-btn" id="t-reset-btn">↺ Reset</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- PLEIN ÉCRAN OUTILS -->
+    <div id="fs-overlay">
+      <button id="fs-close" onclick="closeFullscreen()">✕ Quitter</button>
+      <div id="fs-feu-btns">
+        <button class="fs-fb fs-fb-rouge" onclick="setFeu('rouge')">🔴 Silence</button>
+        <button class="fs-fb fs-fb-orange" onclick="setFeu('orange')">🟠 Chuchotement</button>
+        <button class="fs-fb fs-fb-vert" onclick="setFeu('vert')">🟢 Parler normalement</button>
+        <button class="fs-fb fs-fb-bleu" onclick="setFeu('bleu')">🔵 Écouter le prof</button>
+        <button class="fs-fb" style="background:rgba(255,255,255,.15);color:var(--cream);" onclick="setFeu(null)">✕ Neutre</button>
+      </div>
+      <div id="fs-feu-main">
+        <span id="fs-feu-icon">🚦</span>
+        <div id="fs-feu-label">MODE DE TRAVAIL</div>
+        <div id="fs-feu-sub">Sélectionner un mode</div>
+      </div>
+      <div id="fs-timer-display">05:00</div>
+      <div id="fs-timer-controls">
+        <button class="fs-t-btn" onclick="document.getElementById('t-minus').click()">−</button>
+        <button class="fs-t-btn primary" id="fs-start-btn" onclick="toggleTimer()">▶ Start</button>
+        <button class="fs-t-btn" onclick="document.getElementById('t-reset-btn').click()">↺ Reset</button>
+        <button class="fs-t-btn" onclick="document.getElementById('t-plus').click()">+</button>
+      </div>
+      <div class="fs-presets">
+        <button class="fs-preset" data-min="2">2 min</button>
+        <button class="fs-preset" data-min="5">5 min</button>
+        <button class="fs-preset" data-min="10">10 min</button>
+        <button class="fs-preset" data-min="15">15 min</button>
+        <button class="fs-preset" data-min="20">20 min</button>
+        <button class="fs-preset" data-min="30">30 min</button>
       </div>
     </div>
 
@@ -575,27 +645,57 @@ function resetPlan(){const cl=cc();cl.seats=[...cl.initialNames];sel=null;docume
    FEU
 ════════════════════════════════════ */
 const FEU={rouge:{bg:"#E53935",icon:"🔴",label:"SILENCE",sub:"Aucune communication"},orange:{bg:"#FB8C00",icon:"🟠",label:"CHUCHOTEMENT",sub:"Voix très basse"},vert:{bg:"#43A047",icon:"🟢",label:"PARLER NORMALEMENT",sub:"Travail en groupe"},bleu:{bg:"#1E88E5",icon:"🔵",label:"ÉCOUTER LE PROFESSEUR",sub:"Silence — attention"}};
-["rouge","orange","vert","bleu"].forEach(c=>{
-  document.getElementById("fb-"+c).addEventListener("click",()=>{
-    document.querySelectorAll(".feu-btn").forEach(b=>b.classList.remove("feu-active"));
-    document.getElementById("fb-"+c).classList.add("feu-active");
-    const f=FEU[c],d=document.getElementById("feu-display");
-    d.style.background=f.bg;d.style.color="white";
-    d.innerHTML=`<span class="fd-icon">${f.icon}</span><div><div class="fd-label">${f.label}</div><div class="fd-sub">${f.sub}</div></div>`;
-  });
-});
-document.getElementById("feu-display").addEventListener("click",()=>{
+let currentFeu=null;
+
+function setFeu(c){
+  currentFeu=c;
+  // Boutons normaux
   document.querySelectorAll(".feu-btn").forEach(b=>b.classList.remove("feu-active"));
-  const d=document.getElementById("feu-display");d.style.background="#EEEEEE";d.style.color="#9E9E9E";
-  d.innerHTML=`<span class="fd-icon">🚦</span><div><div class="fd-label">Mode de travail</div><div class="fd-sub">Cliquer sur une couleur</div></div>`;
+  if(c) document.getElementById("fb-"+c)?.classList.add("feu-active");
+  // Display normal
+  const d=document.getElementById("feu-display");
+  if(c){const f=FEU[c];d.style.background=f.bg;d.style.color="white";d.innerHTML=`<span class="fd-icon">${f.icon}</span><div><div class="fd-label">${f.label}</div><div class="fd-sub">${f.sub}</div></div>`;}
+  else{d.style.background="#EEEEEE";d.style.color="#9E9E9E";d.innerHTML=`<span class="fd-icon">🚦</span><div><div class="fd-label">Mode de travail</div><div class="fd-sub">Cliquer sur une couleur</div></div>`;}
+  // Overlay
+  syncFeuOverlay();
+}
+
+function syncFeuOverlay(){
+  const ov=document.getElementById("fs-overlay");
+  if(!ov)return;
+  document.querySelectorAll(".fs-fb").forEach(b=>b.classList.remove("feu-active"));
+  if(currentFeu){
+    const f=FEU[currentFeu];
+    ov.style.background=f.bg;ov.classList.remove("fs-neutre");
+    document.querySelector(".fs-fb-"+currentFeu)?.classList.add("feu-active");
+    document.getElementById("fs-feu-icon").textContent=f.icon;
+    document.getElementById("fs-feu-label").textContent=f.label;
+    document.getElementById("fs-feu-sub").textContent=f.sub;
+  } else {
+    ov.style.background="";ov.classList.add("fs-neutre");
+    document.getElementById("fs-feu-icon").textContent="🚦";
+    document.getElementById("fs-feu-label").textContent="MODE DE TRAVAIL";
+    document.getElementById("fs-feu-sub").textContent="Sélectionner un mode";
+  }
+}
+
+["rouge","orange","vert","bleu"].forEach(c=>{
+  document.getElementById("fb-"+c).addEventListener("click",()=>setFeu(c));
 });
+document.getElementById("feu-display").addEventListener("click",()=>setFeu(null));
 
 /* ════════════════════════════════════
    TIMER
 ════════════════════════════════════ */
 let timerSec=300,timerRunning=false,timerInt=null;
 const fmt=s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-function updTimer(){const d=document.getElementById("timer-display");d.textContent=fmt(timerSec);d.className=timerRunning&&timerSec>0?"t-running":timerSec===0?"t-done":"";}
+function updTimer(){
+  const cls=timerRunning&&timerSec>0?"t-running":timerSec===0?"t-done":"";
+  const txt=fmt(timerSec);
+  const d=document.getElementById("timer-display");d.textContent=txt;d.className=cls;
+  const fd=document.getElementById("fs-timer-display");if(fd){fd.textContent=txt;fd.className=cls;}
+  const sb=document.getElementById("fs-start-btn");if(sb)sb.textContent=timerRunning?"⏸ Pause":"▶ Start";
+}
 function doReset(){clearInterval(timerInt);timerRunning=false;document.getElementById("t-start-btn").textContent="▶ Start";timerSec=Math.max(1,parseInt(document.getElementById("timer-min").value)||5)*60;updTimer();}
 function toggleTimer(){if(timerSec===0)doReset();timerRunning=!timerRunning;document.getElementById("t-start-btn").textContent=timerRunning?"⏸ Pause":"▶ Start";if(timerRunning){timerInt=setInterval(()=>{if(timerSec>0){timerSec--;updTimer();}else{clearInterval(timerInt);timerRunning=false;document.getElementById("t-start-btn").textContent="▶ Start";updTimer();}},1000);}else clearInterval(timerInt);}
 document.getElementById("t-start-btn").addEventListener("click",toggleTimer);
@@ -604,6 +704,23 @@ document.getElementById("t-minus").addEventListener("click",()=>{const i=documen
 document.getElementById("t-plus").addEventListener("click",()=>{const i=document.getElementById("timer-min");i.value=Math.min(99,(parseInt(i.value)||5)+1);doReset();});
 document.querySelectorAll(".t-preset").forEach(b=>b.addEventListener("click",()=>{document.getElementById("timer-min").value=b.dataset.min;doReset();}));
 document.getElementById("timer-min").addEventListener("change",doReset);
+// Presets dans l'overlay
+document.querySelectorAll(".fs-preset").forEach(b=>b.addEventListener("click",()=>{document.getElementById("timer-min").value=b.dataset.min;doReset();}));
+
+/* Plein écran */
+function openFullscreen(){
+  const ov=document.getElementById("fs-overlay");
+  ov.classList.add("open");
+  syncFeuOverlay();
+  updTimer();
+  const el=ov;if(el.requestFullscreen)el.requestFullscreen().catch(()=>{});
+}
+function closeFullscreen(){
+  document.getElementById("fs-overlay").classList.remove("open");
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)document.getElementById("fs-overlay").classList.remove("open");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeFullscreen();});
 
 /* ════════════════════════════════════
    ONGLETS
