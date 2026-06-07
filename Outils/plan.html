@@ -121,39 +121,43 @@ body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-hei
 .t-preset:hover{background:var(--cream3);}
 
 /* ── PLEIN ÉCRAN OUTILS ── */
-#fs-overlay{display:none;position:fixed;inset:0;z-index:500;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--cream2);transition:background .35s;}
+#fs-overlay{display:none;position:fixed;inset:0;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
+  background:#2e2a22;padding:2.5rem;}
 #fs-overlay.open{display:flex;}
-#fs-close{position:absolute;top:14px;right:18px;background:rgba(0,0,0,.18);color:white;border:none;border-radius:2px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.05em;z-index:10;}
-#fs-close:hover{background:rgba(0,0,0,.35);}
-#fs-feu-btns{display:flex;gap:6px;margin-bottom:2.5rem;}
-.fs-fb{padding:8px 18px;border:none;border-radius:2px;cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Mono',monospace;opacity:.7;transition:opacity .15s,transform .1s;color:white;}
-.fs-fb:hover{opacity:1;transform:scale(1.04);}
-.fs-fb.feu-active{opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.6);}
-.fs-fb-rouge{background:#C0392B;}.fs-fb-orange{background:#D35400;}.fs-fb-vert{background:#1a6e3c;}.fs-fb-bleu{background:#185FA5;}
-#fs-feu-main{text-align:center;margin-bottom:3.5rem;}
-#fs-feu-icon{font-size:100px;line-height:1;display:block;margin-bottom:.75rem;}
-#fs-feu-label{font-size:clamp(28px,5vw,56px);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:white;text-shadow:0 2px 12px rgba(0,0,0,.25);}
-#fs-feu-sub{font-size:clamp(13px,2vw,20px);opacity:.8;margin-top:.4rem;color:white;}
-#fs-timer-display{font-size:clamp(72px,14vw,160px);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:6px;color:white;line-height:1;text-shadow:0 2px 20px rgba(0,0,0,.2);font-family:'DM Mono',monospace;transition:color .3s;}
-#fs-timer-display.t-running{color:rgba(255,255,255,.95);}
-#fs-timer-display.t-done{animation:blink .5s infinite;}
-#fs-timer-controls{display:flex;gap:10px;margin-top:1.5rem;align-items:center;flex-wrap:wrap;justify-content:center;}
-.fs-t-btn{padding:10px 28px;border:none;border-radius:2px;cursor:pointer;font-size:15px;font-weight:500;font-family:'DM Mono',monospace;background:rgba(255,255,255,.25);color:white;border:.5px solid rgba(255,255,255,.4);transition:background .15s;}
-.fs-t-btn:hover{background:rgba(255,255,255,.38);}
-.fs-t-btn.primary{background:rgba(255,255,255,.9);color:var(--ink);}
-.fs-t-btn.primary:hover{background:white;}
-.fs-presets{display:flex;gap:5px;margin-top:.75rem;flex-wrap:wrap;justify-content:center;}
-.fs-preset{padding:5px 12px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border:.5px solid rgba(255,255,255,.3);border-radius:2px;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;}
-.fs-preset:hover{background:rgba(255,255,255,.28);}
-#fs-overlay.fs-neutre{background:var(--ink);}
-#fs-overlay.fs-neutre #fs-feu-label{color:var(--cream);}
-#fs-overlay.fs-neutre #fs-feu-sub{color:var(--ink3);}
-#fs-overlay.fs-neutre #fs-feu-icon{}
-#fs-overlay.fs-neutre #fs-timer-display{color:var(--cream);}
-#fs-overlay.fs-neutre .fs-t-btn{background:rgba(255,255,255,.1);color:var(--cream);border-color:rgba(255,255,255,.2);}
-#fs-overlay.fs-neutre .fs-t-btn.primary{background:var(--cream);color:var(--ink);}
-#fs-overlay.fs-neutre .fs-preset{background:rgba(255,255,255,.08);color:var(--cream3);border-color:rgba(255,255,255,.15);}
+#fs-close{position:absolute;top:18px;right:20px;background:rgba(255,255,255,.12);color:var(--cream3);border:1px solid rgba(255,255,255,.2);border-radius:2px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.04em;}
+#fs-close:hover{background:rgba(255,255,255,.22);}
+/* Cartes agrandies */
+.fs-card{width:min(700px,90vw);background:var(--cream);border:.5px solid var(--border);border-radius:2px;overflow:hidden;}
+.fs-card-head{padding:10px 20px;background:var(--ink);color:var(--cream);font-size:13px;letter-spacing:.1em;font-weight:500;text-transform:uppercase;}
+/* Feu — boutons */
+.fs-feu-buttons{display:flex;}
+.fs-feu-btn{flex:1;padding:22px 8px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:500;font-size:13px;transition:all .15s;border-right:.5px solid rgba(255,255,255,.1);background:var(--cream2);color:var(--ink3);font-family:'DM Mono',monospace;}
+.fs-feu-btn:last-child{border-right:none;}
+.fs-feu-btn:hover:not(.feu-active){background:var(--cream3);}
+.fs-feu-btn.feu-active{color:white;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);}
+.fs-feu-btn.feu-active.fb-rouge{background:#C0392B;}.fs-feu-btn.feu-active.fb-orange{background:#D35400;}
+.fs-feu-btn.feu-active.fb-vert{background:#1a6e3c;}.fs-feu-btn.feu-active.fb-bleu{background:#185FA5;}
+.fs-feu-btn .fb-icon{font-size:38px;line-height:1;}
+.fs-feu-btn .fb-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.fs-feu-btn .fb-sub{font-size:10px;opacity:.7;text-align:center;}
+/* Feu — bandeau résultat */
+#fs-feu-display{padding:22px 24px;display:flex;align-items:center;justify-content:center;gap:16px;transition:background .3s,color .3s;background:var(--cream2);color:var(--ink3);border-top:.5px solid var(--border);cursor:pointer;}
+#fs-feu-display .fd-icon{font-size:48px;}
+#fs-feu-display .fd-label{font-size:clamp(20px,3.5vw,34px);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+#fs-feu-display .fd-sub{font-size:clamp(12px,1.6vw,16px);margin-top:3px;opacity:.75;}
+/* Timer */
+.fs-timer-body{padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+#fs-timer-display{font-size:clamp(64px,12vw,120px);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:6px;color:var(--ink);line-height:1;font-family:'DM Mono',monospace;transition:color .3s;}
+#fs-timer-display.t-running{color:var(--blue);}
+#fs-timer-display.t-done{color:var(--red);animation:blink .5s infinite;}
+.fs-timer-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.fs-t-btn{padding:9px 26px;border-radius:2px;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Mono',monospace;background:var(--cream2);color:var(--ink2);border:.5px solid var(--border);transition:background .12s;}
+.fs-t-btn:hover{background:var(--cream3);}
+.fs-t-btn.primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+.fs-t-btn.primary:hover{background:var(--ink2);}
+.fs-presets{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.fs-preset{padding:5px 12px;background:var(--cream2);color:var(--ink2);border:.5px solid var(--border);border-radius:2px;cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;}
+.fs-preset:hover{background:var(--cream3);}
 
 /* ── NOTES PANEL ── */
 #notes-panel{max-width:900px;}
@@ -392,32 +396,40 @@ body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-hei
     <!-- PLEIN ÉCRAN OUTILS -->
     <div id="fs-overlay">
       <button id="fs-close" onclick="closeFullscreen()">✕ Quitter</button>
-      <div id="fs-feu-btns">
-        <button class="fs-fb fs-fb-rouge" onclick="setFeu('rouge')">🔴 Silence</button>
-        <button class="fs-fb fs-fb-orange" onclick="setFeu('orange')">🟠 Chuchotement</button>
-        <button class="fs-fb fs-fb-vert" onclick="setFeu('vert')">🟢 Parler normalement</button>
-        <button class="fs-fb fs-fb-bleu" onclick="setFeu('bleu')">🔵 Écouter le prof</button>
-        <button class="fs-fb" style="background:rgba(255,255,255,.15);color:var(--cream);" onclick="setFeu(null)">✕ Neutre</button>
+      <!-- Feu agrandi -->
+      <div class="fs-card">
+        <div class="fs-card-head">🚦 Mode de travail</div>
+        <div class="fs-feu-buttons">
+          <button class="fs-feu-btn fb-rouge" onclick="setFeu('rouge')"><span class="fb-icon">🔴</span><span class="fb-label">Silence</span><span class="fb-sub">Aucune communication</span></button>
+          <button class="fs-feu-btn fb-orange" onclick="setFeu('orange')"><span class="fb-icon">🟠</span><span class="fb-label">Chuchotement</span><span class="fb-sub">Voix très basse</span></button>
+          <button class="fs-feu-btn fb-vert" onclick="setFeu('vert')"><span class="fb-icon">🟢</span><span class="fb-label">Parler normalement</span><span class="fb-sub">Travail en groupe</span></button>
+          <button class="fs-feu-btn fb-bleu" onclick="setFeu('bleu')"><span class="fb-icon">🔵</span><span class="fb-label">Écouter le prof</span><span class="fb-sub">Silence — attention</span></button>
+        </div>
+        <div id="fs-feu-display" onclick="setFeu(null)">
+          <span class="fd-icon">🚦</span>
+          <div><div class="fd-label">Mode de travail</div><div class="fd-sub">Cliquer sur une couleur</div></div>
+        </div>
       </div>
-      <div id="fs-feu-main">
-        <span id="fs-feu-icon">🚦</span>
-        <div id="fs-feu-label">MODE DE TRAVAIL</div>
-        <div id="fs-feu-sub">Sélectionner un mode</div>
-      </div>
-      <div id="fs-timer-display">05:00</div>
-      <div id="fs-timer-controls">
-        <button class="fs-t-btn" onclick="document.getElementById('t-minus').click()">−</button>
-        <button class="fs-t-btn primary" id="fs-start-btn" onclick="toggleTimer()">▶ Start</button>
-        <button class="fs-t-btn" onclick="document.getElementById('t-reset-btn').click()">↺ Reset</button>
-        <button class="fs-t-btn" onclick="document.getElementById('t-plus').click()">+</button>
-      </div>
-      <div class="fs-presets">
-        <button class="fs-preset" data-min="2">2 min</button>
-        <button class="fs-preset" data-min="5">5 min</button>
-        <button class="fs-preset" data-min="10">10 min</button>
-        <button class="fs-preset" data-min="15">15 min</button>
-        <button class="fs-preset" data-min="20">20 min</button>
-        <button class="fs-preset" data-min="30">30 min</button>
+      <!-- Timer agrandi -->
+      <div class="fs-card">
+        <div class="fs-card-head">⏱ Minuteur</div>
+        <div class="fs-timer-body">
+          <div id="fs-timer-display">05:00</div>
+          <div class="fs-timer-controls">
+            <button class="fs-t-btn" onclick="document.getElementById('t-minus').click()">−</button>
+            <button class="fs-t-btn primary" id="fs-start-btn" onclick="toggleTimer()">▶ Start</button>
+            <button class="fs-t-btn" onclick="document.getElementById('t-reset-btn').click()">↺ Reset</button>
+            <button class="fs-t-btn" onclick="document.getElementById('t-plus').click()">+</button>
+          </div>
+          <div class="fs-presets">
+            <button class="fs-preset" data-min="2">2 min</button>
+            <button class="fs-preset" data-min="5">5 min</button>
+            <button class="fs-preset" data-min="10">10 min</button>
+            <button class="fs-preset" data-min="15">15 min</button>
+            <button class="fs-preset" data-min="20">20 min</button>
+            <button class="fs-preset" data-min="30">30 min</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -661,21 +673,19 @@ function setFeu(c){
 }
 
 function syncFeuOverlay(){
-  const ov=document.getElementById("fs-overlay");
-  if(!ov)return;
-  document.querySelectorAll(".fs-fb").forEach(b=>b.classList.remove("feu-active"));
+  // Boutons plein écran
+  document.querySelectorAll(".fs-feu-btn").forEach(b=>b.classList.remove("feu-active"));
+  if(currentFeu) document.querySelector("#fs-overlay .fb-"+currentFeu)?.classList.add("feu-active");
+  // Bandeau plein écran — même logique que feu-display normal
+  const fd=document.getElementById("fs-feu-display");
+  if(!fd)return;
   if(currentFeu){
     const f=FEU[currentFeu];
-    ov.style.background=f.bg;ov.classList.remove("fs-neutre");
-    document.querySelector(".fs-fb-"+currentFeu)?.classList.add("feu-active");
-    document.getElementById("fs-feu-icon").textContent=f.icon;
-    document.getElementById("fs-feu-label").textContent=f.label;
-    document.getElementById("fs-feu-sub").textContent=f.sub;
+    fd.style.background=f.bg;fd.style.color="white";
+    fd.innerHTML=`<span class="fd-icon">${f.icon}</span><div><div class="fd-label">${f.label}</div><div class="fd-sub">${f.sub}</div></div>`;
   } else {
-    ov.style.background="";ov.classList.add("fs-neutre");
-    document.getElementById("fs-feu-icon").textContent="🚦";
-    document.getElementById("fs-feu-label").textContent="MODE DE TRAVAIL";
-    document.getElementById("fs-feu-sub").textContent="Sélectionner un mode";
+    fd.style.background="";fd.style.color="";
+    fd.innerHTML=`<span class="fd-icon">🚦</span><div><div class="fd-label">Mode de travail</div><div class="fd-sub">Cliquer sur une couleur</div></div>`;
   }
 }
 
