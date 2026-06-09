@@ -592,11 +592,16 @@ async function publishToGitHub(){
   setStatus('Connexion à GitHub…');
 
   try{
-    // 1. Récupérer le SHA actuel (peut être absent si premier push)
+    const AUTH = `token ${token}`;
+    const HEADERS = {Authorization:AUTH,'Accept':'application/vnd.github+json'};
+
+    // 1. Récupérer le SHA actuel
     let sha=null;
-    const getR=await fetch(GH_API,{headers:{Authorization:`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
+    const getR=await fetch(GH_API+'?ref=main',{headers:HEADERS});
     if(getR.ok){ sha=(await getR.json()).sha; }
-    else if(getR.status!==404){ throw new Error(`GitHub ${getR.status}`); }
+    else if(getR.status===401){ throw new Error('Token invalide ou expiré'); }
+    else if(getR.status===403){ throw new Error('Permission refusée — vérifier les droits du token'); }
+    else if(getR.status!==404){ throw new Error(`Erreur GitHub GET: ${getR.status}`); }
 
     // 2. Préparer le contenu
     const sorted=[...SESSIONS_DATA].sort((a,b)=>a.date.localeCompare(b.date));
@@ -605,17 +610,17 @@ async function publishToGitHub(){
     const now=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
     // 3. PUT vers l'API
-    const body={message:`Progression 1ères Spé — ${now}`,content};
+    const body={message:`Progression 1ères Spé — ${now}`,content,branch:'main'};
     if(sha) body.sha=sha;
     const putR=await fetch(GH_API,{
       method:'PUT',
-      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      headers:{...HEADERS,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
 
     if(!putR.ok){
       const e=await putR.json().catch(()=>({}));
-      throw new Error(e.message||`HTTP ${putR.status}`);
+      throw new Error(e.message||`Erreur GitHub PUT: ${putR.status}`);
     }
 
     pendingChanges=false;
