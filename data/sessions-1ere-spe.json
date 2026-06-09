@@ -1,60 +1,352 @@
 {
   "sessions": [
-    { "date": "2025-10-01", "type": "activite",   "chap": "1B", "content": "Act 1F — Dosage du Dakin" },
-    { "date": "2025-10-02", "type": "exercice",   "chap": "1B", "content": "Exercice — Bouillie bordelaise" },
-    { "date": "2025-10-08", "type": "evaluation", "chap": "1B", "content": "Flash Test Chapitre 1B" },
-    { "date": "2025-10-15", "type": "evaluation", "chap": "1B", "content": "Évaluation Chapitre 1B" },
-    { "date": "2025-10-16", "type": "activite",   "chap": "12", "content": "Act 12B — Champ de pesanteur" },
-    { "date": "2025-11-05", "type": "activite",   "chap": "3",  "content": "Act 3A — Évolution d'un système chimique" },
-    { "date": "2025-11-06", "type": "activite",   "chap": "12", "content": "Act 12C — Avion de chasse" },
-    { "date": "2025-11-12", "type": "evaluation", "chap": "12", "content": "Flash Test Chapitre 12" },
-    { "date": "2025-11-12", "type": "activite",   "chap": "18", "content": "Act 18A — Familles des ondes électromagnétiques" },
-    { "date": "2025-11-13", "type": "activite",   "chap": "18", "content": "Act 18B Photons + Act 18C Spectres d'atomes" },
-    { "date": "2025-11-19", "type": "evaluation", "chap": "18", "content": "Flash Test Chapitre 18" },
-    { "date": "2025-11-19", "type": "activite",   "chap": "5",  "content": "Act 5A — Schéma de Lewis" },
-    { "date": "2025-11-20", "type": "activite",   "chap": "5",  "content": "Act 5D — Molécules polaires ou apolaires" },
-    { "date": "2025-11-27", "type": "evaluation", "chap": "5",  "content": "Flash Test Chapitre 5" },
-    { "date": "2025-12-03", "type": "activite",   "chap": "2",  "content": "Act 2A Découverte oxydo-réduction + Act 2B Couples" },
-    { "date": "2025-12-04", "type": "synthese",   "chap": "3",  "content": "Fiche synthèse Chapitre 3" },
-    { "date": "2025-12-10", "type": "activite",   "chap": "3",  "content": "Act 3B — Avancement d'une réaction" },
-    { "date": "2025-12-11", "type": "evaluation", "chap": "2",  "content": "Flash Test Oxydo-réduction" },
-    { "date": "2025-12-17", "type": "evaluation", "chap": "3",  "content": "Flash Test Avancement" },
-    { "date": "2025-12-18", "type": "synthese",   "chap": "7",  "content": "Fiche synthèse Chap 7 + Act 7A/7B/7C — Nomenclature organique" },
-    { "date": "2026-01-07", "type": "activite",   "chap": "17", "content": "Activité p.121 — Couleurs" },
-    { "date": "2026-01-08", "type": "synthese",   "chap": "17", "content": "Fiche synthèse Chapitre 17" },
-    { "date": "2026-01-14", "type": "activite",   "chap": "17", "content": "Act 17C — Vision d'objets colorés" },
-    { "date": "2026-01-15", "type": "exercice",   "chap": "6",  "content": "Exercices Chapitre 6" },
-    { "date": "2026-01-21", "type": "activite",   "chap": "6",  "content": "Act 6C — Extraction liquide-liquide" },
-    { "date": "2026-01-22", "type": "activite",   "chap": "6",  "content": "Act 6A — Températures de fusion" },
-    { "date": "2026-01-28", "type": "exercice",   "chap": "6",  "content": "Exercices Chapitre 6" },
-    { "date": "2026-01-29", "type": "activite",   "chap": "14", "content": "Act 14A — Théorème de l'énergie cinétique + lancer franc" },
-    { "date": "2026-02-04", "type": "evaluation", "chap": "6",  "content": "Flash Test Chapitre 6" },
-    { "date": "2026-02-05", "type": "activite",   "chap": "14", "content": "Act 14C — Chute libre d'une balle" },
-    { "date": "2026-02-11", "type": "conge",      "chap": "",   "content": "Pas de cours" },
-    { "date": "2026-02-12", "type": "conge",      "chap": "",   "content": "Pas de cours" },
-    { "date": "2026-03-04", "type": "evaluation", "chap": "14", "content": "Flash Test Énergie mécanique" },
-    { "date": "2026-03-04", "type": "activite",   "chap": "13", "content": "Act 13A — Le courant électrique" },
-    { "date": "2026-03-05", "type": "exercice",   "chap": "13", "content": "TD Systèmes électriques + Act 13C Modélisation d'une pile" },
-    { "date": "2026-03-11", "type": "evaluation", "chap": "13", "content": "Flash Test + Exos (Contrôle)" },
-    { "date": "2026-03-12", "type": "exercice",   "chap": "13", "content": "Act 13D + Exercice 25 p.252" },
-    { "date": "2026-03-18", "type": "activite",   "chap": "4",  "content": "Act 4B — Titrage colorimétrique" },
-    { "date": "2026-03-19", "type": "ds",         "chap": "",   "content": "Évaluation — Énergie mécanique + Cohésion de la matière" },
-    { "date": "2026-03-25", "type": "exercice",   "chap": "4",  "content": "Titrages colorimétriques (salle informatique)" },
-    { "date": "2026-03-26", "type": "activite",   "chap": "11", "content": "Act 11A — Modèle microscopique des fluides + Ex. 25" },
-    { "date": "2026-04-01", "type": "ds",         "chap": "4",  "content": "Act 4D — TP noté Titrage (Contrôle)" },
-    { "date": "2026-04-02", "type": "activite",   "chap": "11", "content": "Act 11C — Pression dans les liquides" },
-    { "date": "2026-04-08", "type": "conge",      "chap": "",   "content": "Pas de cours" },
-    { "date": "2026-04-09", "type": "activite",   "chap": "11", "content": "Act 11B — Pression (logiciel Fizziq)" },
-    { "date": "2026-04-29", "type": "ds",         "chap": "",   "content": "Grand DS — Chimie (Chap. 1→8) + Mécanique (Chap. 11,14)" },
-    { "date": "2026-04-30", "type": "conge",      "chap": "",   "content": "Temps fort EARS — Pas de cours" },
-    { "date": "2026-05-06", "type": "activite",   "chap": "8",  "content": "Act 8C — Saponification" },
-    { "date": "2026-05-07", "type": "synthese",   "chap": "8",  "content": "Correction Act 8C + Carte mentale Chapitre 8" },
-    { "date": "2026-05-13", "type": "activite",   "chap": "15", "content": "Act 15A et 15B — Ondes mécaniques (salle informatique)" },
-    { "date": "2026-05-20", "type": "activite",   "chap": "15", "content": "Act 15C — Ultrasons + Exercices ondes" },
-    { "date": "2026-05-21", "type": "exercice",   "chap": "10", "content": "Exos ondes mécaniques + Act 10A Électrisation" },
-    { "date": "2026-05-27", "type": "activite",   "chap": "10", "content": "Act 10B — Cartographier un champ électrique" },
-    { "date": "2026-05-28", "type": "synthese",   "chap": "",   "content": "Exercices champs + Bilan de l'année" },
-    { "date": "2026-06-03", "type": "activite",   "chap": "",   "content": "Préparation ECE — Épreuves de Contrôle Expérimental" },
-    { "date": "2026-06-04", "type": "activite",   "chap": "",   "content": "Préparation ECE (suite)" }
+    {
+      "date": "2025-10-01",
+      "type": "activite",
+      "chap": "1B",
+      "content": "Act 1F — Dosage du Dakin"
+    },
+    {
+      "date": "2025-10-02",
+      "type": "exercice",
+      "chap": "1B",
+      "content": "Exercice — Bouillie bordelaise"
+    },
+    {
+      "date": "2025-10-08",
+      "type": "evaluation",
+      "chap": "1B",
+      "content": "Flash Test Chapitre 1B"
+    },
+    {
+      "date": "2025-10-15",
+      "type": "evaluation",
+      "chap": "1B",
+      "content": "Évaluation Chapitre 1B"
+    },
+    {
+      "date": "2025-10-16",
+      "type": "activite",
+      "chap": "12",
+      "content": "Act 12B — Champ de pesanteur"
+    },
+    {
+      "date": "2025-11-05",
+      "type": "activite",
+      "chap": "3",
+      "content": "Act 3A — Évolution d'un système chimique"
+    },
+    {
+      "date": "2025-11-06",
+      "type": "activite",
+      "chap": "12",
+      "content": "Act 12C — Avion de chasse"
+    },
+    {
+      "date": "2025-11-12",
+      "type": "evaluation",
+      "chap": "12",
+      "content": "Flash Test Chapitre 12"
+    },
+    {
+      "date": "2025-11-12",
+      "type": "activite",
+      "chap": "18",
+      "content": "Act 18A — Familles des ondes électromagnétiques"
+    },
+    {
+      "date": "2025-11-13",
+      "type": "activite",
+      "chap": "18",
+      "content": "Act 18B Photons + Act 18C Spectres d'atomes"
+    },
+    {
+      "date": "2025-11-19",
+      "type": "evaluation",
+      "chap": "18",
+      "content": "Flash Test Chapitre 18"
+    },
+    {
+      "date": "2025-11-19",
+      "type": "activite",
+      "chap": "5",
+      "content": "Act 5A — Schéma de Lewis"
+    },
+    {
+      "date": "2025-11-20",
+      "type": "activite",
+      "chap": "5",
+      "content": "Act 5D — Molécules polaires ou apolaires"
+    },
+    {
+      "date": "2025-11-27",
+      "type": "evaluation",
+      "chap": "5",
+      "content": "Flash Test Chapitre 5"
+    },
+    {
+      "date": "2025-12-03",
+      "type": "activite",
+      "chap": "2",
+      "content": "Act 2A Découverte oxydo-réduction + Act 2B Couples"
+    },
+    {
+      "date": "2025-12-04",
+      "type": "synthese",
+      "chap": "3",
+      "content": "Fiche synthèse Chapitre 3"
+    },
+    {
+      "date": "2025-12-10",
+      "type": "activite",
+      "chap": "3",
+      "content": "Act 3B — Avancement d'une réaction"
+    },
+    {
+      "date": "2025-12-11",
+      "type": "evaluation",
+      "chap": "2",
+      "content": "Flash Test Oxydo-réduction"
+    },
+    {
+      "date": "2025-12-17",
+      "type": "evaluation",
+      "chap": "3",
+      "content": "Flash Test Avancement"
+    },
+    {
+      "date": "2025-12-18",
+      "type": "synthese",
+      "chap": "7",
+      "content": "Fiche synthèse Chap 7 + Act 7A/7B/7C — Nomenclature organique"
+    },
+    {
+      "date": "2026-01-07",
+      "type": "activite",
+      "chap": "17",
+      "content": "Activité p.121 — Couleurs"
+    },
+    {
+      "date": "2026-01-08",
+      "type": "synthese",
+      "chap": "17",
+      "content": "Fiche synthèse Chapitre 17"
+    },
+    {
+      "date": "2026-01-14",
+      "type": "activite",
+      "chap": "17",
+      "content": "Act 17C — Vision d'objets colorés"
+    },
+    {
+      "date": "2026-01-15",
+      "type": "exercice",
+      "chap": "6",
+      "content": "Exercices Chapitre 6"
+    },
+    {
+      "date": "2026-01-21",
+      "type": "activite",
+      "chap": "6",
+      "content": "Act 6C — Extraction liquide-liquide"
+    },
+    {
+      "date": "2026-01-22",
+      "type": "activite",
+      "chap": "6",
+      "content": "Act 6A — Températures de fusion"
+    },
+    {
+      "date": "2026-01-28",
+      "type": "exercice",
+      "chap": "6",
+      "content": "Exercices Chapitre 6"
+    },
+    {
+      "date": "2026-01-29",
+      "type": "activite",
+      "chap": "14",
+      "content": "Act 14A — Théorème de l'énergie cinétique + lancer franc"
+    },
+    {
+      "date": "2026-02-04",
+      "type": "evaluation",
+      "chap": "6",
+      "content": "Flash Test Chapitre 6"
+    },
+    {
+      "date": "2026-02-05",
+      "type": "activite",
+      "chap": "14",
+      "content": "Act 14C — Chute libre d'une balle"
+    },
+    {
+      "date": "2026-02-11",
+      "type": "conge",
+      "chap": "",
+      "content": "Pas de cours"
+    },
+    {
+      "date": "2026-02-12",
+      "type": "conge",
+      "chap": "",
+      "content": "Pas de cours"
+    },
+    {
+      "date": "2026-03-04",
+      "type": "evaluation",
+      "chap": "14",
+      "content": "Flash Test Énergie mécanique"
+    },
+    {
+      "date": "2026-03-04",
+      "type": "activite",
+      "chap": "13",
+      "content": "Act 13A — Le courant électrique"
+    },
+    {
+      "date": "2026-03-05",
+      "type": "exercice",
+      "chap": "13",
+      "content": "TD Systèmes électriques + Act 13C Modélisation d'une pile"
+    },
+    {
+      "date": "2026-03-11",
+      "type": "evaluation",
+      "chap": "13",
+      "content": "Flash Test + Exos (Contrôle)"
+    },
+    {
+      "date": "2026-03-12",
+      "type": "exercice",
+      "chap": "13",
+      "content": "Act 13D + Exercice 25 p.252"
+    },
+    {
+      "date": "2026-03-18",
+      "type": "activite",
+      "chap": "4",
+      "content": "Act 4B — Titrage colorimétrique"
+    },
+    {
+      "date": "2026-03-19",
+      "type": "ds",
+      "chap": "",
+      "content": "Évaluation — Énergie mécanique + Cohésion de la matière"
+    },
+    {
+      "date": "2026-03-25",
+      "type": "exercice",
+      "chap": "4",
+      "content": "Titrages colorimétriques (salle informatique)"
+    },
+    {
+      "date": "2026-03-26",
+      "type": "activite",
+      "chap": "11",
+      "content": "Act 11A — Modèle microscopique des fluides + Ex. 25"
+    },
+    {
+      "date": "2026-04-01",
+      "type": "ds",
+      "chap": "4",
+      "content": "Act 4D — TP noté Titrage (Contrôle)"
+    },
+    {
+      "date": "2026-04-02",
+      "type": "activite",
+      "chap": "11",
+      "content": "Act 11C — Pression dans les liquides"
+    },
+    {
+      "date": "2026-04-08",
+      "type": "conge",
+      "chap": "",
+      "content": "Pas de cours"
+    },
+    {
+      "date": "2026-04-09",
+      "type": "activite",
+      "chap": "11",
+      "content": "Act 11B — Pression (logiciel Fizziq)"
+    },
+    {
+      "date": "2026-04-29",
+      "type": "ds",
+      "chap": "",
+      "content": "Grand DS — Chimie (Chap. 1→8) + Mécanique (Chap. 11,14)"
+    },
+    {
+      "date": "2026-04-30",
+      "type": "conge",
+      "chap": "",
+      "content": "Temps fort EARS — Pas de cours"
+    },
+    {
+      "date": "2026-05-06",
+      "type": "activite",
+      "chap": "8",
+      "content": "Act 8C — Saponification"
+    },
+    {
+      "date": "2026-05-07",
+      "type": "synthese",
+      "chap": "8",
+      "content": "Correction Act 8C + Carte mentale Chapitre 8"
+    },
+    {
+      "date": "2026-05-13",
+      "type": "activite",
+      "chap": "15",
+      "content": "Act 15A et 15B — Ondes mécaniques (salle informatique)"
+    },
+    {
+      "date": "2026-05-20",
+      "type": "activite",
+      "chap": "15",
+      "content": "Act 15C — Ultrasons + Exercices ondes"
+    },
+    {
+      "date": "2026-05-21",
+      "type": "exercice",
+      "chap": "10",
+      "content": "Exos ondes mécaniques + Act 10A Électrisation"
+    },
+    {
+      "date": "2026-05-27",
+      "type": "activite",
+      "chap": "10",
+      "content": "Act 10B — Cartographier un champ électrique"
+    },
+    {
+      "date": "2026-05-28",
+      "type": "synthese",
+      "chap": "",
+      "content": "Exercices champs + Bilan de l'année"
+    },
+    {
+      "date": "2026-06-03",
+      "type": "activite",
+      "chap": "",
+      "content": "Préparation ECE — Épreuves de Contrôle Expérimental"
+    },
+    {
+      "date": "2026-06-04",
+      "type": "activite",
+      "chap": "",
+      "content": "Préparation ECE (suite)"
+    },
+    {
+      "date": "2026-06-09",
+      "type": "activite",
+      "chap": "",
+      "content": "Teeeeest"
+    },
+    {
+      "date": "2026-06-09",
+      "type": "activite",
+      "chap": "",
+      "content": "Teeeeest"
+    }
   ]
 }
