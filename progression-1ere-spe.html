@@ -289,6 +289,7 @@ h1 em{font-style:italic;font-weight:400;}
   <div class="ap-toolbar">
     <button class="ap-btn" onclick="openForm()">+ Nouvelle séance</button>
     <button class="ap-btn primary" id="ap-publish" onclick="publishToGitHub()" disabled>↑ Publier</button>
+    <button class="ap-btn" onclick="testToken()" title="Tester la connexion GitHub">⚡</button>
   </div>
 
   <!-- Add / Edit form -->
@@ -581,6 +582,38 @@ function deleteSession(idx){
   document.getElementById('ap-publish').disabled=false;
 }
 
+// ─── TOKEN TEST ──────────────────────────────────────────────────────────────
+async function testToken(){
+  const token=localStorage.getItem(LS_TOKEN);
+  if(!token){showToast('Aucun token configuré','err');return;}
+  setStatus('Test en cours…');
+  try{
+    // 1. Vérifier l'identité
+    const uR=await fetch('https://api.github.com/user',{headers:{Authorization:`token ${token}`,'Accept':'application/vnd.github+json'}});
+    if(!uR.ok) throw new Error(`Token invalide (${uR.status})`);
+    const user=await uR.json();
+
+    // 2. Vérifier l'accès au repo
+    const rR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,{headers:{Authorization:`token ${token}`,'Accept':'application/vnd.github+json'}});
+    if(!rR.ok) throw new Error(`Repo inaccessible (${rR.status}) — connecté en tant que "${user.login}"`);
+    const repo=await rR.json();
+
+    setStatus(`✓ connecté : ${user.login} · repo "${repo.full_name}" · branche : ${repo.default_branch}`,'ok');
+    showToast(`✓ ${user.login} · ${repo.full_name}`,'ok');
+
+    // Ajuster la branche si différente de main
+    if(repo.default_branch && repo.default_branch!=='main'){
+      window._GH_BRANCH=repo.default_branch;
+      setStatus(`⚠ branche détectée : "${repo.default_branch}" (pas "main") — publication ajustée`,'changed');
+    } else {
+      window._GH_BRANCH='main';
+    }
+  } catch(e){
+    setStatus(`Erreur test : ${e.message}`,'err');
+    showToast(e.message,'err');
+  }
+}
+
 // ─── GITHUB PUSH ─────────────────────────────────────────────────────────────
 async function publishToGitHub(){
   const token=localStorage.getItem(LS_TOKEN);
@@ -594,10 +627,11 @@ async function publishToGitHub(){
   try{
     const AUTH = `token ${token}`;
     const HEADERS = {Authorization:AUTH,'Accept':'application/vnd.github+json'};
+    const branch = window._GH_BRANCH||'main';
 
     // 1. Récupérer le SHA actuel
     let sha=null;
-    const getR=await fetch(GH_API+'?ref=main',{headers:HEADERS});
+    const getR=await fetch(GH_API+`?ref=${branch}`,{headers:HEADERS});
     if(getR.ok){ sha=(await getR.json()).sha; }
     else if(getR.status===401){ throw new Error('Token invalide ou expiré'); }
     else if(getR.status===403){ throw new Error('Permission refusée — vérifier les droits du token'); }
@@ -610,7 +644,7 @@ async function publishToGitHub(){
     const now=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
     // 3. PUT vers l'API
-    const body={message:`Progression 1ères Spé — ${now}`,content,branch:'main'};
+    const body={message:`Progression 1ères Spé — ${now}`,content,branch};
     if(sha) body.sha=sha;
     const putR=await fetch(GH_API,{
       method:'PUT',
