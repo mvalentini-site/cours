@@ -205,7 +205,8 @@ const PAGES = {
     { file:'Outils/gravite_terre_lune.html', title:'Gravite Terre-Lune', sub:'Champ gravitationnel - Force d\'attraction', tag:'Gravitation', color:'#6b3a1c' },
     { file:'Outils/mariotte.html', title:'Loi de Mariotte', sub:'Arduino - P x V = cste - Gaz parfaits', tag:'Thermodynamique', color:'#5c2a2a' },
     { file:'Outils/plan.html', title:'Plan de classe', sub:'Places - Feu de travail - Minuteur - Notes', tag:'Gestion', color:'#3a5c1c' },
-    { file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouille par mot de passe', tag:'Gestion', color:'#5c3a1c' }
+    { file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouille par mot de passe', tag:'Gestion', color:'#5c3a1c' },
+    { file:'progression-1ere-spe.html', title:'Progression 1res Spe', sub:'Sequence annuelle 2025-2026 — toutes les seances', tag:'1res Spe', color:'#1c3d6e' }
   ],
   'accueil': [],
   '1ere-spe': [],
@@ -282,7 +283,7 @@ function renderAccueil(date){
     +'<div class="page-header"><div><div class="exp-tag">Outils interactifs</div><h1>Cahier de <em>laboratoire</em></h1></div>'
     +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>GitHub Pages</div></div></div>'
     +sections
-    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></div>';
+    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><span style="display:flex;gap:10px;align-items:center;"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" style="letter-spacing:.04em;">CC BY-NC-SA 4.0</a><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></span></div>';
 }
 
 function renderSection(ti, date){
@@ -300,7 +301,7 @@ function renderSection(ti, date){
     +'<div class="page-header"><div><div class="exp-tag">'+expTag+'</div>'+h1+'</div>'
     +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>'+count+'</div></div></div>'
     +tocHTML
-    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></div>';
+    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><span style="display:flex;gap:10px;align-items:center;"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" style="letter-spacing:.04em;">CC BY-NC-SA 4.0</a><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></span></div>';
 }
 
 function chapHTML(c, color){
