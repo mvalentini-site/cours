@@ -109,12 +109,17 @@ h1 em {
 }
 
 .sec-header {
-  display: flex;
+  /* en-tête de section = étiquette collée */
+  display: inline-flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
   cursor: default;
   user-select: none;
+  background: var(--sticker);
+  border: 1px solid var(--sticker-border);
+  box-shadow: var(--sticker-shadow);
+  padding: 6px 16px 6px 6px;
 }
 
 .sec-label {
