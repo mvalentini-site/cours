@@ -85,21 +85,7 @@ h1 em{color:var(--color);font-style:normal;}
 #side-tabs a span{writing-mode:vertical-rl;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.88);white-space:nowrap;pointer-events:none;}
 .back{display:none;}
 @media (max-width:1080px){#side-tabs{display:none;}.back{display:inline-flex;}}
-@media (min-width:1200px){
-#wrap{max-width:1460px;}
-.paper{column-count:2;column-gap:140px;padding:48px 64px 72px 80px;}
-.page-header,.section{break-inside:avoid;}
-.paper::before{background-image:
-  linear-gradient(var(--margin),var(--margin)),linear-gradient(var(--margin),var(--margin)),
-  repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
-  repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
-  repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
-  repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);
-  background-size:1.5px 100%,1.5px 100%,auto,auto,auto,auto;
-  background-position:62px 0,calc(50% + 62px) 0,0 0,0 0,0 0,0 0;
-  background-repeat:no-repeat,no-repeat,repeat,repeat,repeat,repeat;}
-.paper::after{display:none;}
-}
+@media (min-width:1200px){#wrap{max-width:1460px;}}
 </style>
 </head>
 <body>
