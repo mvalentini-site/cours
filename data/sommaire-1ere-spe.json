@@ -1,0 +1,27 @@
+{
+  "sommaire": [
+    { "cat": "Organisation et transformation de la matiere" },
+    { "num": "01", "title": "La mole", "partie": "Partie 1", "file": "1ere-spe/01-La-mole/index.html", "hidden": false },
+    { "num": "01", "title": "Dosage par etalonnage", "partie": "Partie 2", "file": "1ere-spe/01-Dosage-par-etalonnage/index.html", "hidden": false },
+    { "num": "02", "title": "Oxydoreduction", "file": "1ere-spe/02-Oxydoreduction/index.html", "hidden": false },
+    { "num": "03", "title": "Avancement", "file": "1ere-spe/03-Avancement/index.html", "hidden": false },
+    { "num": "04", "title": "Titrages", "file": "1ere-spe/04-Titrages/index.html", "hidden": false },
+    { "num": "05", "title": "De la structure a la polarite", "file": "1ere-spe/05-De-la-structure-a-la-polarite/index.html", "hidden": false },
+    { "num": "06", "title": "Cohesion de la matiere", "file": "1ere-spe/06-Cohesion-de-la-matiere/index.html", "hidden": false },
+    { "num": "07", "title": "Structure des entites organiques", "file": "1ere-spe/07-Structure-des-entites-organiques/index.html", "hidden": false },
+    { "num": "08", "title": "Syntheses chimiques", "file": "1ere-spe/08-Syntheses-chimiques/index.html", "hidden": false },
+    { "num": "09", "title": "Combustions", "file": "1ere-spe/09-Combustions/index.html", "hidden": false },
+    { "cat": "Mouvements et interactions" },
+    { "num": "10", "title": "Interactions et champs", "file": "1ere-spe/10-Interactions-et-champs/index.html", "hidden": false },
+    { "num": "11", "title": "Fluides au repos", "file": "1ere-spe/11-Fluides-au-repos/index.html", "hidden": false },
+    { "num": "12", "title": "Mouvement d'un systeme", "file": "1ere-spe/12-Mouvement-dun-systeme/index.html", "hidden": false },
+    { "cat": "Energie, conversions et transferts" },
+    { "num": "13", "title": "Energie des systemes electriques", "file": "1ere-spe/13-Energie-des-systemes-electriques/index.html", "hidden": false },
+    { "num": "14", "title": "Energie mecanique", "file": "1ere-spe/14-Energie-mecanique/index.html", "hidden": false },
+    { "cat": "Ondes et signaux" },
+    { "num": "15", "title": "Ondes mecaniques", "file": "1ere-spe/15-Ondes-mecaniques/index.html", "hidden": false },
+    { "num": "16", "title": "Lentilles minces", "file": "1ere-spe/16-Lentilles-minces/index.html", "hidden": false },
+    { "num": "17", "title": "Couleurs", "file": "1ere-spe/17-Couleurs/index.html", "hidden": false },
+    { "num": "18", "title": "Lumiere, onde et particules", "file": "1ere-spe/18-Lumiere-onde-et-particules/index.html", "hidden": false }
+  ]
+}

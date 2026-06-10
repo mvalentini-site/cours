@@ -407,8 +407,6 @@ function switchTab(id){
   updateTabsUI();
   render();
   document.getElementById('page-wrap').scrollTop=0;
-  document.getElementById('admin-fab').classList.toggle('visible', id===ADMIN_TAB);
-  if(id!==ADMIN_TAB && adminOpen) toggleAdmin();
 }
 
 function render(){
@@ -444,12 +442,11 @@ function renderSection(ti, date){
   const chapitres = SOMMAIRES[ti.id]||[];
   const pages     = PAGES[ti.id]||[];
   const nbChap    = chapitres.filter(c=>c.num).length;
-  const nbVisible = chapitres.filter(c=>c.num && !c.hidden).length;
   const tocHTML = nbChap
     ? '<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
     : '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">-&gt;</span><span class="sec-name">Outils disponibles</span></div>'
       +'<div class="cards">'+(pages.length ? pages.map(p=>cardHTML(p)).join('') : '<p class="empty">Aucune page pour le moment.</p>')+'</div>';
-  const count = nbChap ? nbVisible+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
+  const count = nbChap ? nbChap+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
   const expTag = nbChap ? 'Liste des chapitres' : 'Physique - Chimie';
   const h1 = nbChap ? '' : '<h1>'+escH(ti.label)+'</h1>';
   return '<div class="tape" style="background:'+ti.color+'22;color:'+ti.color+'">'+escH(ti.label)+'</div>'
@@ -495,250 +492,8 @@ function cardHTML(p){
     +'</a>';
 }
 
-// ═══════════════════ MODE ADMIN — Sommaire 1res Spé ═══════════════════
-const GH_OWNER  = 'mvalentini-site';
-const GH_REPO   = 'cours';
-const GH_FILE   = 'data/sommaire-1ere-spe.json';
-const GH_API    = 'https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_FILE;
-const LS_TOKEN  = 'gh_admin_token_v1';
-const ADMIN_TAB = '1ere-spe';
-
-let adminOpen      = false;
-let pendingChanges = false;
-let editingIdx     = null;
-let editingType    = 'chap';
-
-function adminData(){ return SOMMAIRES[ADMIN_TAB]; }
-
-async function loadSommaire(){
-  try{
-    const r = await fetch(GH_FILE+'?t='+Date.now());
-    if(!r.ok) throw new Error('404');
-    const d = await r.json();
-    if(Array.isArray(d.sommaire) && d.sommaire.length) SOMMAIRES[ADMIN_TAB]=d.sommaire;
-    setStatus('Sommaire chargé ('+d.sommaire.filter(c=>c.num).length+' chapitres)');
-  } catch{
-    setStatus('Sommaire local (JSON non publié)');
-  }
-  if(currentTab===ADMIN_TAB || currentTab==='accueil') render();
-  if(adminOpen) renderAdminList();
-}
-
-function toggleAdmin(){
-  adminOpen=!adminOpen;
-  document.getElementById('admin-panel').classList.toggle('open',adminOpen);
-  document.getElementById('admin-fab').classList.toggle('open',adminOpen);
-  document.getElementById('admin-fab').textContent=adminOpen?'✕ Fermer':'⚙ Admin';
-  if(adminOpen){ renderAdminList(); updateTokenLabel(); }
-}
-
-function renderAdminList(){
-  const data=adminData();
-  const el=document.getElementById('ap-list');
-  if(!data.length){el.innerHTML='<p style="padding:16px;font-size:10px;color:var(--faded)">Sommaire vide.</p>';return;}
-  el.innerHTML=data.map((c,i)=>{
-    const up   ='<button class="al-btn" onclick="moveItem('+i+',-1)" title="Monter" '+(i===0?'disabled style="opacity:.25"':'')+'>↑</button>';
-    const down ='<button class="al-btn" onclick="moveItem('+i+',1)" title="Descendre" '+(i===data.length-1?'disabled style="opacity:.25"':'')+'>↓</button>';
-    if(c.cat){
-      return '<div class="al-item is-cat">'
-        +'<span class="al-title">'+escH(c.cat)+'</span>'
-        +'<span class="al-actions">'+up+down
-        +'<button class="al-btn" onclick="openForm('+i+',\'cat\')" title="Renommer">✏</button>'
-        +'<button class="al-btn del" onclick="deleteItem('+i+')" title="Supprimer">🗑</button>'
-        +'</span></div>';
-    }
-    const eye = c.hidden
-      ? '<button class="al-btn eye-off" onclick="toggleHidden('+i+')" title="Masqué — cliquer pour dévoiler">🚫</button>'
-      : '<button class="al-btn" onclick="toggleHidden('+i+')" title="Visible — cliquer pour masquer">👁</button>';
-    return '<div class="al-item'+(c.hidden?' is-hidden':'')+'">'
-      +'<span class="al-num">'+escH(c.num)+'</span>'
-      +'<span class="al-title" title="'+escH(c.title)+'">'+escH(c.title)+(c.partie?' · '+escH(c.partie):'')+'</span>'
-      +'<span class="al-actions">'+eye+up+down
-      +'<button class="al-btn" onclick="openForm('+i+',\'chap\')" title="Modifier">✏</button>'
-      +'<button class="al-btn del" onclick="deleteItem('+i+')" title="Supprimer">🗑</button>'
-      +'</span></div>';
-  }).join('');
-}
-
-function markChanged(msg){
-  pendingChanges=true;
-  setStatus(msg+' — non publié','changed');
-  document.getElementById('ap-publish').disabled=false;
-  render();
-  renderAdminList();
-}
-
-function toggleHidden(i){
-  const c=adminData()[i];
-  c.hidden=!c.hidden;
-  markChanged(c.hidden?'Chapitre masqué':'Chapitre dévoilé');
-}
-
-function moveItem(i,dir){
-  const data=adminData();
-  const j=i+dir;
-  if(j<0||j>=data.length) return;
-  [data[i],data[j]]=[data[j],data[i]];
-  markChanged('Ordre modifié');
-}
-
-function deleteItem(i){
-  const c=adminData()[i];
-  const label=c.cat?('la catégorie « '+c.cat+' »'):('le chapitre « '+c.title+' »');
-  if(!confirm('Supprimer '+label+' du sommaire ?\n(Les fichiers du chapitre ne sont pas supprimés.)')) return;
-  adminData().splice(i,1);
-  markChanged('Élément supprimé');
-}
-
-function openForm(idx,type){
-  editingIdx=idx; editingType=type;
-  const c=idx!==null?adminData()[idx]:null;
-  document.getElementById('ff-chap').style.display = type==='chap'?'block':'none';
-  document.getElementById('ff-cat').style.display  = type==='cat'?'block':'none';
-  document.getElementById('ap-form-title').textContent =
-    type==='cat' ? (c?'Renommer la catégorie':'Nouvelle catégorie')
-                 : (c?'Modifier le chapitre':'Nouveau chapitre');
-  if(type==='chap'){
-    document.getElementById('f-num').value    = c?c.num:'';
-    document.getElementById('f-title').value  = c?c.title:'';
-    document.getElementById('f-partie').value = c&&c.partie?c.partie:'';
-    document.getElementById('f-file').value   = c&&c.file?c.file:'';
-  } else {
-    document.getElementById('f-cat').value = c?c.cat:'';
-  }
-  document.getElementById('ap-form').classList.add('open');
-  document.getElementById(type==='chap'?'f-title':'f-cat').focus();
-}
-
-function closeForm(){
-  document.getElementById('ap-form').classList.remove('open');
-  editingIdx=null;
-}
-
-function saveItem(){
-  const data=adminData();
-  if(editingType==='cat'){
-    const name=document.getElementById('f-cat').value.trim();
-    if(!name){showToast('Nom de catégorie requis','err');return;}
-    if(editingIdx!==null){ data[editingIdx].cat=name; }
-    else data.push({cat:name});
-  } else {
-    const num   =document.getElementById('f-num').value.trim();
-    const title =document.getElementById('f-title').value.trim();
-    const partie=document.getElementById('f-partie').value.trim();
-    const file  =document.getElementById('f-file').value.trim();
-    if(!num||!title){showToast('Numéro et titre requis','err');return;}
-    const entry={num,title};
-    if(partie) entry.partie=partie;
-    if(file) entry.file=file;
-    if(editingIdx!==null){
-      entry.hidden=!!data[editingIdx].hidden;
-      data[editingIdx]=entry;
-    } else {
-      entry.hidden=true; // nouveau chapitre masqué par défaut
-      data.push(entry);
-    }
-  }
-  closeForm();
-  markChanged('Modification enregistrée');
-}
-
-// ─── GITHUB ───
-async function testToken(){
-  const token=localStorage.getItem(LS_TOKEN);
-  if(!token){showTokenDialog();return;}
-  setStatus('Test en cours…');
-  try{
-    const H={Authorization:'token '+token,'Accept':'application/vnd.github+json'};
-    const uR=await fetch('https://api.github.com/user',{headers:H});
-    if(!uR.ok) throw new Error('Token invalide ('+uR.status+')');
-    const user=await uR.json();
-    const rR=await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO,{headers:H});
-    if(!rR.ok) throw new Error('Repo inaccessible ('+rR.status+') — connecté : "'+user.login+'"');
-    const repo=await rR.json();
-    window._GH_BRANCH=repo.default_branch||'main';
-    setStatus('✓ connecté : '+user.login+' · '+repo.full_name+' · branche : '+window._GH_BRANCH,'ok');
-    showToast('✓ '+user.login+' · '+repo.full_name,'ok');
-  } catch(e){
-    setStatus('Erreur test : '+e.message,'err');
-    showToast(e.message,'err');
-  }
-}
-
-async function publishToGitHub(){
-  const token=localStorage.getItem(LS_TOKEN);
-  if(!token){showTokenDialog();return;}
-  const btn=document.getElementById('ap-publish');
-  btn.disabled=true; btn.textContent='↑ Publication…';
-  setStatus('Connexion à GitHub…');
-  try{
-    const H={Authorization:'token '+token,'Accept':'application/vnd.github+json'};
-    const branch=window._GH_BRANCH||'main';
-    let sha=null;
-    const getR=await fetch(GH_API+'?ref='+branch,{headers:H});
-    if(getR.ok){ sha=(await getR.json()).sha; }
-    else if(getR.status===401){ throw new Error('Token invalide ou expiré'); }
-    else if(getR.status===403){ throw new Error('Permission refusée — vérifier les droits du token'); }
-    else if(getR.status!==404){ throw new Error('Erreur GitHub GET: '+getR.status); }
-    const jsonStr=JSON.stringify({sommaire:adminData()},null,2);
-    const content=btoa(unescape(encodeURIComponent(jsonStr)));
-    const now=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const body={message:'Sommaire 1res Spé — '+now,content,branch};
-    if(sha) body.sha=sha;
-    const putR=await fetch(GH_API,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!putR.ok){
-      const e=await putR.json().catch(()=>({}));
-      throw new Error(e.message||'Erreur GitHub PUT: '+putR.status);
-    }
-    pendingChanges=false;
-    btn.textContent='↑ Publier'; btn.disabled=true;
-    setStatus('Publié sur GitHub — mise à jour du site dans ~1 min','ok');
-    showToast('✓ Publié — le site se met à jour dans ~1 min','ok');
-  } catch(e){
-    btn.textContent='↑ Publier'; btn.disabled=false;
-    setStatus('Erreur : '+e.message,'err');
-    showToast('Erreur : '+e.message,'err');
-  }
-}
-
-// ─── TOKEN ───
-function showTokenDialog(){
-  document.getElementById('token-input').value=localStorage.getItem(LS_TOKEN)||'';
-  document.getElementById('token-dialog').classList.add('open');
-}
-function closeTokenDialog(){ document.getElementById('token-dialog').classList.remove('open'); }
-function saveToken(){
-  const val=document.getElementById('token-input').value.trim();
-  if(!val){showToast('Token vide','err');return;}
-  localStorage.setItem(LS_TOKEN,val);
-  closeTokenDialog();
-  updateTokenLabel();
-  showToast('Token enregistré');
-}
-function updateTokenLabel(){
-  const t=localStorage.getItem(LS_TOKEN)||'';
-  document.getElementById('ap-token-label').textContent=t?('Token : ••••'+t.slice(-4)):'Token : non configuré';
-}
-
-// ─── HELPERS ADMIN ───
-function setStatus(msg,type){
-  const el=document.getElementById('ap-status');
-  el.textContent=msg;
-  el.className='ap-status'+(type?' '+type:'');
-}
-let toastTimer;
-function showToast(msg,type){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.className='toast'+(type?' '+type:'');
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>el.classList.remove('show'),3200);
-}
-window.addEventListener('beforeunload',e=>{ if(pendingChanges){e.preventDefault();e.returnValue='';} });
-
 buildTabs();
 render();
-loadSommaire();
 </script>
 </body>
 </html>

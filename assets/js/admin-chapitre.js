@@ -13,16 +13,26 @@ const GH_REPO  = 'cours';
 const LS_TOKEN = 'gh_admin_token_v1';
 
 const PALETTE = [
-  '#1c3d6e','#2a5c3a','#3a2010','#3a1c6b',
-  '#5c2a2a','#1c4a4a','#6b3a1c','#3a3a1c',
-  '#5a3a1c','#4a1c5c','#1c3a5c','#3a5c1c',
+  '#1c3d6e',  // bleu
+  '#2a5c3a',  // vert
+  '#8a1c1c',  // rouge
+  '#8a4010',  // orange
+  '#5a1080',  // violet
 ];
 const LABELS = ['Cours','Activite','TD','Exercices','Evaluation','Videos','Simulation','Intro','Bilan','Correction'];
 const ICONS  = ['📄','▶','🔗','📤','🎮','🔬','📊','🖼','📝','🧪','📌'];
 const TAGS   = {
-  'Cours':'#1c3d6e','Activite':'#2a5c3a','TD':'#3a2010','Corrige':'#5c2a2a',
-  'Situation':'#3a1c6b','Lien':'#3a3a1c','Digiwall':'#6b3a1c',
-  'Simulation':'#1c4a4a','Experience':'#2a5c3a','Video':'#5a3a1c','Document':'#1c3d6e',
+  'Cours'     : '#1c3d6e',
+  'Activite'  : '#2a5c3a',
+  'TD'        : '#8a4010',
+  'Corrige'   : '#8a1c1c',
+  'Situation' : '#3a1c8a',
+  'Lien'      : '#6a6010',
+  'Digiwall'  : '#603010',
+  'Simulation': '#10505a',
+  'Experience': '#105c4a',
+  'Video'     : '#701050',
+  'Document'  : '#1c3d6e',
 };
 
 let M = {};       // métadonnées de la page
