@@ -375,6 +375,7 @@ const PAGES = {
 
 let currentTab = 'accueil';
 const ALL_TABS = [...TABS_LEFT, ...TABS_RIGHT];
+{ const h=(location.hash||'').slice(1); if(h && ALL_TABS.some(t=>t.id===h)) currentTab=h; }
 function tabInfo(id){ return ALL_TABS.find(t=>t.id===id)||{label:'',color:'#3a2010'}; }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -409,6 +410,7 @@ function updateTabsUI(){
 
 function switchTab(id){
   currentTab=id;
+  history.replaceState(null,'','#'+id);
   updateTabsUI();
   render();
   document.getElementById('page-wrap').scrollTop=0;

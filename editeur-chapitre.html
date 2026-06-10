@@ -561,30 +561,30 @@ function generateHTML(){
 
   const blocsHTML = D.blocs.map(b => genBlocHTML(b)).join('\n\n');
 
+  const tabId = /5e/i.test(cls) ? '5eme' : /ens/i.test(cls) ? '1ere-ens' : '1ere-spe';
+  const navTabs = [['accueil','Accueil','#3a2010'],['1ere-spe','1res Spe','#1c3d6e'],['1ere-ens','Ens. Sci.','#2a5c3a'],['5eme','5eme','#6b3a1c'],['outils','Outils','#3a3a1c']];
+  const navHTML = '<nav id="side-tabs">\n' + navTabs.map(t => `  <a href="${back.split('#')[0]}#${t[0]}"${t[0]===tabId?' class="active"':''} style="background:${t[2]}"><span>${t[1]}</span></a>`).join('\n') + '\n</nav>';
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc2(title)}</title>
-<link rel="stylesheet" href="${assets}/css/commun.css?v=3">
-<link rel="stylesheet" href="${assets}/css/chapitre.css?v=3">
+<link rel="stylesheet" href="${assets}/css/commun.css?v=4">
+<link rel="stylesheet" href="${assets}/css/chapitre.css?v=4">
 </head>
 <body>
+${navHTML}
 <div id="wrap">
   <div class="paper">
     <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
     <a class="back" href="${esc2(back)}">${esc2(backLbl)}</a>
-    <div class="tape-label" style="background:var(--color)22;color:var(--color)">${esc2(theme)}</div>
     <div class="page-header">
       <div>
-        <div class="exp-tag">${esc2(cls)} — Physique - Chimie</div>
         <h1><em>${esc2(num)}</em> — ${esc2(name)}</h1>
       </div>
-      <div class="ph-right">
-        <div class="ph-num">Chapitre ${esc2(num)}</div>
-        <div>${esc2(cls)}</div>
-      </div>
+      <div class="ph-right">${esc2(cls)}</div>
     </div>
 
 ${blocsHTML}

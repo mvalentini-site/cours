@@ -289,3 +289,43 @@ h1 em {
   border: none;
   background: #fff;
 }
+
+/* ── Marque-pages latéraux (lien vers le cahier) ── */
+#side-tabs {
+  position: fixed;
+  left: 0;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 50;
+}
+#side-tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 70px;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, .3);
+  opacity: .75;
+  text-decoration: none;
+  transition: width .15s, opacity .15s;
+}
+#side-tabs a:hover { width: 46px; opacity: 1; }
+#side-tabs a.active { width: 42px; opacity: 1; }
+#side-tabs a span {
+  writing-mode: vertical-rl;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .88);
+  white-space: nowrap;
+  pointer-events: none;
+}
+/* lien retour affiché seulement quand le rail est masqué (petits écrans) */
+.back { display: none; }
+@media (max-width: 1080px) {
+  #side-tabs { display: none; }
+  .back { display: inline-flex; }
+}
