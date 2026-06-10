@@ -18,11 +18,14 @@
   --paper2:  #ede7d3;
   --ink:     #1c1208;
   --ink2:    #2d200a;
-  --faded:   #7a6a50;
-  --faded2:  #a89070;
+  --faded:   #5f4e33;
+  --faded2:  #87704c;
   --red:     #a63020;
   --blue:    #1c3d6e;
-  --tape:    rgba(220, 200, 150, 0.62);
+  --tape:    #e9dcb4;
+  --sticker: #fdfaf0;
+  --sticker-border: rgba(28, 18, 8, 0.12);
+  --sticker-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
   --desk:    #6a6258;
   --gmaj:    rgba(70, 90, 200, 0.13);
   --gmin:    rgba(70, 90, 200, 0.055);
