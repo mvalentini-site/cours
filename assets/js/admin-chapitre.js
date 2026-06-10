@@ -325,7 +325,7 @@ function renderAdmin() {
           '</div>' +
           '<div class="ae-doc-row">' +
             '<input type="text" class="ae-url' + urlCls + '" value="' + e2(d.url) + '" placeholder="https://… ou LIEN_À_CONFIGURER" ' +
-              'oninput="window._admUpdDoc(' + i + ',' + di + ',\'url\',this.value);this.className=\'ae-url\'+(this.value&&!this.value.startsWith(\'LIEN_\')?\' ae-ok\':(this.value.startsWith(\'LIEN_\')?\' ae-ph\':\''))">' +
+              'oninput="window._admUpdDoc(' + i + ',' + di + ',\'url\',this.value);this.className=\'ae-url\'+(this.value&&!this.value.startsWith(\'LIEN_\')?\' ae-ok\':(this.value.startsWith(\'LIEN_\')?\' ae-ph\':\'\'))">' +
           '</div>' +
           '<div class="ae-doc-row ae-doc-row-sm">' +
             '<select onchange="window._admUpdDoc(' + i + ',' + di + ',\'tag\',this.value);window._admUpdDoc(' + i + ',' + di + ',\'tagColor\',window._TAGS[this.value]||\'#555\')">' +
