@@ -89,13 +89,12 @@ h1 em{font-style:italic;font-weight:400;}
   background:var(--ink);color:var(--cream);
   border:none;border-radius:2px;cursor:pointer;
   font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.08em;
-  padding:8px 14px;display:none;align-items:center;gap:6px;
+  padding:8px 14px;display:flex;align-items:center;gap:6px;
   box-shadow:0 2px 12px rgba(28,18,8,.25);
   transition:background .15s;
 }
 .admin-fab:hover{background:#3a2a18;}
 .admin-fab.open{background:var(--red);}
-.admin-fab.unlocked{display:flex;}
 
 .admin-panel{
   position:fixed;top:0;right:0;bottom:0;width:360px;
@@ -539,9 +538,6 @@ return result;
 }
 function admOk(){try{return sessionStorage.getItem('adm_ok_v1')==='1';}catch(e){return false;}}
 function admUnlock(){if(admOk())return true;var p=prompt('Mot de passe administrateur :');if(p===null)return false;if(_sha256(p)===ADM_HASH){try{sessionStorage.setItem('adm_ok_v1','1');}catch(e){}return true;}alert('Mot de passe incorrect.');return false;}
-if(admOk())document.getElementById('admin-fab').classList.add('unlocked');
-document.addEventListener('keydown',function(e){if(e.ctrlKey&&e.altKey&&(e.key==='a'||e.key==='A')){if(admUnlock())document.getElementById('admin-fab').classList.add('unlocked');}});
-
 function toggleAdmin(){
   if(!adminOpen && !admOk()){ if(!admUnlock()) return; }
   adminOpen=!adminOpen;

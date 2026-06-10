@@ -667,6 +667,7 @@ function injectHTML() {
 function toggleDrawer() {
   const drawer = document.getElementById('adm-drawer');
   const opening = !drawer.classList.contains('adm-open');
+  if (opening && !admUnlock()) return;
   drawer.classList.toggle('adm-open');
   if (opening) {
     readPage();
@@ -676,12 +677,8 @@ function toggleDrawer() {
 
 /* ── Init ──────────────────────────────────────────────────── */
 function init() {
-  if (admOk()) { injectCSS(); injectHTML(); }
-  document.addEventListener('keydown', function (e) {
-    if (e.ctrlKey && e.altKey && (e.key === 'a' || e.key === 'A')) {
-      if (admUnlock() && !document.getElementById('adm-fab')) { injectCSS(); injectHTML(); }
-    }
-  });
+  injectCSS();
+  injectHTML();
 }
 
 if (document.readyState === 'loading') {

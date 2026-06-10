@@ -414,7 +414,7 @@ function switchTab(id){
   updateTabsUI();
   render();
   document.getElementById('page-wrap').scrollTop=0;
-  document.getElementById('admin-fab').classList.toggle('visible', id===ADMIN_TAB && admOk());
+  document.getElementById('admin-fab').classList.toggle('visible', id===ADMIN_TAB);
   if(id!==ADMIN_TAB && adminOpen) toggleAdmin();
 }
 
@@ -575,8 +575,6 @@ return result;
 }
 function admOk(){try{return sessionStorage.getItem('adm_ok_v1')==='1';}catch(e){return false;}}
 function admUnlock(){if(admOk())return true;var p=prompt('Mot de passe administrateur :');if(p===null)return false;if(_sha256(p)===ADM_HASH){try{sessionStorage.setItem('adm_ok_v1','1');}catch(e){}return true;}alert('Mot de passe incorrect.');return false;}
-document.addEventListener('keydown',function(e){if(e.ctrlKey&&e.altKey&&(e.key==='a'||e.key==='A')){if(admUnlock())document.getElementById('admin-fab').classList.toggle('visible', currentTab===ADMIN_TAB);}});
-
 function toggleAdmin(){
   if(!adminOpen && !admOk()){ if(!admUnlock()) return; }
   adminOpen=!adminOpen;
