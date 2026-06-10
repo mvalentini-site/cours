@@ -111,6 +111,8 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
 .card.coming{opacity:.45;border-style:dashed;cursor:default;background:rgba(255,255,255,.08);}
 .card.coming:hover{background:rgba(255,255,255,.08);transform:none;}
 .card.coming .chap-title{color:var(--faded2);}
+.card.coming.admin-link{cursor:pointer;opacity:.6;}
+.card.coming.admin-link:hover{opacity:.9;background:rgba(255,255,255,.35);transform:translateY(-2px);}
 .coming-tape{position:absolute;top:-8px;right:10px;background:var(--tape);padding:1px 8px;
   font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);
   box-shadow:0 1px 2px rgba(0,0,0,.08);}
@@ -462,13 +464,17 @@ function renderSection(ti, date){
 function chapHTML(c, color){
   if(c.cat) return '<div class="chap-cat">'+escH(c.cat)+'</div>';
   if(c.hidden){
-    return '<div class="card coming">'
+    const adminLink = adminOpen && c.file && c.file.trim() !== '';
+    const tag  = adminLink ? 'a' : 'div';
+    const href = adminLink ? ' href="'+escH(c.file)+'"' : '';
+    return '<'+tag+' class="card coming'+(adminLink?' admin-link':'')+'"'+href+'>'
       +'<span class="coming-tape">À venir</span>'
       +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
       +'<div class="chap-title">'+escH(c.title)+'</div>'
       +(c.partie ? '<span class="chap-partie" style="background:'+color+';opacity:.6">'+escH(c.partie)+'</span>' : '')
+      +(adminLink ? '<span class="card-arrow">-&gt;</span>' : '')
       +'<div class="bar" style="background:'+color+'"></div>'
-      +'</div>';
+      +'</'+tag+'>';
   }
   const hasLink = c.file && c.file.trim() !== '';
   const tag  = hasLink ? 'a' : 'div';
@@ -530,6 +536,7 @@ function toggleAdmin(){
   document.getElementById('admin-fab').classList.toggle('open',adminOpen);
   document.getElementById('admin-fab').textContent=adminOpen?'✕ Fermer':'⚙ Admin';
   if(adminOpen){ renderAdminList(); updateTokenLabel(); }
+  render(); // les cartes masquées deviennent cliquables en mode admin
 }
 
 function renderAdminList(){
