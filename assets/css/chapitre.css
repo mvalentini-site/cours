@@ -336,10 +336,9 @@ h1 em {
   .paper {
     column-count: 2;
     column-gap: 140px;
-    padding: 48px 64px 72px 64px;
+    padding: 48px 64px 72px 80px;
   }
   .page-header, .section { break-inside: avoid; }
-  .holes { display: none; }
   /* quadrillage + marge rouge sur chaque page */
   .paper::before {
     background-image:
@@ -350,14 +349,8 @@ h1 em {
       repeating-linear-gradient(transparent, transparent 49px, var(--gmaj) 49px, var(--gmaj) 50px),
       repeating-linear-gradient(90deg, transparent, transparent 49px, var(--gmaj) 49px, var(--gmaj) 50px);
     background-size: 1.5px 100%, 1.5px 100%, auto, auto, auto, auto;
-    background-position: 48px 0, calc(50% + 54px) 0, 0 0, 0 0, 0 0, 0 0;
+    background-position: 62px 0, calc(50% + 62px) 0, 0 0, 0 0, 0 0, 0 0;
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat;
   }
-  /* pliure centrale */
-  .paper::after {
-    left: 50%;
-    width: 140px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent 0%, rgba(28,18,8,.04) 28%, rgba(28,18,8,.15) 50%, rgba(28,18,8,.04) 72%, transparent 100%);
-  }
+  .paper::after { display: none; }
 }
