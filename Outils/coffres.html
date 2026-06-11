@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffres-forts</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f6f1e4;--cream2:#ede8d6;--cream3:#e3ddc8;
+  --ink:#1a1814;--ink2:#4a4640;--ink3:#8a8070;
+  --red:#c0392b;--accent:#c84b2f;
+  --blue:#185FA5;--blue-bg:#e8f0fb;
+  --green:#1a6e3c;--green-bg:#e4f2eb;
+  --amber:#8a5a00;--amber-bg:#fdf3dc;
+  --border:#ccc5b0;--mm:3.78px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-height:100vh;padding:2rem 1.5rem;}
+@media(max-width:700px){body{padding:.75rem .4rem;}}
+
+/* ── PAGE ── */
+.page{max-width:1020px;margin:0 auto;background:var(--cream);border-radius:2px;
+  box-shadow:4px 4px 0 #b8b2a0,8px 8px 0 #a8a290,0 0 40px rgba(0,0,0,.15);position:relative;overflow:hidden;}
+.page::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--cream2) 1px,transparent 1px),linear-gradient(90deg,var(--cream2) 1px,transparent 1px);
+  background-size:calc(var(--mm)*5) calc(var(--mm)*5);pointer-events:none;z-index:0;}
+.page::after{content:'';position:absolute;left:52px;top:0;bottom:0;width:1.5px;background:var(--red);opacity:.5;z-index:1;pointer-events:none;}
+@media(max-width:700px){.page::after{display:none;}}
+.holes{position:absolute;left:0;top:0;bottom:0;width:52px;display:flex;flex-direction:column;justify-content:space-around;align-items:center;z-index:2;pointer-events:none;}
+@media(max-width:700px){.holes{display:none;}}
+.hole{width:18px;height:18px;border-radius:50%;background:#d8d2c0;border:1px solid #b8b2a0;box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
+.content{position:relative;z-index:3;padding:2rem 2rem 2rem 4.5rem;}
+@media(max-width:700px){.content{padding:.85rem;}}
+
+/* ── HEADER ── */
+.header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.tape-label{background:rgba(255,240,180,.85);border:.5px solid rgba(200,180,80,.4);padding:4px 14px;font-size:11px;letter-spacing:.1em;color:var(--ink2);white-space:nowrap;}
+.title-block h1{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink);}
+.title-block .subtitle{font-size:11px;color:var(--ink3);margin-top:3px;}
+
+/* ── ADMIN BAR ── */
+#admin-bar{display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:.85rem;padding:8px 12px;
+  background:var(--amber-bg);border:.5px solid rgba(138,90,0,.3);border-radius:2px;}
+.admin-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);padding:3px 8px;background:rgba(138,90,0,.12);border-radius:2px;white-space:nowrap;}
+.btn-admin{font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;border-radius:2px;cursor:pointer;border:.5px solid var(--border);background:var(--cream);color:var(--ink2);}
+.btn-admin:hover{background:var(--cream2);}
+.btn-admin.primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+.btn-admin.danger{color:var(--red);border-color:rgba(192,57,43,.3);}
+.btn-admin.danger:hover{background:#fdf0ef;}
+
+/* ── COFFRES GRID ── */
+#coffres-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;margin-bottom:1.5rem;}
+#coffres-empty{text-align:center;padding:3rem 1rem;color:var(--ink3);font-style:italic;font-size:13px;display:none;}
+#coffres-empty.show{display:block;}
+
+/* ── COFFRE CARD ── */
+.coffre-card{border-radius:2px;overflow:hidden;border:1px solid var(--border);
+  box-shadow:2px 2px 0 #c8c2b0;transition:box-shadow .15s;position:relative;}
+.coffre-card:hover{box-shadow:3px 3px 0 #b8b2a0;}
+/* Header */
+.cc-header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--ink);color:var(--cream);}
+.coffre-card.open .cc-header{background:var(--green);}
+.cc-icon{font-size:18px;flex-shrink:0;}
+.cc-name{font-size:13px;font-weight:500;flex:1;letter-spacing:.02em;font-family:'Fraunces',serif;}
+.cc-admin-btns{display:flex;gap:4px;margin-left:auto;}
+.cc-admin-btn{background:rgba(255,255,255,.15);border:none;color:var(--cream);cursor:pointer;padding:2px 7px;border-radius:2px;font-size:12px;font-family:'DM Mono',monospace;}
+.cc-admin-btn:hover{background:rgba(255,255,255,.3);}
+.cc-admin-btn.del{color:#ffaaaa;}
+.cc-admin-btn.del:hover{background:rgba(192,57,43,.4);}
+/* Locked body */
+.cc-locked-body{padding:14px 16px;background:var(--cream);}
+.cc-hint{font-size:11px;color:var(--ink3);font-style:italic;padding:8px 16px 0;background:var(--cream);}
+.cc-input-row{display:flex;gap:6px;margin-top:10px;}
+.cc-input{flex:1;padding:7px 10px;border:.5px solid var(--border);border-radius:2px;font-size:13px;font-family:'DM Mono',monospace;background:var(--cream2);color:var(--ink);}
+.cc-input:focus{outline:1.5px solid var(--blue);border-color:transparent;}
+.cc-input.shake{animation:shake .35s ease;}
+.cc-unlock-btn{padding:7px 14px;background:var(--ink);color:var(--cream);border:none;border-radius:2px;cursor:pointer;font-size:12px;font-family:'DM Mono',monospace;white-space:nowrap;}
+.cc-unlock-btn:hover{background:var(--ink2);}
+.cc-error{font-size:11px;color:var(--red);min-height:18px;padding:4px 0 0;font-style:italic;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+/* Open body */
+.cc-open-body{padding:16px;background:var(--cream);}
+.cc-text{font-size:13px;line-height:1.75;color:var(--ink);white-space:pre-wrap;}
+.cc-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;background:var(--blue-bg);color:var(--blue);border:.5px solid rgba(24,95,165,.25);border-radius:2px;font-size:13px;text-decoration:none;word-break:break-all;}
+.cc-link:hover{background:#d5e5f9;}
+.cc-image{max-width:100%;border-radius:2px;display:block;}
+.cc-relock{margin-top:12px;background:none;border:.5px solid var(--border);border-radius:2px;padding:4px 10px;cursor:pointer;font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;}
+.cc-relock:hover{background:var(--cream2);}
+
+/* ── PIED DE PAGE ── */
+.page-footer{text-align:center;padding-top:.5rem;border-top:1px solid var(--border);}
+#btn-admin-toggle{background:none;border:.5px dashed var(--border);border-radius:2px;padding:5px 14px;cursor:pointer;font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace;}
+#btn-admin-toggle:hover{border-color:var(--amber);color:var(--amber);}
+
+/* ── MODALES ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,.55);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--cream);border:.5px solid var(--border);border-radius:2px;padding:1.5rem;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:6px 6px 0 #a8a290;}
+.modal-box h3{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:1rem;color:var(--ink);}
+.modal-field{margin-bottom:.75rem;}
+.modal-field label{display:block;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:4px;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:7px 9px;border:.5px solid var(--border);border-radius:2px;font-size:12px;font-family:'DM Mono',monospace;background:var(--cream2);color:var(--ink);}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{outline:1.5px solid var(--blue);border-color:transparent;}
+.modal-field textarea{resize:vertical;min-height:80px;}
+.modal-field .hint{font-size:10px;color:var(--ink3);margin-top:3px;line-height:1.5;}
+.modal-error{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+.modal-footer{display:flex;gap:6px;justify-content:flex-end;margin-top:1rem;}
+.btn-primary{padding:6px 16px;background:var(--ink);color:var(--cream);border:none;border-radius:2px;cursor:pointer;font-size:12px;font-family:'DM Mono',monospace;}
+.btn-primary:hover{background:var(--ink2);}
+.btn-secondary{padding:6px 16px;background:var(--cream);color:var(--ink2);border:.5px solid var(--border);border-radius:2px;cursor:pointer;font-size:12px;font-family:'DM Mono',monospace;}
+.btn-secondary:hover{background:var(--cream2);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:8px 18px;border-radius:2px;font-size:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:300;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+  <div class="content">
+
+    <div class="header">
+      <div class="tape-label">OUTILS</div>
+      <div class="title-block">
+        <h1>Coffres-forts</h1>
+        <div class="subtitle">Entre le mot de passe pour déverrouiller le contenu</div>
+      </div>
+    </div>
+
+    <div id="admin-bar">
+      <span class="admin-badge">🔑 Mode admin</span>
+      <button class="btn-admin primary" onclick="newCoffre()">+ Nouveau coffre</button>
+      <button class="btn-admin" onclick="unlockAll()">🔓 Tout déverrouiller</button>
+      <button class="btn-admin" onclick="lockAll()">🔒 Tout verrouiller</button>
+      <button class="btn-admin" onclick="changeMaster()">Changer le mot de passe maître</button>
+      <button class="btn-admin" onclick="exportData()">Exporter JSON</button>
+      <button class="btn-admin" onclick="importData()">Importer JSON</button>
+      <button class="btn-admin danger" onclick="closeAdmin()">✕ Quitter admin</button>
+    </div>
+
+    <div id="coffres-grid"></div>
+    <div id="coffres-empty">Aucun coffre — passe en mode admin pour en créer.</div>
+
+    <div class="page-footer">
+      <button id="btn-admin-toggle">🔑 Admin</button>
+    </div>
+
+  </div><!-- .content -->
+</div><!-- .page -->
+
+<div id="toast"></div>
+
+<!-- Modale connexion admin -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-box" style="max-width:360px;">
+    <h3>🔑 Accès admin</h3>
+    <div class="modal-field">
+      <label>Mot de passe maître</label>
+      <input type="password" id="admin-pass-input" placeholder="••••••••">
+      <div class="modal-error" id="admin-error">Mot de passe incorrect.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="admin-cancel">Annuler</button>
+      <button class="btn-primary"   id="admin-ok">Entrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale édition coffre -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <h3 id="edit-title">Nouveau coffre</h3>
+    <div class="modal-field">
+      <label>Nom du coffre</label>
+      <input type="text" id="edit-nom" placeholder="ex : Groupe 3 — Activité 2">
+    </div>
+    <div class="modal-field">
+      <label>Mot de passe</label>
+      <input type="text" id="edit-pass" placeholder="ex : pomme42">
+      <div class="hint">Sera demandé aux élèves. Le mot de passe maître fonctionne aussi.</div>
+    </div>
+    <div class="modal-field">
+      <label>Indice visible (optionnel)</label>
+      <input type="text" id="edit-hint" placeholder="ex : Pensez au cours de lundi…">
+    </div>
+    <div class="modal-field">
+      <label>Type de contenu</label>
+      <select id="edit-type" onchange="updateContentLabel()">
+        <option value="text">Texte / consigne</option>
+        <option value="url">Lien URL</option>
+        <option value="image">Image (URL)</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label id="edit-contenu-label">Contenu</label>
+      <textarea id="edit-contenu" placeholder="Écrivez le contenu secret…"></textarea>
+      <div class="hint" id="edit-contenu-hint"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="edit-cancel">Annuler</button>
+      <button class="btn-primary"   id="edit-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   DONNÉES
+═══════════════════════════════════ */
+const STORAGE_KEY = 'cf_data_v1';
+
+const DEFAULT_DATA = {
+  master: 'superadmin',
+  nextId: 2,
+  coffres: [{
+    id: 1,
+    nom: 'Coffre exemple',
+    password: 'physique',
+    hint: 'Pensez à la matière que vous étudiez',
+    type: 'text',
+    contenu: 'Bravo ! 🎉\nVoici le contenu secret.\n\nVous pouvez commencer l\'exercice 3 page 42.'
+  }]
+};
+
+let data = (() => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || structuredClone(DEFAULT_DATA); }
+  catch { return structuredClone(DEFAULT_DATA); }
+})();
+
+let adminMode = false;
+let unlocked = {};
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════
+   RENDU
+═══════════════════════════════════ */
+function renderGrid() {
+  const grid = document.getElementById('coffres-grid');
+  const empty = document.getElementById('coffres-empty');
+  grid.innerHTML = '';
+  if (!data.coffres.length) { empty.classList.add('show'); return; }
+  empty.classList.remove('show');
+  data.coffres.forEach(c => grid.appendChild(buildCard(c)));
+}
+
+function buildCard(c) {
+  const isOpen = !!unlocked[c.id];
+  const div = document.createElement('div');
+  div.className = 'coffre-card' + (isOpen ? ' open' : '');
+  div.id = 'card-' + c.id;
+
+  const adminBtns = adminMode
+    ? `<div class="cc-admin-btns">
+         <button class="cc-admin-btn" onclick="editCoffre(${c.id})">✎</button>
+         <button class="cc-admin-btn del" onclick="deleteCoffre(${c.id})">×</button>
+       </div>`
+    : '';
+
+  if (isOpen) {
+    div.innerHTML = `
+      <div class="cc-header">
+        <span class="cc-icon">🔓</span>
+        <span class="cc-name">${escHtml(c.nom)}</span>
+        ${adminBtns}
+      </div>
+      <div class="cc-open-body">
+        ${renderContent(c)}
+        <button class="cc-relock" onclick="relock(${c.id})">🔒 Reverrouiller</button>
+      </div>`;
+  } else {
+    div.innerHTML = `
+      <div class="cc-header">
+        <span class="cc-icon">🔒</span>
+        <span class="cc-name">${escHtml(c.nom)}</span>
+        ${adminBtns}
+      </div>
+      ${c.hint ? `<div class="cc-hint">💡 ${escHtml(c.hint)}</div>` : ''}
+      <div class="cc-locked-body">
+        <div class="cc-input-row">
+          <input type="password" class="cc-input" id="inp-${c.id}" placeholder="Mot de passe…"
+            onkeydown="if(event.key==='Enter')tryUnlock(${c.id})">
+          <button class="cc-unlock-btn" onclick="tryUnlock(${c.id})">Ouvrir →</button>
+        </div>
+        <div class="cc-error" id="err-${c.id}"></div>
+      </div>`;
+  }
+  return div;
+}
+
+function renderContent(c) {
+  if (c.type === 'url') {
+    return `<a class="cc-link" href="${escHtml(c.contenu)}" target="_blank" rel="noopener">
+              🔗 ${escHtml(c.contenu)}</a>`;
+  }
+  if (c.type === 'image') {
+    return `<img class="cc-image" src="${escHtml(c.contenu)}" alt="${escHtml(c.nom)}">`;
+  }
+  return `<div class="cc-text">${escHtml(c.contenu)}</div>`;
+}
+
+/* ═══════════════════════════════════
+   DÉVERROUILLAGE
+═══════════════════════════════════ */
+function tryUnlock(id) {
+  const inp = document.getElementById('inp-' + id);
+  const errEl = document.getElementById('err-' + id);
+  const val = inp.value.trim();
+  const coffre = data.coffres.find(c => c.id === id);
+  if (!coffre) return;
+
+  if (val === data.master || val === coffre.password) {
+    unlocked[id] = true;
+    renderGrid();
+  } else {
+    errEl.textContent = 'Mot de passe incorrect.';
+    inp.value = '';
+    inp.classList.add('shake');
+    inp.addEventListener('animationend', () => inp.classList.remove('shake'), {once:true});
+    inp.focus();
+    setTimeout(() => { if(errEl) errEl.textContent = ''; }, 2500);
+  }
+}
+
+function relock(id) { delete unlocked[id]; renderGrid(); }
+function unlockAll() { data.coffres.forEach(c => unlocked[c.id] = true); renderGrid(); }
+function lockAll() { unlocked = {}; renderGrid(); }
+
+/* ═══════════════════════════════════
+   ADMIN — CONNEXION
+═══════════════════════════════════ */
+document.getElementById('btn-admin-toggle').addEventListener('click', openAdminModal);
+document.getElementById('admin-cancel').addEventListener('click', () => document.getElementById('admin-modal').classList.remove('open'));
+document.getElementById('admin-ok').addEventListener('click', doAdminLogin);
+document.getElementById('admin-pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doAdminLogin(); });
+
+function openAdminModal() {
+  document.getElementById('admin-pass-input').value = '';
+  document.getElementById('admin-error').style.display = 'none';
+  document.getElementById('admin-modal').classList.add('open');
+  setTimeout(() => document.getElementById('admin-pass-input').focus(), 60);
+}
+
+function doAdminLogin() {
+  const val = document.getElementById('admin-pass-input').value;
+  if (val === data.master) {
+    document.getElementById('admin-modal').classList.remove('open');
+    adminMode = true;
+    document.getElementById('admin-bar').style.display = 'flex';
+    renderGrid();
+  } else {
+    const e = document.getElementById('admin-error');
+    e.textContent = 'Mot de passe incorrect.';
+    e.style.display = 'block';
+    document.getElementById('admin-pass-input').value = '';
+  }
+}
+
+function closeAdmin() {
+  adminMode = false;
+  document.getElementById('admin-bar').style.display = 'none';
+  renderGrid();
+}
+
+/* ═══════════════════════════════════
+   ADMIN — GESTION COFFRES
+═══════════════════════════════════ */
+let editingId = null;
+
+function newCoffre() {
+  editingId = null;
+  document.getElementById('edit-title').textContent = 'Nouveau coffre';
+  document.getElementById('edit-nom').value = '';
+  document.getElementById('edit-pass').value = '';
+  document.getElementById('edit-hint').value = '';
+  document.getElementById('edit-type').value = 'text';
+  document.getElementById('edit-contenu').value = '';
+  updateContentLabel();
+  document.getElementById('edit-modal').classList.add('open');
+  setTimeout(() => document.getElementById('edit-nom').focus(), 60);
+}
+
+function editCoffre(id) {
+  editingId = id;
+  const c = data.coffres.find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('edit-title').textContent = 'Modifier le coffre';
+  document.getElementById('edit-nom').value = c.nom;
+  document.getElementById('edit-pass').value = c.password;
+  document.getElementById('edit-hint').value = c.hint || '';
+  document.getElementById('edit-type').value = c.type;
+  document.getElementById('edit-contenu').value = c.contenu;
+  updateContentLabel();
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+document.getElementById('edit-cancel').addEventListener('click', () => document.getElementById('edit-modal').classList.remove('open'));
+
+document.getElementById('edit-save').addEventListener('click', () => {
+  const nom = document.getElementById('edit-nom').value.trim();
+  const pass = document.getElementById('edit-pass').value.trim();
+  if (!nom) { toast('Le nom est requis.'); return; }
+  if (!pass) { toast('Le mot de passe est requis.'); return; }
+
+  const obj = {
+    id: editingId ?? data.nextId++,
+    nom,
+    password: pass,
+    hint: document.getElementById('edit-hint').value.trim(),
+    type: document.getElementById('edit-type').value,
+    contenu: document.getElementById('edit-contenu').value.trim()
+  };
+
+  if (editingId !== null) {
+    const idx = data.coffres.findIndex(c => c.id === editingId);
+    data.coffres[idx] = obj;
+  } else {
+    data.coffres.push(obj);
+  }
+  save();
+  document.getElementById('edit-modal').classList.remove('open');
+  renderGrid();
+  toast(editingId !== null ? 'Coffre mis à jour.' : 'Coffre créé.');
+});
+
+function deleteCoffre(id) {
+  const c = data.coffres.find(c => c.id === id);
+  if (!confirm(`Supprimer "${c?.nom || 'ce coffre'}" ?`)) return;
+  data.coffres = data.coffres.filter(c => c.id !== id);
+  delete unlocked[id];
+  save();
+  renderGrid();
+  toast('Coffre supprimé.');
+}
+
+function updateContentLabel() {
+  const type = document.getElementById('edit-type').value;
+  const labels = {text:'Contenu', url:'URL du lien', image:"URL de l'image"};
+  const hints = {
+    text:'Texte libre. Les retours à la ligne sont conservés.',
+    url:'URL complète, ex : https://www.youtube.com/…',
+    image:"URL directe d'une image, ex : https://…/image.png"
+  };
+  document.getElementById('edit-contenu-label').textContent = labels[type];
+  const h = document.getElementById('edit-contenu-hint');
+  h.textContent = hints[type];
+  h.style.display = hints[type] ? 'block' : 'none';
+  const ta = document.getElementById('edit-contenu');
+  ta.rows = type === 'text' ? 5 : 2;
+}
+
+/* ═══════════════════════════════════
+   ADMIN — MOT DE PASSE MAÎTRE
+═══════════════════════════════════ */
+function changeMaster() {
+  const np = prompt('Nouveau mot de passe maître :');
+  if (np && np.trim()) {
+    data.master = np.trim();
+    save();
+    toast('Mot de passe maître mis à jour.');
+  }
+}
+
+/* ═══════════════════════════════════
+   EXPORT / IMPORT
+═══════════════════════════════════ */
+function exportData() {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'coffres_config.json';
+  a.click();
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (!d.master || !Array.isArray(d.coffres)) throw new Error('Format invalide');
+        Object.assign(data, d);
+        save();
+        unlocked = {};
+        renderGrid();
+        toast('Configuration importée (' + d.coffres.length + ' coffres).');
+      } catch(err) { alert('Erreur import : ' + err.message); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ── INIT ── */
+updateContentLabel();
+renderGrid();
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corde de Melde — Ondes stationnaires</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f6f1e4;--cream2:#ede8d6;--cream3:#e3ddc8;
+  --ink:#1a1814;--ink2:#4a4640;--ink3:#8a8070;
+  --red:#c0392b;--blue:#185FA5;--blue-bg:#e8f0fb;
+  --green:#1a6e3c;--green-bg:#e4f2eb;
+  --amber:#8a5a00;--amber-bg:#fdf3dc;
+  --orange:#c05a00;--orange-bg:#fdebd8;
+  --border:#ccc5b0;--mm:3.78px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-height:100vh;padding:2rem 1.5rem;}
+.page{max-width:980px;margin:0 auto;background:var(--cream);border-radius:2px;
+  box-shadow:4px 4px 0 #b8b2a0,8px 8px 0 #a8a290,0 0 40px rgba(0,0,0,.15);
+  position:relative;overflow:hidden;}
+.page::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--cream2) 1px,transparent 1px),linear-gradient(90deg,var(--cream2) 1px,transparent 1px);
+  background-size:calc(var(--mm)*5) calc(var(--mm)*5);pointer-events:none;z-index:0;}
+.page::after{content:'';position:absolute;left:52px;top:0;bottom:0;width:1.5px;
+  background:var(--red);opacity:.5;z-index:1;pointer-events:none;}
+.holes{position:absolute;left:0;top:0;bottom:0;width:52px;display:flex;flex-direction:column;
+  justify-content:space-around;align-items:center;z-index:2;pointer-events:none;}
+.hole{width:18px;height:18px;border-radius:50%;background:#d8d2c0;border:1px solid #b8b2a0;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
+.content{position:relative;z-index:3;padding:2rem 2rem 2rem 4.5rem;}
+.header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;
+  padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.tape-label{background:rgba(255,240,180,.85);border:.5px solid rgba(200,180,80,.4);
+  padding:4px 14px;font-size:11px;letter-spacing:.1em;color:var(--ink2);white-space:nowrap;}
+.title-block{flex:1;}
+.title-block h1{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink);}
+.title-block .subtitle{font-size:11px;color:var(--ink3);margin-top:3px;}
+.card{background:rgba(255,255,255,.5);border:.5px solid var(--border);border-radius:3px;
+  padding:1rem 1.25rem;margin-bottom:1rem;}
+.card-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  margin-bottom:.75rem;font-weight:500;}
+button{font-family:'DM Mono',monospace;font-size:12px;padding:6px 16px;border-radius:2px;
+  border:.5px solid var(--border);background:var(--cream);color:var(--ink);cursor:pointer;transition:background .1s;}
+button:hover:not(:disabled){background:var(--cream2);}
+button:disabled{opacity:.35;cursor:default;}
+button.primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+button.primary:hover:not(:disabled){background:var(--ink2);}
+button.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+canvas{display:block;width:100%;background:rgba(255,255,255,.65);border:.5px solid var(--border);border-radius:3px;}
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:760px){.controls-grid{grid-template-columns:1fr;}}
+.ctrl{margin-bottom:.8rem;}
+.ctrl label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:3px;}
+.ctrl label b{color:var(--ink);font-weight:500;}
+input[type=range]{width:100%;accent-color:var(--blue);height:18px;}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.6rem;}
+.readout{background:var(--blue-bg);border:.5px solid var(--border);border-radius:3px;padding:.5rem .7rem;}
+.readout .k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);}
+.readout .v{font-size:15px;font-weight:500;color:var(--blue);margin-top:2px;}
+.badge{display:inline-block;padding:3px 12px;border-radius:2px;font-size:11px;letter-spacing:.08em;}
+.badge.res{background:var(--green-bg);color:var(--green);border:.5px solid var(--green);}
+.badge.off{background:var(--cream2);color:var(--ink3);border:.5px solid var(--border);}
+.modes-row{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;}
+.modes-row .lbl{font-size:11px;color:var(--ink2);margin-right:.3rem;}
+.toggles{display:flex;flex-wrap:wrap;gap:1rem;font-size:11px;color:var(--ink2);align-items:center;}
+.toggles label{display:flex;gap:.35rem;align-items:center;cursor:pointer;}
+input[type=checkbox]{accent-color:var(--blue);}
+select{font-family:'DM Mono',monospace;font-size:11px;padding:3px 6px;background:var(--cream);
+  border:.5px solid var(--border);border-radius:2px;color:var(--ink);}
+.note{font-size:10.5px;color:var(--ink3);line-height:1.5;margin-top:.6rem;}
+.strobe-row{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;}
+.strobe-row .ctrl{flex:1;min-width:220px;margin-bottom:0;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+  <div class="content">
+
+    <div class="header">
+      <div class="title-block">
+        <h1>Corde de Melde</h1>
+        <div class="subtitle">Ondes stationnaires — résonance — nœuds &amp; ventres — v = √(T/μ)</div>
+      </div>
+      <div class="tape-label">OUTIL — ONDES</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Expérience <span id="resBadge" class="badge off" style="float:right">hors résonance</span></div>
+      <canvas id="cv" width="880" height="340"></canvas>
+      <div class="note">Le vibreur (à gauche) impose une oscillation de faible amplitude à la fréquence f.
+        La corde passe sur une poulie ; la masse suspendue fixe la tension T = m·g.
+        Quand L = n·λ/2, l'onde réfléchie se superpose en phase : <b>résonance</b>, n fuseaux apparaissent.</div>
+    </div>
+
+    <div class="controls-grid">
+      <div class="card">
+        <div class="card-title">Réglages</div>
+        <div class="ctrl">
+          <label><span>Fréquence du vibreur f</span><b id="fVal"></b></label>
+          <input type="range" id="f" min="10" max="150" step="0.1" value="50">
+        </div>
+        <div class="ctrl">
+          <label><span>Masse suspendue m</span><b id="mVal"></b></label>
+          <input type="range" id="m" min="20" max="500" step="5" value="200">
+        </div>
+        <div class="ctrl">
+          <label><span>Longueur vibrante L</span><b id="LVal"></b></label>
+          <input type="range" id="L" min="0.5" max="2" step="0.01" value="1.2">
+        </div>
+        <div class="ctrl">
+          <label><span>Masse linéique μ</span><b id="muVal"></b></label>
+          <input type="range" id="mu" min="1" max="20" step="0.5" value="5">
+        </div>
+        <div class="modes-row" style="margin-top:.6rem">
+          <span class="lbl">Résonances :</span>
+          <span id="modeBtns"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mesures</div>
+        <div class="readouts">
+          <div class="readout"><div class="k">Tension T = m·g</div><div class="v" id="outT"></div></div>
+          <div class="readout"><div class="k">Célérité v = √(T/μ)</div><div class="v" id="outV"></div></div>
+          <div class="readout"><div class="k">Longueur d'onde λ = v/f</div><div class="v" id="outLam"></div></div>
+          <div class="readout"><div class="k">2L/λ</div><div class="v" id="outN"></div></div>
+        </div>
+        <div class="toggles" style="margin-top:.9rem">
+          <label><input type="checkbox" id="cbEnv" checked> enveloppe</label>
+          <label><input type="checkbox" id="cbNV" checked> nœuds / ventres</label>
+          <label><input type="checkbox" id="cbLam" checked> mesure de λ/2</label>
+          <label>ralenti
+            <select id="slow">
+              <option value="1">×1</option>
+              <option value="0.1" selected>×1/10</option>
+              <option value="0.02">×1/50</option>
+            </select>
+          </label>
+          <button id="btnPause">⏸ Pause</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Stroboscope</div>
+      <div class="strobe-row">
+        <button id="btnStrobe">💡 Activer</button>
+        <div class="ctrl">
+          <label><span>Fréquence des éclairs f<sub>e</sub></span><b id="fsVal"></b></label>
+          <input type="range" id="fs" min="10" max="150" step="0.05" value="50" disabled>
+        </div>
+        <button id="btnSync" disabled>f<sub>e</sub> = f</button>
+      </div>
+      <div class="note">En éclairage stroboscopique, on ne voit la corde qu'aux instants des éclairs :
+        si f<sub>e</sub> = f la corde paraît <b>immobile</b> ; si f<sub>e</sub> est légèrement différente, elle paraît osciller au ralenti
+        à la fréquence apparente |f − f<sub>e</sub>|.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const G = 9.81, EPS = 0.07;          // EPS : amortissement (limite l'amplitude à la résonance)
+
+const state = { f:50, m:0.200, L:1.2, mu:0.005, phase:0, paused:false,
+                strobe:false, fs:50, slow:0.1 };
+
+// ---------- liaisons UI ----------
+function readUI(){
+  state.f  = +$('f').value;
+  state.m  = +$('m').value/1000;     // g -> kg
+  state.L  = +$('L').value;
+  state.mu = +$('mu').value/1000;    // g/m -> kg/m
+  state.fs = +$('fs').value;
+  state.slow = +$('slow').value;
+  refreshReadouts();
+}
+['f','m','L','mu','fs'].forEach(id => $(id).addEventListener('input', readUI));
+$('slow').addEventListener('change', readUI);
+
+$('btnPause').addEventListener('click', () => {
+  state.paused = !state.paused;
+  $('btnPause').textContent = state.paused ? '▶ Lecture' : '⏸ Pause';
+});
+$('btnStrobe').addEventListener('click', () => {
+  state.strobe = !state.strobe;
+  $('btnStrobe').classList.toggle('active', state.strobe);
+  $('btnStrobe').textContent = state.strobe ? '💡 Stroboscope ON' : '💡 Activer';
+  $('fs').disabled = $('btnSync').disabled = !state.strobe;
+  if(state.strobe){ $('fs').value = $('f').value; readUI(); }
+});
+$('btnSync').addEventListener('click', () => { $('fs').value = $('f').value; readUI(); });
+
+// boutons de résonance f_n = n·v/(2L)
+function buildModeBtns(){
+  const v = Math.sqrt(state.m*G/state.mu);
+  const holder = $('modeBtns'); holder.innerHTML='';
+  for(let n=1;n<=6;n++){
+    const fn = n*v/(2*state.L);
+    if(fn<10||fn>150) continue;
+    const b = document.createElement('button');
+    b.textContent = 'n='+n;
+    b.title = fn.toFixed(1)+' Hz';
+    b.style.marginRight='4px';
+    b.addEventListener('click',()=>{ $('f').value=fn.toFixed(2); readUI(); });
+    holder.appendChild(b);
+  }
+}
+
+function fmt(x,d){ return x.toFixed(d).replace('.',','); }
+function refreshReadouts(){
+  const T = state.m*G, v = Math.sqrt(T/state.mu), lam = v/state.f;
+  const nReal = 2*state.L/lam;
+  $('fVal').textContent  = fmt(state.f,1)+' Hz';
+  $('mVal').textContent  = fmt(state.m*1000,0)+' g';
+  $('LVal').textContent  = fmt(state.L,2)+' m';
+  $('muVal').textContent = fmt(state.mu*1000,1)+' g/m';
+  $('fsVal').textContent = fmt(state.fs,2)+' Hz';
+  $('outT').textContent   = fmt(T,2)+' N';
+  $('outV').textContent   = fmt(v,1)+' m/s';
+  $('outLam').textContent = fmt(lam*100,1)+' cm';
+  $('outN').textContent   = fmt(nReal,2);
+  const nInt = Math.round(nReal), atRes = Math.abs(nReal-nInt)<0.05 && nInt>=1;
+  const badge = $('resBadge');
+  badge.className = 'badge '+(atRes?'res':'off');
+  badge.textContent = atRes ? 'RÉSONANCE — '+nInt+' fuseau'+(nInt>1?'x':'') : 'hors résonance';
+  buildModeBtns();
+}
+
+// ---------- physique ----------
+// y(x,t) = a · sin(k(L−x)) · sin(phase) / sqrt(sin²(kL)+EPS²)
+function waveAt(xFrac, k, sinPhase, denom){
+  const x = xFrac*state.L;
+  return Math.sin(k*(state.L-x))*sinPhase/denom;
+}
+
+// ---------- dessin ----------
+const X0 = 120, X1 = 790, YMID = 150, APX = 6; // amplitude du vibreur en px
+function draw(){
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const T = state.m*G, v = Math.sqrt(T/state.mu), lam = v/state.f;
+  const k = 2*Math.PI/lam, kL = k*state.L;
+  const denom = Math.sqrt(Math.sin(kL)**2 + EPS*EPS);
+  const sinPh = Math.sin(state.phase);
+  const ppm = (X1-X0)/state.L; // pixels par mètre
+
+  // règle graduée (tous les 10 cm)
+  ctx.strokeStyle='#b8b2a0'; ctx.fillStyle='#8a8070';
+  ctx.font='9px "DM Mono"'; ctx.textAlign='center'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(X0,288); ctx.lineTo(X1,288); ctx.stroke();
+  for(let cm=0; cm<=state.L*100+0.01; cm+=10){
+    const x = X0+cm/100*ppm;
+    ctx.beginPath(); ctx.moveTo(x,288); ctx.lineTo(x,282); ctx.stroke();
+    ctx.fillText(cm, x, 300);
+  }
+  ctx.fillText('cm', X1+22, 300);
+
+  // potence + vibreur
+  ctx.fillStyle='#4a4640';
+  ctx.fillRect(40,60,14,250);            // pied
+  ctx.fillRect(30,304,80,8);             // socle
+  const yDrv = YMID - waveAt(0,k,sinPh,denom)*APX/1; // y(0)
+  ctx.fillStyle='#1a1814';
+  ctx.fillRect(54,YMID-32,46,64);        // boîtier vibreur
+  ctx.fillStyle='#f6f1e4'; ctx.font='10px "DM Mono"'; ctx.textAlign='center';
+  ctx.fillText('GBF', 77, YMID-12);
+  ctx.fillText(fmt(state.f,1), 77, YMID+4);
+  ctx.fillText('Hz', 77, YMID+18);
+  ctx.strokeStyle='#1a1814'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(100,yDrv); ctx.lineTo(X0,yDrv); ctx.stroke(); // tige
+
+  // poulie + masse
+  const yP = YMID;
+  ctx.strokeStyle='#4a4640'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(X1+14,yP+14,16,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#ede8d6'; ctx.beginPath(); ctx.arc(X1+14,yP+14,16,0,2*Math.PI); ctx.fill();
+  ctx.strokeStyle='#4a4640'; ctx.beginPath(); ctx.arc(X1+14,yP+14,16,0,2*Math.PI); ctx.stroke();
+  ctx.beginPath(); ctx.arc(X1+14,yP+14,3,0,2*Math.PI); ctx.fillStyle='#4a4640'; ctx.fill();
+  // fil vertical + masse (taille ∝ m)
+  const mh = 18+state.m*60, mw = 26+state.m*30;
+  ctx.strokeStyle='#1a1814'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(X1+30,yP+14); ctx.lineTo(X1+30,yP+60); ctx.stroke();
+  ctx.fillStyle='#5c5446';
+  ctx.fillRect(X1+30-mw/2, yP+60, mw, mh);
+  ctx.fillStyle='#f6f1e4'; ctx.font='9px "DM Mono"';
+  ctx.fillText(fmt(state.m*1000,0)+' g', X1+30, yP+60+mh/2+3);
+
+  // enveloppe
+  if($('cbEnv').checked){
+    ctx.strokeStyle='rgba(192,57,43,.45)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    for(const s of [1,-1]){
+      ctx.beginPath();
+      for(let i=0;i<=200;i++){
+        const xf=i/200, env=Math.abs(Math.sin(k*(state.L-xf*state.L)))/denom;
+        const y=YMID - s*env*APX;
+        i?ctx.lineTo(X0+xf*(X1-X0),y):ctx.moveTo(X0+xf*(X1-X0),y);
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  // corde
+  ctx.strokeStyle='#185FA5'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let i=0;i<=300;i++){
+    const xf=i/300, y=YMID - waveAt(xf,k,sinPh,denom)*APX;
+    i?ctx.lineTo(X0+xf*(X1-X0),y):ctx.moveTo(X0+xf*(X1-X0),y);
+  }
+  ctx.stroke();
+
+  // nœuds / ventres + mesure λ/2
+  const nodes=[];
+  for(let mm=0; mm*lam/2<=state.L+1e-9; mm++) nodes.push(state.L-mm*lam/2);
+  nodes.reverse(); // de gauche à droite
+  if($('cbNV').checked){
+    ctx.font='10px "DM Mono"';
+    for(const xn of nodes){
+      if(xn< -1e-6) continue;
+      const px=X0+Math.max(xn,0)/state.L*(X1-X0);
+      ctx.fillStyle='#1a6e3c';
+      ctx.beginPath(); ctx.arc(px,YMID,4,0,2*Math.PI); ctx.fill();
+      ctx.fillText('N',px,YMID+24);
+    }
+    ctx.fillStyle='#c05a00';
+    for(let i=0;i<nodes.length-1;i++){
+      const xv=(nodes[i]+nodes[i+1])/2;
+      if(xv<0) continue;
+      const px=X0+xv/state.L*(X1-X0);
+      const env=Math.abs(Math.sin(k*(state.L-xv)))/denom;
+      ctx.fillText('V',px,YMID-env*APX-10);
+    }
+  }
+  if($('cbLam').checked && nodes.length>=2){
+    const a=nodes[nodes.length-2], b=nodes[nodes.length-1];
+    if(a>=0){
+      const p1=X0+a/state.L*(X1-X0), p2=X0+b/state.L*(X1-X0), yA=YMID+44;
+      ctx.strokeStyle='#8a5a00'; ctx.fillStyle='#8a5a00'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(p1,yA); ctx.lineTo(p2,yA); ctx.stroke();
+      for(const [px,s] of [[p1,1],[p2,-1]]){
+        ctx.beginPath(); ctx.moveTo(px,yA); ctx.lineTo(px+s*7,yA-4);
+        ctx.moveTo(px,yA); ctx.lineTo(px+s*7,yA+4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px,yA-6); ctx.lineTo(px,yA+6); ctx.stroke();
+      }
+      ctx.font='11px "DM Mono"'; ctx.textAlign='center';
+      ctx.fillText('λ/2 = '+fmt(lam/2*100,1)+' cm',(p1+p2)/2,yA+16);
+    }
+  }
+}
+
+// ---------- boucle ----------
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,0.05); last=now;
+  if(!state.paused){
+    const df = state.strobe ? (state.f-state.fs) : state.f;
+    state.phase += 2*Math.PI*df*dt*state.slow/(state.strobe?state.slow:1);
+    // en mode strobe : battement réel (pas de ralenti artificiel)
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+readUI();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

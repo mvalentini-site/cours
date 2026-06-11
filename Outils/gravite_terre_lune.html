@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gravité Terre–Lune</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,100;0,400;0,700;1,100&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f0e8;
+  --ink: #1a1612;
+  --ink2: #5a4f42;
+  --accent: #c84b2f;
+  --panel: #ede8de;
+  --border: #ccc4b4;
+  --earth: #2a5fa8;
+  --moon: #7a7060;
+  --shuttle: #c84b2f;
+  --green: #2e7d4f;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 2rem 1rem 4rem;
+  background-image:
+    radial-gradient(circle at 15% 85%, rgba(200,75,47,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 85% 10%, rgba(42,95,168,0.05) 0%, transparent 50%);
+}
+
+header { text-align: center; margin-bottom: 2.5rem; }
+header h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+}
+header h1 em { color: var(--accent); font-style: italic; }
+header p { margin-top: .5rem; color: var(--ink2); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.4rem;
+  width: 100%; max-width: 860px;
+}
+.card + .card { margin-top: 1rem; }
+
+.card-title {
+  font-size: .62rem; text-transform: uppercase; letter-spacing: .15em;
+  color: var(--ink2); border-bottom: 1px solid var(--border);
+  padding-bottom: .6rem; margin-bottom: 1.2rem;
+}
+
+/* ── Canvas schema ── */
+canvas {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 3px;
+  background: var(--bg);
+}
+
+/* ── Slider ── */
+.slider-wrap { margin-top: 1.2rem; }
+.slider-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: .7rem;
+}
+.slider-header .lbl { font-size: .65rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink2); }
+.slider-header .val { font-size: .8rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 3px;
+  background: var(--border); border-radius: 2px;
+  outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+.ticks {
+  display: flex; justify-content: space-between;
+  margin-top: .4rem; font-size: 1.4rem; color: var(--ink2);
+}
+
+/* ── Forces grid ── */
+.forces-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+@media (max-width: 520px) { .forces-grid { grid-template-columns: 1fr; } }
+
+.force-panel {
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 1rem 1.1rem;
+  transition: border-color .3s;
+  position: relative; overflow: hidden;
+}
+.force-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.force-panel.earth-panel::before { background: var(--earth); }
+.force-panel.moon-panel::before  { background: var(--moon); }
+.force-panel.dominant { border-color: var(--green); }
+.force-panel.dominant::before { background: var(--green); }
+
+.fp-header {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem;
+}
+.planet-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.planet-dot.earth { background: var(--earth); }
+.planet-dot.moon  { background: var(--moon); }
+
+.fp-title {
+  font-family: 'Fraunces', serif; font-size: .95rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -.01em;
+}
+.badge {
+  margin-left: auto; font-size: .55rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--green);
+  border: 1px solid var(--green); border-radius: 2px;
+  padding: 1px 5px; opacity: 0; transition: opacity .3s;
+}
+.force-panel.dominant .badge { opacity: 1; }
+
+.data-row {
+  display: flex; justify-content: space-between;
+  font-size: .65rem; margin-bottom: .45rem; line-height: 1.5;
+}
+.data-row .key { color: var(--ink2); }
+.data-row .value { color: var(--ink); font-weight: 500; }
+
+.force-result {
+  margin-top: .9rem; padding-top: .8rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+}
+.force-result .flabel {
+  font-size: .6rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink2);
+}
+.force-value {
+  font-family: 'Fraunces', serif; font-size: 1.4rem;
+  font-weight: 700; letter-spacing: -.02em; color: var(--ink);
+}
+.force-unit { font-size: .7rem; color: var(--ink2); }
+
+/* ── Neutral bar ── */
+.neutral-bar {
+  font-size: .72rem; color: var(--ink2); line-height: 1.6;
+}
+.neutral-bar strong { color: var(--ink); font-weight: 500; }
+.neutral-bar .hl { color: var(--accent); }
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-decoration:none;color:#7a6a50;background:rgba(246,241,228,0.92);border:1px solid #ccc4b4;padding:4px 12px;border-radius:2px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.1);" onmouseover="this.style.color='#a63020';this.style.borderColor='#a63020'" onmouseout="this.style.color='#7a6a50';this.style.borderColor='#ccc4b4'">← Accueil</a>
+
+<header>
+  <h1>Gravité <em>Terre–Lune</em></h1>
+  <p>Mission Artémis · Attraction gravitationnelle en transit</p>
+</header>
+
+<!-- Schéma -->
+<div class="card">
+  <div class="card-title">Schéma du transit</div>
+  <canvas id="schema"></canvas>
+
+  <div class="slider-wrap">
+    <div class="slider-header">
+      <span class="lbl">Distance depuis la Terre</span>
+      <span class="val" id="dist-display">—</span>
+    </div>
+    <input type="range" id="slider" min="1000000" max="383400000" step="1000000" value="192200000">
+    <div class="ticks">
+      <span>Terre</span>
+      <span>¼</span>
+      <span>½</span>
+      <span>¾</span>
+      <span>Lune</span>
+    </div>
+  </div>
+</div>
+
+<!-- Forces -->
+<div class="card">
+  <div class="card-title">Forces gravitationnelles sur Artémis (Orion+SLS · 25 848 kg)</div>
+  <div class="forces-grid">
+
+    <div class="force-panel earth-panel" id="panel-earth">
+      <div class="fp-header">
+        <div class="planet-dot earth"></div>
+        <div class="fp-title">Terre</div>
+        <div class="badge">Dominant</div>
+      </div>
+      <div class="data-row"><span class="key">Masse Terre (M⊕)</span><span class="value">5,972 × 10²⁴ kg</span></div>
+      <div class="data-row"><span class="key">Masse navette (m)</span><span class="value">25 848 kg</span></div>
+      <div class="data-row"><span class="key">Distance navette–Terre</span><span class="value" id="d-earth">—</span></div>
+      <div class="force-result">
+        <span class="flabel">F⊕ =</span>
+        <span class="force-value" id="f-earth">—</span>
+        <span class="force-unit">N</span>
+      </div>
+    </div>
+
+    <div class="force-panel moon-panel" id="panel-moon">
+      <div class="fp-header">
+        <div class="planet-dot moon"></div>
+        <div class="fp-title">Lune</div>
+        <div class="badge">Dominant</div>
+      </div>
+      <div class="data-row"><span class="key">Masse Lune (M☾)</span><span class="value">7,342 × 10²² kg</span></div>
+      <div class="data-row"><span class="key">Masse navette (m)</span><span class="value">25 848 kg</span></div>
+      <div class="data-row"><span class="key">Distance navette–Lune</span><span class="value" id="d-moon">—</span></div>
+      <div class="force-result">
+        <span class="flabel">F☾ =</span>
+        <span class="force-value" id="f-moon">—</span>
+        <span class="force-unit">N</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Point neutre -->
+<div class="card">
+  <div class="neutral-bar">
+    Point de neutralité gravitationnelle :
+    <strong id="neutral-dist">—</strong> depuis la Terre
+    — soit <span class="hl" id="neutral-pct">—</span> du trajet total
+  </div>
+</div>
+
+<script>
+const G   = 6.674e-11;
+const M_E = 5.972e24;
+const M_M = 7.342e22;
+const m   = 25848;
+const D   = 384400000;
+
+const d_neutral = D * Math.sqrt(M_E) / (Math.sqrt(M_E) + Math.sqrt(M_M));
+
+const canvas = document.getElementById('schema');
+const ctx    = canvas.getContext('2d');
+
+function setupCanvas() {
+  const w = canvas.parentElement.clientWidth - 2.8 * 16;
+  canvas.width  = w;
+  canvas.height = 150;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function drawCross(x, y, size, color) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x-size, y); ctx.lineTo(x+size, y);
+  ctx.moveTo(x, y-size); ctx.lineTo(x, y+size);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawRocket(cx, cy, s, col) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // corps
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.ellipse(0, 0, s*2.2, s*0.85, 0, 0, Math.PI*2); ctx.fill();
+
+  // ailerons
+  ctx.beginPath(); ctx.moveTo(-s*1.2, s*0.85); ctx.lineTo(-s*2.4, s*2.1); ctx.lineTo(-s*0.4, s*0.85); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-s*1.2,-s*0.85); ctx.lineTo(-s*2.4,-s*2.1); ctx.lineTo(-s*0.4,-s*0.85); ctx.closePath(); ctx.fill();
+  // hublot
+  ctx.fillStyle = '#f5f0e8';
+  ctx.beginPath(); ctx.arc(s*1.2, 0, s*0.4, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#ccc4b4'; ctx.lineWidth = 0.6; ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawArrow(x1, y1, x2, y2, color, w) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  if (len < 3) return;
+  const ux=dx/len, uy=dy/len, hw=Math.max(w*3,5);
+  ctx.save();
+  ctx.strokeStyle=color; ctx.lineWidth=w; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2-ux*hw*.6, y2-uy*hw*.6); ctx.stroke();
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*hw-uy*hw*.6, y2-uy*hw+ux*hw*.6);
+  ctx.lineTo(x2-ux*hw+uy*hw*.6, y2-uy*hw-ux*hw*.6);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawSchema(dist) {
+  const W=canvas.width, H=canvas.height;
+  const PAD=64, yA=H/2;
+  const xE=PAD, xM=W-PAD;
+  const t = Math.min(Math.max(dist/D, 0.005), 0.995);
+  const xS = lerp(xE, xM, t);
+  const xN = lerp(xE, xM, d_neutral/D);
+
+  ctx.clearRect(0,0,W,H);
+
+  // bg
+  ctx.fillStyle='#f5f0e8'; ctx.fillRect(0,0,W,H);
+
+  // axe
+  ctx.strokeStyle='#ccc4b4'; ctx.lineWidth=1; ctx.setLineDash([3,7]);
+  ctx.beginPath(); ctx.moveTo(xE,yA); ctx.lineTo(xM,yA); ctx.stroke();
+  ctx.setLineDash([]);
+
+
+  // Terre
+  drawCross(xE, yA, 9, '#2a5fa8');
+  ctx.fillStyle='#2a5fa8'; ctx.font='bold 10px "DM Mono",monospace'; ctx.textAlign='center';
+  ctx.fillText('TERRE', xE, yA+28);
+
+  // Lune
+  drawCross(xM, yA, 9, '#7a7060');
+  ctx.fillStyle='#7a7060'; ctx.font='bold 10px "DM Mono",monospace'; ctx.textAlign='center';
+  ctx.fillText('LUNE', xM, yA+28);
+
+  // forces
+  const fE_v = G*M_E*m/(dist*dist);
+  const fM_v = G*M_M*m/((D-dist)*(D-dist));
+  const maxF = Math.max(fE_v, fM_v);
+  const scale = 58;
+  const lunaWins = fM_v > fE_v;
+
+  const colE = lunaWins ? '#c84b2f' : '#2e7d4f';
+  const colM = lunaWins ? '#2e7d4f' : '#c84b2f';
+  const wE   = lunaWins ? 1.5 : 2;
+  const wM   = lunaWins ? 2 : 1.5;
+  const rHW  = 13;
+
+  const aE = Math.max((fE_v/maxF)*scale, 4);
+  const aM = Math.max((fM_v/maxF)*scale, 4);
+
+  drawArrow(xS-rHW-2, yA, xS-rHW-2-aE, yA, colE, wE);
+  drawArrow(xS+rHW+2, yA, xS+rHW+2+aM, yA, colM, wM);
+
+
+  drawRocket(xS, yA, 5, '#c84b2f');
+
+  ctx.fillStyle='#c84b2f'; ctx.font='9px "DM Mono",monospace'; ctx.textAlign='center';
+  ctx.fillText('Artémis', xS, yA+28);
+}
+
+function fmtDist(m) {
+  if (m >= 1e6) return (m/1e6).toFixed(1)+' Mm';
+  return (m/1e3).toFixed(0)+' km';
+}
+
+function fmtSci(f) {
+  const exp = Math.floor(Math.log10(f));
+  const mant = f / Math.pow(10, exp);
+  const sup = n => n.toString().split('').map(c=>({'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'}[c]||c)).join('');
+  return mant.toFixed(3)+' × 10'+sup(exp);
+}
+
+function update() {
+  const dist = parseFloat(document.getElementById('slider').value);
+  const dMoon = D - dist;
+  const fE = G*M_E*m/(dist*dist);
+  const fM = G*M_M*m/(dMoon*dMoon);
+  const lunaWins = fM > fE;
+
+  document.getElementById('dist-display').textContent = fmtDist(dist);
+  document.getElementById('d-earth').textContent = fmtDist(dist);
+  document.getElementById('d-moon').textContent  = fmtDist(dMoon);
+  document.getElementById('f-earth').textContent = fmtSci(fE);
+  document.getElementById('f-moon').textContent  = fmtSci(fM);
+
+  document.getElementById('panel-earth').classList.toggle('dominant', !lunaWins);
+  document.getElementById('panel-moon').classList.toggle('dominant',  lunaWins);
+
+  drawSchema(dist);
+}
+
+document.getElementById('neutral-dist').textContent = fmtDist(d_neutral);
+document.getElementById('neutral-pct').textContent  = (d_neutral/D*100).toFixed(1)+'%';
+
+document.getElementById('slider').addEventListener('input', update);
+window.addEventListener('resize', () => { setupCanvas(); update(); });
+
+setupCanvas();
+update();
+</script>
+</body>
+</html>

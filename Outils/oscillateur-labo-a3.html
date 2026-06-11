@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oscillateur Harmonique — Cahier de Labo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper:    #f6f1e4;
+  --paper2:   #ede7d3;
+  --paper3:   #e4ddc8;
+  --ink:      #1c1208;
+  --ink2:     #2d200a;
+  --faded:    #7a6a50;
+  --faded2:   #a89070;
+  --red:      #a63020;
+  --blue:     #1c3d6e;
+  --green:    #2a5c3a;
+  --grid-maj: rgba(70,90,200,0.13);
+  --grid-min: rgba(70,90,200,0.055);
+  --margin:   rgba(190,50,30,0.28);
+  --tape:     rgba(220,200,150,0.58);
+  --mono:     'DM Mono', monospace;
+  --serif:    'Fraunces', serif;
+}
+
+html, body {
+  min-height: 100vh;
+  background: #8a8070;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, #9a9080 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, #7a7060 0%, transparent 50%);
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 48px;
+}
+
+/* ── NOTEBOOK SPREAD ───────────────────────────────────────────────────── */
+.notebook {
+  width: 100%;
+  max-width: 1340px;
+  display: flex;
+  position: relative;
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.35),
+    0 2px 8px  rgba(0,0,0,0.2);
+}
+
+/* ── SPINE (reliure centrale) ──────────────────────────────────────────── */
+.spine {
+  width: 24px;
+  flex-shrink: 0;
+  background: linear-gradient(to bottom,
+    #3a3020 0%, #2a2010 8%,
+    #4a4030 15%, #2e2418 25%,
+    #3a3020 35%, #2a2010 50%,
+    #3a3020 65%, #2e2418 75%,
+    #4a4030 85%, #2a2010 92%,
+    #3a3020 100%);
+  position: relative;
+  z-index: 10;
+  box-shadow:
+    -3px 0 12px rgba(0,0,0,0.4),
+     3px 0 12px rgba(0,0,0,0.4);
+}
+
+/* Spiral binding dots */
+.spine::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  transform: translateX(-50%);
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1a1408 0px, #1a1408 4px,
+    transparent 4px, transparent 22px
+  );
+}
+
+/* ── PAGE (left + right) ───────────────────────────────────────────────── */
+.page {
+  flex: 1;
+  background: var(--paper);
+  position: relative;
+  padding: 44px 40px 56px 40px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.page.left  {
+  border-radius: 3px 0 0 3px;
+  padding-left: 68px; /* room for margin */
+  box-shadow: inset -4px 0 12px rgba(0,0,0,0.08);
+}
+.page.right {
+  border-radius: 0 3px 3px 0;
+  padding-right: 52px;
+  box-shadow: inset 4px 0 12px rgba(0,0,0,0.08);
+}
+
+/* Millimetre grid */
+.page::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(transparent, transparent 9px, var(--grid-min) 9px, var(--grid-min) 10px),
+    repeating-linear-gradient(90deg, transparent, transparent 9px, var(--grid-min) 9px, var(--grid-min) 10px),
+    repeating-linear-gradient(transparent, transparent 49px, var(--grid-maj) 49px, var(--grid-maj) 50px),
+    repeating-linear-gradient(90deg, transparent, transparent 49px, var(--grid-maj) 49px, var(--grid-maj) 50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Margin line — left page only */
+.page.left::after {
+  content: '';
+  position: absolute;
+  left: 56px; top: 0; bottom: 0;
+  width: 1.5px;
+  background: var(--margin);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Page curl shadow at spine */
+.page.left  { background-image: linear-gradient(to right,  rgba(0,0,0,0.04) 0%, transparent 60px); }
+.page.right { background-image: linear-gradient(to left,   rgba(0,0,0,0.04) 0%, transparent 60px); }
+
+.page > * { position: relative; z-index: 2; }
+
+/* Punch holes — left page */
+.holes {
+  position: absolute;
+  left: 18px; top: 0; bottom: 0;
+  display: flex; flex-direction: column;
+  justify-content: space-around;
+  padding: 60px 0; z-index: 10;
+}
+.hole {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #8a8070;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 1px rgba(255,255,255,0.25);
+}
+
+/* Page numbers */
+.page-num {
+  position: absolute;
+  bottom: 18px; font-size: 10px; color: var(--faded2); letter-spacing: 2px;
+}
+.page.left  .page-num { left:  68px; }
+.page.right .page-num { right: 52px; }
+
+/* ── TAPE strip ─────────────────────────────────────────────────────────── */
+.tape-strip {
+  display: inline-block;
+  background: var(--tape);
+  padding: 3px 16px 3px 10px;
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--faded);
+  transform: rotate(var(--rot,-0.7deg));
+  margin-bottom: 12px;
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+.tape-strip::before, .tape-strip::after {
+  content:''; position:absolute; top:0; bottom:0; width:5px;
+  background:rgba(200,180,130,0.7);
+}
+.tape-strip::before{left:0;} .tape-strip::after{right:0;}
+
+/* ── HEADER ─────────────────────────────────────────────────────────────── */
+.header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 24px; padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--ink2);
+}
+.exp-tag { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--faded); margin-bottom: 5px; }
+h1 { font-family: var(--serif); font-size: clamp(22px,2.8vw,38px); font-weight: 700; font-style: italic; color: var(--ink); line-height: 1; letter-spacing: -0.5px; }
+h1 em { color: var(--red); font-style: normal; border-bottom: 2px solid rgba(166,48,32,0.35); }
+.meta-block { text-align: right; font-size: 10px; color: var(--faded); line-height: 1.8; }
+.meta-block .date { font-family: var(--serif); font-size: 13px; color: var(--blue); font-weight: 600; }
+
+/* ── SECTION ─────────────────────────────────────────────────────────────── */
+.sec { display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:20px; }
+.sec:first-of-type { margin-top: 0; }
+.sec-num  { background:var(--ink2); color:var(--paper); font-size:8px; font-weight:500; padding:2px 6px; letter-spacing:1px; }
+.sec-name { font-size:8px; letter-spacing:3px; text-transform:uppercase; color:var(--faded); }
+
+/* ── CANVAS ─────────────────────────────────────────────────────────────── */
+.canvas-wrap { border:1px solid rgba(28,18,8,0.2); background:var(--paper); margin-bottom:4px; position:relative; }
+canvas       { display:block; width:100%; }
+.canvas-caption { font-size:9px; color:var(--faded2); text-align:center; padding:4px 0; font-style:italic; border-top:1px solid rgba(28,18,8,0.08); }
+
+/* ── FORMULA GRID ───────────────────────────────────────────────────────── */
+.formula-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fcard {
+  border:1.5px solid var(--ink2); padding:12px 12px 10px;
+  background:rgba(255,255,255,0.3); position:relative;
+  transform:rotate(var(--rot,0deg));
+}
+.fcard-tag {
+  position:absolute; top:-8px; left:8px;
+  background:var(--tape); padding:1px 7px;
+  font-size:7px; letter-spacing:2px; text-transform:uppercase; color:var(--faded);
+  box-shadow:0 1px 2px rgba(0,0,0,0.08);
+}
+.fcard-expr { font-family:var(--serif); font-size:16px; font-style:italic; color:var(--blue); line-height:1.2; }
+
+/* ── PARAM BOX ──────────────────────────────────────────────────────────── */
+.param-box, .result-box {
+  border:1.5px solid var(--ink2); padding:18px 14px 14px;
+  background:rgba(255,255,255,0.2); position:relative;
+  margin-bottom: 16px;
+}
+.box-tag {
+  position:absolute; top:-9px; left:10px;
+  background:var(--tape); padding:1px 9px;
+  font-size:7px; letter-spacing:3px; text-transform:uppercase; color:var(--ink2);
+  box-shadow:1px 1px 3px rgba(0,0,0,0.1); transform:rotate(-0.4deg);
+}
+
+/* param fields */
+.pfield { margin-bottom:13px; }
+.pfield:last-child { margin-bottom:0; }
+.phead  { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+.pname  { font-size:10px; color:var(--ink2); }
+.psym   { font-family:var(--serif); font-style:italic; font-size:14px; color:var(--blue); }
+.stepper-row { display:flex; align-items:center; gap:4px; margin-bottom:4px; }
+.btn-step {
+  width:24px; height:24px; border:1.5px solid var(--ink2); background:var(--paper2);
+  color:var(--ink); font-size:15px; font-family:var(--mono); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .13s; flex-shrink:0; border-radius:1px;
+}
+.btn-step:hover { border-color:var(--red); color:var(--red); background:rgba(166,48,32,0.07); }
+.btn-step:active { transform:scale(0.88); }
+.val-input {
+  flex:1; background:rgba(255,255,255,0.55); border:none;
+  border-bottom:1.5px solid var(--ink2); color:var(--ink);
+  font-family:var(--mono); font-size:13px; font-weight:500;
+  padding:2px 4px; text-align:center; outline:none; min-width:0; transition:border-color .2s;
+}
+.val-input:focus { border-bottom-color:var(--blue); }
+.unit-lbl { font-size:9px; color:var(--faded); min-width:38px; font-style:italic; }
+input[type=range] {
+  flex:1; -webkit-appearance:none; height:2px; background:var(--faded2); outline:none; cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:11px; height:11px; border-radius:50%;
+  background:var(--paper); border:2px solid var(--red); cursor:pointer;
+  transition:transform .15s; box-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.3); }
+.slider-row { display:flex; }
+
+/* results */
+.ritem { display:flex; align-items:baseline; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(28,18,8,0.12); gap:4px; }
+.ritem:last-child { border-bottom:none; }
+.rlabel { font-size:9px; color:var(--faded); flex:1; }
+.rtag {
+  background:var(--paper3); border:1px solid var(--faded2);
+  padding:1px 5px; font-family:var(--serif); font-style:italic;
+  font-size:12px; color:var(--blue); white-space:nowrap;
+  transform:rotate(0.4deg); display:inline-block;
+  box-shadow:1px 1px 2px rgba(0,0,0,0.08);
+}
+.rval-wrap { display:flex; align-items:baseline; gap:2px; }
+.rval  { font-family:var(--serif); font-size:18px; font-weight:600; color:var(--red); }
+.runit { font-size:9px; color:var(--faded); }
+
+/* ── ENERGY ─────────────────────────────────────────────────────────────── */
+.ebar-outer { height:16px; border:1.5px solid var(--ink2); overflow:hidden; position:relative; background:rgba(255,255,255,0.4); margin-bottom:5px; }
+#bar-kin { position:absolute;left:0;top:0;bottom:0;background:var(--blue);opacity:.45;transition:width .05s; }
+#bar-pot { position:absolute;right:0;top:0;bottom:0;background:var(--red);opacity:.38;transition:width .05s; }
+.ebar-labels { display:flex;justify-content:space-between;font-size:9px;color:var(--faded);font-style:italic; }
+.ebar-vals   { display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-top:5px; }
+.ebar-vals b { color:var(--red);font-family:var(--serif);font-size:13px; }
+
+/* ── REGIME ─────────────────────────────────────────────────────────────── */
+.regime-pills { display:flex;gap:6px;flex-wrap:wrap;margin:8px 0; }
+.pill { font-size:9px;padding:2px 10px;border:1.5px solid var(--faded2);color:var(--faded);font-style:italic;transition:all .2s;border-radius:1px; }
+.pill.active-red   { border-color:var(--red);  color:var(--red);  background:rgba(166,48,32,.07); }
+.pill.active-blue  { border-color:var(--blue); color:var(--blue); background:rgba(28,61,110,.07); }
+.pill.active-green { border-color:var(--green);color:var(--green);background:rgba(42,92,58,.07); }
+#regime-text { font-size:11px;color:var(--ink2);line-height:1.6;font-style:italic;margin-top:4px; }
+.regime-note { font-size:9px;color:var(--faded);margin-top:8px;padding-left:9px;border-left:2px solid var(--faded2);line-height:1.8; }
+
+/* pause */
+.ctrl-row { display:flex;justify-content:flex-end;margin-bottom:5px; }
+.btn-pause { font-family:var(--mono);font-size:9px;letter-spacing:1px;background:none;border:1.5px solid var(--ink2);color:var(--ink2);padding:2px 10px;cursor:pointer;transition:all .15s; }
+.btn-pause:hover { border-color:var(--red);color:var(--red); }
+
+/* divider between sections on right page */
+.divider { height:1px; background:rgba(28,18,8,0.1); margin:18px 0; }
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-decoration:none;color:#7a6a50;background:rgba(246,241,228,0.92);border:1px solid #ccc4b4;padding:4px 12px;border-radius:2px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.1);" onmouseover="this.style.color='#a63020';this.style.borderColor='#a63020'" onmouseout="this.style.color='#7a6a50';this.style.borderColor='#ccc4b4'">← Accueil</a>
+<div class="notebook">
+
+  <!-- ══════════════ LEFT PAGE ══════════════ -->
+  <div class="page left">
+    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+
+    <div class="tape-strip" style="--rot:-0.8deg">Physique · TP n°4</div>
+
+    <div class="header">
+      <div>
+        <div class="exp-tag">Mécanique · Système masse–ressort</div>
+        <h1>Oscillateur <em>harmonique</em></h1>
+      </div>
+      <div class="meta-block">
+        <div class="date" id="today-date"></div>
+        <div>système conservatif</div>
+      </div>
+    </div>
+
+    <!-- 01 Schéma -->
+    <div class="sec"><span class="sec-num">01</span><span class="sec-name">Schéma du dispositif</span></div>
+    <div class="ctrl-row"><button class="btn-pause" id="pauseBtn">⏸ pause</button></div>
+    <div class="canvas-wrap">
+      <canvas id="animCanvas" height="160"></canvas>
+      <div class="canvas-caption">Fig. 1 — Système masse-ressort horizontal · x positif vers la droite</div>
+    </div>
+
+    <!-- 02 Formules -->
+    <div class="sec"><span class="sec-num">02</span><span class="sec-name">Relations fondamentales</span></div>
+    <div class="formula-grid">
+      <div class="fcard" style="--rot:-1deg"><div class="fcard-tag">pulsation</div><div class="fcard-expr">ω₀ = √(k ∕ m)</div></div>
+      <div class="fcard" style="--rot:0.7deg"><div class="fcard-tag">fréquence</div><div class="fcard-expr">f₀ = ω₀ ∕ 2π</div></div>
+      <div class="fcard" style="--rot:0.4deg"><div class="fcard-tag">période</div><div class="fcard-expr">T = 2π √(m ∕ k)</div></div>
+      <div class="fcard" style="--rot:-0.5deg"><div class="fcard-tag">énergie</div><div class="fcard-expr">E = ½ k A²</div></div>
+    </div>
+
+    <!-- 03 Paramètres -->
+    <div class="sec"><span class="sec-num">03</span><span class="sec-name">Paramètres d'entrée</span></div>
+    <div class="param-box">
+      <div class="box-tag">données d'entrée</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;">
+        <div class="pfield">
+          <div class="phead"><span class="pname">Masse</span><span class="psym">m</span></div>
+          <div class="stepper-row">
+            <button class="btn-step" data-id="m" data-dir="-1">−</button>
+            <input class="val-input" type="number" id="in-m" min="0.1" max="20" step="0.1" value="1.0">
+            <button class="btn-step" data-id="m" data-dir="1">+</button>
+            <span class="unit-lbl">kg</span>
+          </div>
+          <div class="slider-row"><input type="range" id="sl-m" min="0.1" max="20" step="0.1" value="1"></div>
+        </div>
+        <div class="pfield">
+          <div class="phead"><span class="pname">Constante de rappel</span><span class="psym">k</span></div>
+          <div class="stepper-row">
+            <button class="btn-step" data-id="k" data-dir="-1">−</button>
+            <input class="val-input" type="number" id="in-k" min="0.1" max="200" step="0.5" value="10.0">
+            <button class="btn-step" data-id="k" data-dir="1">+</button>
+            <span class="unit-lbl">N/m</span>
+          </div>
+          <div class="slider-row"><input type="range" id="sl-k" min="0.1" max="200" step="0.5" value="10"></div>
+        </div>
+        <div class="pfield">
+          <div class="phead"><span class="pname">Amplitude</span><span class="psym">A</span></div>
+          <div class="stepper-row">
+            <button class="btn-step" data-id="A" data-dir="-1">−</button>
+            <input class="val-input" type="number" id="in-A" min="0.01" max="2" step="0.05" value="0.50">
+            <button class="btn-step" data-id="A" data-dir="1">+</button>
+            <span class="unit-lbl">m</span>
+          </div>
+          <div class="slider-row"><input type="range" id="sl-A" min="0.01" max="2" step="0.05" value="0.5"></div>
+        </div>
+        <div class="pfield">
+          <div class="phead"><span class="pname">Amortissement</span><span class="psym">c</span></div>
+          <div class="stepper-row">
+            <button class="btn-step" data-id="c" data-dir="-1">−</button>
+            <input class="val-input" type="number" id="in-c" min="0" max="20" step="0.5" value="0.0">
+            <button class="btn-step" data-id="c" data-dir="1">+</button>
+            <span class="unit-lbl">N·s/m</span>
+          </div>
+          <div class="slider-row"><input type="range" id="sl-c" min="0" max="20" step="0.5" value="0"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-num">— 4 —</div>
+  </div>
+
+  <!-- ══════════════ SPINE ══════════════ -->
+  <div class="spine"></div>
+
+  <!-- ══════════════ RIGHT PAGE ══════════════ -->
+  <div class="page right">
+
+    <!-- 04 Résultats -->
+    <div class="sec"><span class="sec-num">04</span><span class="sec-name">Résultats calculés</span></div>
+    <div class="result-box">
+      <div class="box-tag">mesures &amp; calculs</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;">
+        <div class="ritem"><span class="rlabel">Pulsation propre</span><span class="rtag">ω₀</span><span class="rval-wrap"><span class="rval" id="r-omega">3.162</span><span class="runit">rad/s</span></span></div>
+        <div class="ritem"><span class="rlabel">Fréquence propre</span><span class="rtag">f₀</span><span class="rval-wrap"><span class="rval" id="r-freq">0.503</span><span class="runit">Hz</span></span></div>
+        <div class="ritem"><span class="rlabel">Période propre</span><span class="rtag">T</span><span class="rval-wrap"><span class="rval" id="r-period">1.987</span><span class="runit">s</span></span></div>
+        <div class="ritem"><span class="rlabel">Énergie mécanique</span><span class="rtag">E</span><span class="rval-wrap"><span class="rval" id="r-energy">1.250</span><span class="runit">J</span></span></div>
+        <div class="ritem"><span class="rlabel">Facteur de qualité</span><span class="rtag">Q</span><span class="rval-wrap"><span class="rval" id="r-Q">∞</span><span class="runit"></span></span></div>
+        <div class="ritem"><span class="rlabel">Fréquence amortie</span><span class="rtag">f_d</span><span class="rval-wrap"><span class="rval" id="r-fd">0.503</span><span class="runit">Hz</span></span></div>
+      </div>
+    </div>
+
+    <!-- 05 Graphe -->
+    <div class="sec"><span class="sec-num">05</span><span class="sec-name">Tracé de x(t)</span></div>
+    <div class="canvas-wrap">
+      <canvas id="graphCanvas" height="180"></canvas>
+      <div class="canvas-caption">Fig. 2 — Position en fonction du temps · point = instant présent · tirets = enveloppe d'amortissement</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 06 Énergie -->
+    <div class="sec"><span class="sec-num">06</span><span class="sec-name">Répartition d'énergie instantanée</span></div>
+    <div class="ebar-outer"><div id="bar-kin"></div><div id="bar-pot"></div></div>
+    <div class="ebar-labels"><span>■ cinétique  Ec = ½mv²</span><span>potentielle  Ep = ½kx²  ■</span></div>
+    <div class="ebar-vals"><span>Ec = <b id="ec-val">0.000</b> J</span><span>Ep = <b id="ep-val">0.000</b> J</span></div>
+
+    <div class="divider"></div>
+
+    <!-- 07 Régime -->
+    <div class="sec"><span class="sec-num">07</span><span class="sec-name">Régime d'amortissement</span></div>
+    <div class="regime-pills">
+      <span class="pill" id="pill-sous">sous-amorti</span>
+      <span class="pill" id="pill-crit">critique</span>
+      <span class="pill" id="pill-sur">sur-amorti</span>
+    </div>
+    <div id="regime-text"></div>
+    <div class="regime-note">
+      c_c = 2√(km) &nbsp;·&nbsp; ξ = c / c_c &nbsp;·&nbsp;
+      ξ &lt; 1 → oscillations amorties &nbsp;·&nbsp;
+      ξ = 1 → retour sans oscillation &nbsp;·&nbsp;
+      ξ &gt; 1 → retour exponentiel pur
+    </div>
+
+    <div class="page-num">— 5 —</div>
+  </div>
+
+</div><!-- .notebook -->
+
+<script>
+let m=1,k=10,A=0.5,c=0,t=0,paused=false,lastTs=null;
+const CA=document.getElementById('animCanvas'),ctxA=CA.getContext('2d');
+const CG=document.getElementById('graphCanvas'),ctxG=CG.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+
+document.getElementById('today-date').textContent=
+  new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+// ── Physics ──────────────────────────────────────────────────────────────────
+function derived(){
+  const omega0=Math.sqrt(k/m),cc=2*Math.sqrt(k*m),xi=cc>0?c/cc:0;
+  const omegad=omega0*Math.sqrt(Math.max(0,1-xi*xi));
+  return{omega0,cc,xi,omegad,f0:omega0/(2*Math.PI),fd:omegad/(2*Math.PI),
+    T:2*Math.PI/omega0,E:.5*k*A*A,Q:xi>0?1/(2*xi):Infinity};
+}
+function pos(time){
+  const{omega0,xi,omegad}=derived();
+  if(time<0)return A; if(c===0)return A*Math.cos(omega0*time);
+  if(xi<0.99)return A*Math.exp(-xi*omega0*time)*Math.cos(omegad*time);
+  if(xi<=1.01)return A*(1+omega0*time)*Math.exp(-omega0*time);
+  const r1=-omega0*(xi-Math.sqrt(xi*xi-1)),r2=-omega0*(xi+Math.sqrt(xi*xi-1));
+  return A*r2/(r2-r1)*Math.exp(r1*time)-A*r1/(r2-r1)*Math.exp(r2*time);
+}
+function vel(time){return(pos(time+.001)-pos(time-.001))/.002;}
+function envelope(time){const{omega0,xi}=derived();return xi>0?A*Math.exp(-xi*omega0*time):A;}
+
+// ── Display ──────────────────────────────────────────────────────────────────
+function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function updateDisplay(){
+  const d=derived();
+  setText('r-omega',d.omega0.toFixed(3));setText('r-freq',d.f0.toFixed(3));
+  setText('r-period',d.T.toFixed(3));setText('r-energy',d.E.toFixed(3));
+  setText('r-Q',isFinite(d.Q)?d.Q.toFixed(2):'∞');setText('r-fd',d.fd.toFixed(3));
+  ['sous','crit','sur'].forEach(id=>{const el=document.getElementById('pill-'+id);if(el)el.className='pill';});
+  let txt='';
+  if(d.xi<0.99){document.getElementById('pill-sous').className='pill active-red';
+    txt=`ξ = ${d.xi.toFixed(3)} — oscillations amorties · fréquence amortie f_d = ${d.fd.toFixed(3)} Hz`;}
+  else if(d.xi<=1.01){document.getElementById('pill-crit').className='pill active-green';
+    txt=`ξ ≈ 1 — amortissement critique · retour à l'équilibre le plus rapide`;}
+  else{document.getElementById('pill-sur').className='pill active-blue';
+    txt=`ξ = ${d.xi.toFixed(3)} — sur-amorti · retour exponentiel pur`;}
+  setText('regime-text',txt);
+}
+
+// ── Resize ───────────────────────────────────────────────────────────────────
+function resize(){
+  [CA,CG].forEach(cv=>{
+    const r=cv.parentElement.getBoundingClientRect(),h=parseInt(cv.getAttribute('height'));
+    cv.width=r.width*DPR;cv.height=h*DPR;cv.style.width=r.width+'px';cv.style.height=h+'px';
+  });
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function millGrid(ctx,W,H){
+  ctx.strokeStyle='rgba(70,90,200,0.065)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(70,90,200,0.15)';ctx.lineWidth=0.8;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function tapeLabel(ctx,text,x,y,fontStr){
+  ctx.save();
+  ctx.font=fontStr||'10px "DM Mono",monospace';
+  const w=ctx.measureText(text).width+14;
+  ctx.fillStyle='rgba(220,200,150,0.6)';
+  ctx.fillRect(x-w/2,y-12,w,15);
+  ctx.fillStyle='rgba(90,80,60,0.8)';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(text,x,y-4);
+  ctx.restore();
+}
+
+// ── Draw animation ────────────────────────────────────────────────────────────
+function drawAnim(){
+  const W=CA.width/DPR,H=CA.height/DPR;
+  ctxA.setTransform(DPR,0,0,DPR,0,0);
+  ctxA.fillStyle='#f6f1e4';ctxA.fillRect(0,0,W,H);
+  millGrid(ctxA,W,H);
+
+  const midY=H*.46,eqX=W*.28,x_cur=pos(t),massX=eqX+x_cur*(W*.12),massR=Math.min(22,H*.13);
+
+  // Floor
+  ctxA.strokeStyle='rgba(28,18,8,0.38)';ctxA.lineWidth=1.5;
+  ctxA.beginPath();ctxA.moveTo(20,midY+massR+1);ctxA.lineTo(W-20,midY+massR+1);ctxA.stroke();
+  ctxA.strokeStyle='rgba(28,18,8,0.18)';ctxA.lineWidth=1;
+  for(let x=24;x<W-20;x+=13){ctxA.beginPath();ctxA.moveTo(x,midY+massR+1);ctxA.lineTo(x-9,midY+massR+10);ctxA.stroke();}
+
+  // Wall
+  ctxA.strokeStyle='rgba(28,18,8,0.42)';ctxA.lineWidth=2;
+  ctxA.beginPath();ctxA.moveTo(26,midY-massR*2.2);ctxA.lineTo(26,midY+massR+1);ctxA.stroke();
+  ctxA.strokeStyle='rgba(28,18,8,0.18)';ctxA.lineWidth=1;
+  for(let y=midY-massR*2.1;y<midY+massR;y+=11){ctxA.beginPath();ctxA.moveTo(26,y);ctxA.lineTo(16,y+10);ctxA.stroke();}
+
+  // Equilibrium dashed
+  ctxA.save();ctxA.setLineDash([4,5]);
+  ctxA.strokeStyle='rgba(90,80,60,0.25)';ctxA.lineWidth=1;
+  ctxA.beginPath();ctxA.moveTo(eqX,midY-massR*2.2);ctxA.lineTo(eqX,midY+massR+1);ctxA.stroke();
+  ctxA.restore();
+  tapeLabel(ctxA,'x = 0',eqX,midY-massR*2.4,'10px "DM Mono",monospace');
+
+  // Spring
+  const sLen=massX-26-massR;
+  ctxA.strokeStyle='#1c3d6e';ctxA.lineWidth=2;
+  ctxA.beginPath();ctxA.moveTo(26,midY);
+  for(let i=0;i<=20;i++){ctxA.lineTo(26+(i/20)*sLen,midY+(i%2===0?0:(i%4===1?-13:13)));}
+  ctxA.lineTo(massX-massR,midY);ctxA.stroke();
+  tapeLabel(ctxA,'k',26+sLen*.45,midY-22,'italic 500 12px "Fraunces",serif');
+
+  // Mass
+  ctxA.fillStyle='rgba(28,61,110,0.09)';ctxA.fillRect(massX-massR,midY-massR,massR*2,massR*2);
+  ctxA.strokeStyle='#1c1208';ctxA.lineWidth=1.5;ctxA.strokeRect(massX-massR,midY-massR,massR*2,massR*2);
+  tapeLabel(ctxA,'m',massX,midY+4,'italic 600 14px "Fraunces",serif');
+
+  // x arrow
+  if(Math.abs(x_cur)>0.015){
+    const dir=x_cur>0?1:-1,arrowY=midY+massR+18;
+    ctxA.strokeStyle='rgba(166,48,32,0.55)';ctxA.lineWidth=1.5;
+    ctxA.beginPath();ctxA.moveTo(eqX,arrowY);ctxA.lineTo(massX,arrowY);ctxA.stroke();
+    ctxA.fillStyle='rgba(166,48,32,0.6)';
+    ctxA.beginPath();ctxA.moveTo(massX,arrowY);ctxA.lineTo(massX-dir*7,arrowY-4);ctxA.lineTo(massX-dir*7,arrowY+4);ctxA.closePath();ctxA.fill();
+    tapeLabel(ctxA,'x = '+x_cur.toFixed(3)+' m',(eqX+massX)/2,arrowY-12,'11px "DM Mono",monospace');
+  }
+
+  // v label
+  const v_cur=vel(t);
+  if(Math.abs(v_cur)>0.01){
+    const dir=v_cur>0?1:-1,vY=midY-massR-8;
+    ctxA.strokeStyle='rgba(42,92,58,0.5)';ctxA.lineWidth=1.5;
+    ctxA.beginPath();ctxA.moveTo(massX,vY);ctxA.lineTo(massX+dir*Math.min(40,Math.abs(v_cur)*20),vY);ctxA.stroke();
+    ctxA.fillStyle='rgba(42,92,58,0.55)';
+    const ve=massX+dir*Math.min(40,Math.abs(v_cur)*20);
+    ctxA.beginPath();ctxA.moveTo(ve,vY);ctxA.lineTo(ve-dir*6,vY-3);ctxA.lineTo(ve-dir*6,vY+3);ctxA.closePath();ctxA.fill();
+    tapeLabel(ctxA,'v',massX+dir*6,vY-12,'italic 11px "Fraunces",serif');
+  }
+
+  // Energy bars
+  const Ec=.5*m*v_cur*v_cur,Ep=.5*k*x_cur*x_cur,Et=.5*k*A*A;
+  document.getElementById('bar-kin').style.width=(Et>0?Math.min(1,Ec/Et)*100:0).toFixed(1)+'%';
+  document.getElementById('bar-pot').style.width=(Et>0?Math.min(1,Ep/Et)*100:0).toFixed(1)+'%';
+  document.getElementById('ec-val').textContent=Ec.toFixed(3);
+  document.getElementById('ep-val').textContent=Ep.toFixed(3);
+}
+
+// ── Draw graph ────────────────────────────────────────────────────────────────
+function drawGraph(){
+  const W=CG.width/DPR,H=CG.height/DPR;
+  ctxG.setTransform(DPR,0,0,DPR,0,0);
+  ctxG.fillStyle='#f6f1e4';ctxG.fillRect(0,0,W,H);
+  millGrid(ctxG,W,H);
+
+  const d=derived(),pad={l:44,r:14,t:16,b:28};
+  const gW=W-pad.l-pad.r,gH=H-pad.t-pad.b;
+  const midY=pad.t+gH/2,scaleY=(gH*.44)/(A||.01);
+  const span=Math.max(d.T*5,6);
+
+  [A,A/2,0,-A/2,-A].forEach(yv=>{
+    const py=midY-yv*scaleY;
+    ctxG.strokeStyle=yv===0?'rgba(28,18,8,0.2)':'rgba(70,90,200,0.16)';
+    ctxG.lineWidth=yv===0?1:0.8;
+    ctxG.beginPath();ctxG.moveTo(pad.l,py);ctxG.lineTo(pad.l+gW,py);ctxG.stroke();
+    ctxG.fillStyle='rgba(90,80,60,0.6)';ctxG.font='8px "DM Mono",monospace';ctxG.textAlign='right';
+    ctxG.fillText(yv===0?'0':yv.toFixed(2),pad.l-4,py+3);
+  });
+
+  ctxG.strokeStyle='rgba(28,18,8,0.45)';ctxG.lineWidth=1.5;
+  ctxG.beginPath();ctxG.moveTo(pad.l,midY);ctxG.lineTo(pad.l+gW,midY);ctxG.stroke();
+  ctxG.beginPath();ctxG.moveTo(pad.l,pad.t);ctxG.lineTo(pad.l,pad.t+gH);ctxG.stroke();
+
+  tapeLabel(ctxG,'t (s)',pad.l+gW-14,pad.t+gH+18,'italic 10px "Fraunces",serif');
+  ctxG.save();ctxG.translate(12,pad.t+gH/2+4);ctxG.rotate(-Math.PI/2);
+  tapeLabel(ctxG,'x (m)',0,0,'italic 10px "Fraunces",serif');ctxG.restore();
+
+  ctxG.save();ctxG.beginPath();ctxG.rect(pad.l,pad.t,gW,gH);ctxG.clip();
+
+  if(c>0){
+    ctxG.strokeStyle='rgba(120,100,70,0.22)';ctxG.lineWidth=1;ctxG.setLineDash([4,6]);
+    [1,-1].forEach(sign=>{
+      ctxG.beginPath();
+      for(let i=0;i<=300;i++){
+        const frac=i/300,absT=(t-span)+frac*span;
+        const env=envelope(Math.max(0,absT));
+        const px=pad.l+frac*gW,py=midY-sign*env*scaleY;
+        i===0?ctxG.moveTo(px,py):ctxG.lineTo(px,py);
+      }ctxG.stroke();
+    });ctxG.setLineDash([]);
+  }
+
+  ctxG.strokeStyle='#a63020';ctxG.lineWidth=1.8;
+  ctxG.beginPath();
+  for(let i=0;i<=600;i++){
+    const frac=i/600,absT=(t-span)+frac*span;
+    const xv=pos(Math.max(0,absT));
+    const px=pad.l+frac*gW,py=midY-xv*scaleY;
+    i===0?ctxG.moveTo(px,py):ctxG.lineTo(px,py);
+  }ctxG.stroke();
+
+  const dotY=midY-pos(t)*scaleY;
+  ctxG.beginPath();ctxG.arc(pad.l+gW,dotY,4,0,Math.PI*2);
+  ctxG.fillStyle='#a63020';ctxG.fill();
+
+  ctxG.restore();
+  ctxG.strokeStyle='rgba(28,18,8,0.15)';ctxG.lineWidth=1;ctxG.strokeRect(pad.l,pad.t,gW,gH);
+}
+
+// ── Loop ─────────────────────────────────────────────────────────────────────
+function loop(ts){
+  if(!paused){if(lastTs!==null)t+=(ts-lastTs)/1000;lastTs=ts;drawAnim();drawGraph();}
+  requestAnimationFrame(loop);
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+const PARAMS={
+  m:{min:.1,max:20, step:.1, dec:1,set:v=>{m=v;}},
+  k:{min:.1,max:200,step:.5, dec:1,set:v=>{k=v;}},
+  A:{min:.01,max:2, step:.05,dec:2,set:v=>{A=v;}},
+  c:{min:0,  max:20,step:.5, dec:1,set:v=>{c=v;}},
+};
+function applyParam(id,val){
+  const p=PARAMS[id];if(isNaN(val)||!isFinite(val))return;
+  val=Math.max(p.min,Math.min(p.max,Math.round(val/p.step)*p.step));
+  val=parseFloat(val.toFixed(p.dec));p.set(val);
+  const i=document.getElementById('in-'+id),s=document.getElementById('sl-'+id);
+  if(i)i.value=val.toFixed(p.dec);if(s)s.value=val;
+  t=0;lastTs=null;updateDisplay();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  Object.keys(PARAMS).forEach(id=>{
+    document.getElementById('sl-'+id).addEventListener('input',e=>applyParam(id,parseFloat(e.target.value)));
+    document.getElementById('in-'+id).addEventListener('change',e=>applyParam(id,parseFloat(e.target.value)));
+    document.getElementById('in-'+id).addEventListener('keydown',e=>{if(e.key==='Enter')applyParam(id,parseFloat(e.target.value));});
+  });
+  document.querySelectorAll('.btn-step').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.id,dir=parseInt(btn.dataset.dir);
+      applyParam(id,parseFloat(document.getElementById('in-'+id).value)+dir*PARAMS[id].step);
+    });
+  });
+  document.getElementById('pauseBtn').addEventListener('click',()=>{
+    paused=!paused;
+    document.getElementById('pauseBtn').textContent=paused?'▶ reprendre':'⏸ pause';
+    if(!paused)lastTs=null;
+  });
+  window.addEventListener('resize',resize);
+  resize();updateDisplay();requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
