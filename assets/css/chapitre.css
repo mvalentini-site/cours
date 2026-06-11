@@ -329,8 +329,3 @@ h1 em {
   #side-tabs { display: none; }
   .back { display: inline-flex; }
 }
-
-/* ── Format paysage (écrans larges), comme l'accueil ── */
-@media (min-width: 1200px) {
-  #wrap { max-width: 1460px; }
-}
