@@ -115,7 +115,8 @@ function readPage() {
     num    : em ? em.textContent.trim() : '',
     name   : h1 ? h1.textContent.replace(em ? em.textContent : '', '')
                    .replace(/^[\s——\-]+/, '').trim() : '',
-    cls    : exp ? exp.textContent.split('—')[0].trim() : '1re Spécialité',
+    cls    : exp ? exp.textContent.split('—')[0].trim()
+                 : (document.querySelector('.ph-right') ? document.querySelector('.ph-right').textContent.trim() : '1re Spécialité'),
     theme  : tape ? tape.textContent.trim() : '',
     back   : back ? (back.getAttribute('href') || '../../index.html') : '../../index.html',
     backLbl: back ? back.textContent.trim() : '← Retour',
@@ -151,6 +152,8 @@ function readPage() {
           tagColor: tagEl  ? (tagEl.style.background || '#1c3d6e') : '#1c3d6e',
           url,
           ext     : isExt,
+          hidden  : doc.dataset.hidden === '1',
+          lock    : doc.dataset.lock || '',
         });
       });
     }
@@ -174,13 +177,14 @@ function genSectionsHTML() {
     let content = '';
     if (b.type === 'docs') {
       const docsH = (b.docs || []).map(function (d) {
+        const xtra = (d.hidden ? ' data-hidden="1"' : '') + (d.lock ? ' data-lock="' + d.lock + '"' : '');
         if (d.ext) {
-          return '        <a class="doc" href="' + e2(d.url) + '" target="_blank">\n' +
+          return '        <a class="doc" href="' + e2(d.url) + '" target="_blank"' + xtra + '>\n' +
                  '          <span class="doc-icon">' + d.icon + '</span><span class="doc-name">' + e2(d.name) + '</span>\n' +
                  '          <span class="doc-tag" style="background:' + d.tagColor + '">' + e2(d.tag) + '</span>\n' +
                  '        </a>';
         }
-        return '        <div class="doc" data-url="' + e2(d.url) + '" data-title="' + e2(d.name) + '">\n' +
+        return '        <div class="doc" data-url="' + e2(d.url) + '" data-title="' + e2(d.name) + '"' + xtra + '>\n' +
                '          <span class="doc-icon">' + d.icon + '</span><span class="doc-name">' + e2(d.name) + '</span>\n' +
                '          <span class="doc-tag" style="background:' + d.tagColor + '">' + e2(d.tag) + '</span>\n' +
                '        </div>';
@@ -195,6 +199,12 @@ function genSectionsHTML() {
 function generateFullHTML() {
   const assets = getAssetsPath();
   const sections = genSectionsHTML();
+  const idxBase = (M.back || '../../index.html').split('#')[0];
+  const tabId = /5e/i.test(M.cls) ? '5eme' : /ens/i.test(M.cls) ? '1ere-ens' : '1ere-spe';
+  const navTabs = [['accueil','Accueil','#3a2010'],['1ere-spe','1res Spe','#1c3d6e'],['1ere-ens','Ens. Sci.','#2a5c3a'],['5eme','5eme','#6b3a1c'],['outils','Outils','#3a3a1c']];
+  const navHTML = '<nav id="side-tabs">\n' + navTabs.map(function (t) {
+    return '  <a href="' + idxBase + '#' + t[0] + '"' + (t[0] === tabId ? ' class="active"' : '') + ' style="background:' + t[2] + '"><span>' + t[1] + '</span></a>';
+  }).join('\n') + '\n</nav>';
 
   return '<!DOCTYPE html>\n' +
 '<html lang="fr">\n' +
@@ -202,24 +212,20 @@ function generateFullHTML() {
 '<meta charset="UTF-8">\n' +
 '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
 '<title>' + e2(M.title) + '</title>\n' +
-'<link rel="stylesheet" href="' + assets + '/css/commun.css">\n' +
-'<link rel="stylesheet" href="' + assets + '/css/chapitre.css">\n' +
+'<link rel="stylesheet" href="' + assets + '/css/commun.css?v=9">\n' +
+'<link rel="stylesheet" href="' + assets + '/css/chapitre.css?v=9">\n' +
 '</head>\n' +
 '<body>\n' +
+navHTML + '\n' +
 '<div id="wrap">\n' +
 '  <div class="paper">\n' +
 '    <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>\n' +
 '    <a class="back" href="' + e2(M.back) + '">' + e2(M.backLbl) + '</a>\n' +
-'    <div class="tape-label" style="background:var(--color)22;color:var(--color)">' + e2(M.theme) + '</div>\n' +
 '    <div class="page-header">\n' +
 '      <div>\n' +
-'        <div class="exp-tag">' + e2(M.cls) + ' — Physique - Chimie</div>\n' +
 '        <h1><em>' + e2(M.num) + '</em> — ' + e2(M.name) + '</h1>\n' +
 '      </div>\n' +
-'      <div class="ph-right">\n' +
-'        <div class="ph-num">Chapitre ' + e2(M.num) + '</div>\n' +
-'        <div>' + e2(M.cls) + '</div>\n' +
-'      </div>\n' +
+'      <div class="ph-right">' + e2(M.cls) + '</div>\n' +
 '    </div>\n\n' +
 sections + '\n\n' +
 '  </div>\n' +
@@ -232,8 +238,8 @@ sections + '\n\n' +
 '  </div>\n' +
 '  <iframe id="viewer-frame" src="about:blank" allowfullscreen></iframe>\n' +
 '</div>\n' +
-'<script src="' + assets + '/js/chapitre.js"><\/script>\n' +
-'<script src="' + assets + '/js/admin-chapitre.js"><\/script>\n' +
+'<script src="' + assets + '/js/chapitre.js?v=2"><\/script>\n' +
+'<script src="' + assets + '/js/admin-chapitre.js?v=3"><\/script>\n' +
 '</body>\n' +
 '</html>';
 }
@@ -371,6 +377,8 @@ function renderAdmin() {
             '<select class="ae-ico" onchange="window._admUpdDoc(' + i + ',' + di + ',\'icon\',this.value)">' + iconOpts + '</select>' +
             '<input type="text" class="ae-name" value="' + e2(d.name) + '" placeholder="Nom" ' +
               'oninput="window._admUpdDoc(' + i + ',' + di + ',\'name\',this.value)">' +
+            '<button onclick="window._admToggleHide(' + i + ',' + di + ')" title="' + (d.hidden ? 'Masqué — clic pour afficher' : 'Visible — clic pour masquer') + '"' + (d.hidden ? ' style="background:#f0d9d9"' : '') + '>' + (d.hidden ? '🚫' : '👁') + '</button>' +
+            '<button onclick="window._admToggleLock(' + i + ',' + di + ')" title="' + (d.lock ? 'Verrouillé — clic pour déverrouiller' : 'Définir un mot de passe élève') + '"' + (d.lock ? ' style="background:#f5e9c8"' : '') + '>' + (d.lock ? '🔒' : '🔓') + '</button>' +
             (di > 0 ? '<button onclick="window._admMoveDoc(' + i + ',' + di + ',-1)" title="Monter">↑</button>' : '') +
             (di < b.docs.length - 1 ? '<button onclick="window._admMoveDoc(' + i + ',' + di + ',1)" title="Descendre">↓</button>' : '') +
             '<button class="ae-btn-del" onclick="window._admDelDoc(' + i + ',' + di + ')" title="Supprimer">✕</button>' +
@@ -462,6 +470,35 @@ window._admToggleSec = function (id) {
 };
 
 window._admUpdM = function (k, v) { M[k] = v; };
+
+function _docDomEl(i, di) {
+  const sec = document.querySelectorAll('.section')[i];
+  return sec ? sec.querySelectorAll('.doc')[di] : null;
+}
+
+window._admToggleHide = function (i, di) {
+  const d = S[i].docs[di];
+  d.hidden = !d.hidden;
+  const el = _docDomEl(i, di);
+  if (el) { if (d.hidden) el.setAttribute('data-hidden', '1'); else el.removeAttribute('data-hidden'); }
+  renderAdmin();
+  setStatus(d.hidden ? 'Document masqué — publiez pour appliquer' : 'Document visible — publiez pour appliquer', 'info');
+};
+
+window._admToggleLock = function (i, di) {
+  const d = S[i].docs[di];
+  if (d.lock) {
+    d.lock = '';
+  } else {
+    const p = prompt('Mot de passe élève pour « ' + d.name + ' » :');
+    if (!p) return;
+    d.lock = _sha256(p);
+  }
+  const el = _docDomEl(i, di);
+  if (el) { if (d.lock) el.setAttribute('data-lock', d.lock); else el.removeAttribute('data-lock'); }
+  renderAdmin();
+  setStatus(d.lock ? 'Verrouillé — publiez pour appliquer' : 'Déverrouillé — publiez pour appliquer', 'info');
+};
 
 window._admUpdBloc = function (i, k, v) {
   S[i][k] = v;
@@ -668,6 +705,7 @@ function toggleDrawer() {
   const drawer = document.getElementById('adm-drawer');
   const opening = !drawer.classList.contains('adm-open');
   if (opening && !admUnlock()) return;
+  if (opening) document.body.classList.add('adm-session');
   drawer.classList.toggle('adm-open');
   if (opening) {
     readPage();
@@ -679,6 +717,7 @@ function toggleDrawer() {
 function init() {
   injectCSS();
   injectHTML();
+  if (admOk()) document.body.classList.add('adm-session');
 }
 
 if (document.readyState === 'loading') {

@@ -329,3 +329,13 @@ h1 em {
   #side-tabs { display: none; }
   .back { display: inline-flex; }
 }
+
+/* ── Documents masqués / verrouillés ── */
+.doc[data-hidden="1"] { display: none; }
+body.adm-session .doc[data-hidden="1"] {
+  display: flex;
+  opacity: .55;
+  outline: 1.5px dashed var(--faded2);
+}
+.doc[data-lock] .doc-name::before { content: '🔒 '; }
+.doc.doc-unlocked .doc-name::before { content: '🔓 '; }

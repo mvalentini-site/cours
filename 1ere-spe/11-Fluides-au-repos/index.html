@@ -85,6 +85,10 @@ h1 em{color:var(--color);font-style:normal;}
 #side-tabs a span{writing-mode:vertical-rl;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.88);white-space:nowrap;pointer-events:none;}
 .back{display:none;}
 @media (max-width:1080px){#side-tabs{display:none;}.back{display:inline-flex;}}
+.doc[data-hidden="1"]{display:none;}
+body.adm-session .doc[data-hidden="1"]{display:flex;opacity:.55;outline:1.5px dashed var(--faded2);}
+.doc[data-lock] .doc-name::before{content:'🔒 ';}
+.doc.doc-unlocked .doc-name::before{content:'🔓 ';}
 </style>
 </head>
 <body>
@@ -243,37 +247,7 @@ h1 em{color:var(--color);font-style:normal;}
   <iframe id="viewer-frame" src="about:blank" allowfullscreen></iframe>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-
-  function closeViewer() {
-    document.getElementById('viewer').classList.remove('open');
-    document.getElementById('viewer-frame').src = 'about:blank';
-  }
-
-  document.querySelectorAll('.doc[data-url]').forEach(function(doc) {
-    doc.addEventListener('click', function() {
-      var url = doc.getAttribute('data-url');
-      var title = doc.getAttribute('data-title');
-      if (url.startsWith('LIEN_')) {
-        alert('Lien a configurer : ' + url);
-        return;
-      }
-      document.getElementById('viewer-title').textContent = title;
-      document.getElementById('viewer-newTab').href = url;
-      document.getElementById('viewer-frame').src = url;
-      document.getElementById('viewer').classList.add('open');
-    });
-  });
-
-  document.getElementById('viewer-close').addEventListener('click', closeViewer);
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { closeViewer(); }
-  });
-
-});
-</script>
-<script src="../../assets/js/admin-chapitre.js?v=2"></script>
+<script src="../../assets/js/chapitre.js?v=2"></script>
+<script src="../../assets/js/admin-chapitre.js?v=3"></script>
 </body>
 </html>
