@@ -72,19 +72,19 @@
       "num": "10",
       "title": "Interactions et champs",
       "file": "1ere-spe/10-Interactions-et-champs/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "11",
       "title": "Fluides au repos",
       "file": "1ere-spe/11-Fluides-au-repos/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "12",
       "title": "Mouvement d'un systeme",
       "file": "1ere-spe/12-Mouvement-dun-systeme/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "cat": "Energie, conversions et transferts"
@@ -93,13 +93,13 @@
       "num": "13",
       "title": "Energie des systemes electriques",
       "file": "1ere-spe/13-Energie-des-systemes-electriques/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "14",
       "title": "Energie mecanique",
       "file": "1ere-spe/14-Energie-mecanique/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "cat": "Ondes et signaux"
@@ -108,25 +108,25 @@
       "num": "15",
       "title": "Ondes mecaniques",
       "file": "1ere-spe/15-Ondes-mecaniques/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "16",
       "title": "Lentilles minces",
       "file": "1ere-spe/16-Lentilles-minces/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "17",
       "title": "Couleurs",
       "file": "1ere-spe/17-Couleurs/index.html",
-      "hidden": false
+      "hidden": true
     },
     {
       "num": "18",
       "title": "Lumiere, onde et particules",
       "file": "1ere-spe/18-Lumiere-onde-et-particules/index.html",
-      "hidden": false
+      "hidden": true
     }
   ]
 }
