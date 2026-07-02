@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur de prompt — Évaluations</title>
+<style>
+  :root {
+    --ink: #1a2238;
+    --paper: #fbf9f4;
+    --line: #d8d2c4;
+    --accent: #2f6f6a;
+    --accent-soft: #e3efed;
+    --amber: #b5651d;
+    --muted: #6b6557;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    background: var(--paper); color: var(--ink); line-height: 1.55;
+    padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .eyebrow {
+    font-family: "SF Mono", "Consolas", monospace;
+    letter-spacing: .18em; text-transform: uppercase;
+    font-size: .7rem; color: var(--accent); margin: 0 0 .4rem;
+  }
+  h1 { margin: 0; font-size: 2rem; font-weight: 600; letter-spacing: -.01em; }
+  .lede { color: var(--muted); margin: .5rem 0 0; font-size: 1rem; }
+
+  form { display: grid; gap: 1.6rem; }
+  #paneNouveau, #paneVariante, #paneAdaptation { display: none; gap: 1.6rem; }
+  #paneNouveau.active, #paneVariante.active, #paneAdaptation.active { display: grid; }
+  .field { display: grid; gap: .4rem; }
+  .grid2 { display: grid; gap: 1.6rem; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+  label, .lbl {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+  }
+  input, select, textarea {
+    font: inherit; padding: .65rem .7rem; border: 1px solid var(--line);
+    border-radius: 2px; background: #fff; color: var(--ink); width: 100%;
+  }
+  input:focus, select:focus, textarea:focus, .chip:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .hint { font-size: .8rem; color: var(--muted); }
+
+  fieldset { border: 1px solid var(--line); border-radius: 3px; padding: 1rem; margin: 0; }
+  legend {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); padding: 0 .4rem;
+  }
+  .radios { display: grid; gap: .6rem; }
+  .radio {
+    display: flex; gap: .7rem; align-items: flex-start;
+    padding: .7rem; border: 1px solid var(--line); border-radius: 2px; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .radio:hover { background: var(--accent-soft); }
+  .radio input { width: auto; margin-top: .25rem; }
+  .radio.checked { border-color: var(--accent); background: var(--accent-soft); }
+  .radio strong { display: block; }
+  .radio span.desc { color: var(--muted); font-size: .88rem; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip {
+    font: inherit; cursor: pointer; padding: .45rem .85rem;
+    border: 1px solid var(--line); border-radius: 999px; background: #fff;
+    color: var(--ink); transition: background .15s, border-color .15s, color .15s;
+  }
+  .chip:hover { background: var(--accent-soft); }
+  .chip.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .chip-custom { display: inline-flex; align-items: center; gap: .4rem; }
+  .chip-custom input { width: 8.5rem; padding: .35rem .5rem; border-radius: 999px; }
+
+  .actions { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
+  button.act {
+    font: inherit; cursor: pointer; padding: .7rem 1.3rem; border-radius: 2px; border: 1px solid var(--ink);
+  }
+  .primary { background: var(--ink); color: var(--paper); }
+  .primary:hover { background: var(--accent); border-color: var(--accent); }
+  .ghost { background: transparent; color: var(--ink); }
+  .ghost:hover { background: var(--accent-soft); }
+
+  .output { margin-top: 2.2rem; }
+  .output h2 {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); border-top: 1px solid var(--line); padding-top: 1.2rem;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  }
+  .badge { font-size: .72rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  pre {
+    background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--amber);
+    border-radius: 2px; padding: 1.2rem; white-space: pre-wrap; word-wrap: break-word;
+    font-family: "SF Mono", "Consolas", monospace; font-size: .9rem; line-height: 1.55; color: var(--ink);
+  }
+  .copied { color: var(--accent); font-size: .85rem; }
+  .err { color: var(--amber); font-size: .85rem; }
+
+  /* Onglets */
+  .tabs { display: flex; gap: .3rem; border-bottom: 2px solid var(--ink); margin-bottom: .4rem; }
+  .tab {
+    font: inherit; cursor: pointer; padding: .6rem 1.1rem; border: 1px solid var(--line);
+    border-bottom: none; border-radius: 4px 4px 0 0; background: transparent; color: var(--muted);
+    position: relative; top: 2px; transition: background .15s, color .15s;
+  }
+  .tab:hover { background: var(--accent-soft); }
+  .tab.active {
+    background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600;
+  }
+
+  .checks { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .toggle-line { display: flex; gap: .7rem; align-items: flex-start; cursor: pointer; margin-bottom: 1rem; }
+  .toggle-line input { width: auto; margin-top: .3rem; }
+  .toggle-line strong { display: block; }
+  .toggle-line span.desc { color: var(--muted); font-size: .88rem; }
+  #adaptBox { display: grid; gap: 1rem; }
+  .check {
+    display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+    padding: .45rem .85rem; border: 1px solid var(--line); border-radius: 999px;
+    background: #fff; transition: background .15s, border-color .15s;
+  }
+  .check:hover { background: var(--accent-soft); }
+  .check input { width: auto; }
+  .check.checked { border-color: var(--accent); background: var(--accent-soft); }
+
+  /* En-tête + menu démo */
+  .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .demo-wrap { position: relative; flex-shrink: 0; }
+  .demo-menu {
+    position: absolute; right: 0; top: calc(100% + .3rem); z-index: 10;
+    background: #fff; border: 1px solid var(--line); border-radius: 4px;
+    box-shadow: 0 6px 20px rgba(26,34,56,.12); grid-template-columns: 1fr; min-width: 220px; overflow: hidden;
+    display: none;
+  }
+  .demo-menu.open { display: grid; }
+  .demo-menu button {
+    font: inherit; text-align: left; cursor: pointer; padding: .7rem .9rem;
+    background: #fff; border: none; border-bottom: 1px solid var(--line); color: var(--ink);
+  }
+  .demo-menu button:last-child { border-bottom: none; }
+  .demo-menu button:hover { background: var(--accent-soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="head-row">
+      <div>
+        <p class="eyebrow">Outil enseignant</p>
+        <h1>Générateur de prompt d'évaluation</h1>
+      </div>
+      <div class="demo-wrap">
+        <button type="button" class="act ghost" id="demoBtn">Démo ▾</button>
+        <div class="demo-menu" id="demoMenu">
+          <button type="button" data-demo="pc5">5e — Physique-Chimie</button>
+          <button type="button" data-demo="hg3">3e — Histoire-Géo</button>
+          <button type="button" data-demo="fr1">1re — Français</button>
+        </div>
+      </div>
+    </div>
+    <p class="lede">Renseignez les paramètres ci-dessous pour produire un prompt prêt à coller dans un assistant IA.</p>
+  </header>
+
+  <form id="form">
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab active" data-mode="nouveau">Nouveau sujet</button>
+      <button type="button" class="tab" data-mode="variante">Variante d'un sujet</button>
+      <button type="button" class="tab" data-mode="adaptation">Adaptation d'un sujet</button>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Matière</span>
+      <div class="chips" id="chips-matiere"></div>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Niveau de classe</span>
+      <div class="chips" id="chips-niveau"></div>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Format de fichier</span>
+      <div class="chips" id="chips-fichier"></div>
+    </div>
+
+    <!-- ===== Mode NOUVEAU SUJET ===== -->
+    <div id="paneNouveau" class="active">
+      <fieldset>
+        <legend>Type d'évaluation</legend>
+        <div class="radios" id="typeGroup">
+          <label class="radio">
+            <input type="radio" name="type" value="controle" checked>
+            <span><strong>Contrôle de connaissances</strong>
+            <span class="desc">Court, ciblé sur des notions précises et leur restitution.</span></span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="type" value="devoir">
+            <span><strong>Devoir surveillé</strong>
+            <span class="desc">Plus long, mobilise raisonnement et compétences sur plusieurs notions.</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <span class="lbl">Durée</span>
+        <div class="chips" id="chips-duree"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Nombre d'exercices</span>
+        <div class="chips" id="chips-nbExos"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Barème total</span>
+        <div class="chips" id="chips-bareme"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Format de sortie</span>
+        <div class="chips" id="chips-format"></div>
+      </div>
+
+      <div class="field">
+        <label for="theme">Thème / chapitre (optionnel)</label>
+        <input id="theme" type="text" placeholder="Ex. Fonctions affines, équilibres acido-basiques…">
+      </div>
+
+      <div class="field">
+        <label for="competences">Compétences à évaluer</label>
+        <textarea id="competences" placeholder="Listez les compétences visées, une par ligne…"></textarea>
+        <p class="hint">Zone libre : une compétence par ligne, ou tout autre cadrage à transmettre.</p>
+      </div>
+
+      <fieldset>
+        <legend>Version adaptée (besoins particuliers)</legend>
+        <label class="toggle-line">
+          <input type="checkbox" id="adaptToggle">
+          <span><strong>Produire aussi une version adaptée</strong>
+          <span class="desc">Le sujet normal est généré, plus une version aménagée pour les élèves à besoins particuliers.</span></span>
+        </label>
+        <div id="adaptBox" hidden>
+          <div class="field">
+            <span class="lbl">Aménagements souhaités</span>
+            <div class="checks" id="adaptChecks"></div>
+          </div>
+          <div class="field">
+            <label for="adaptAutre">Autre aménagement (optionnel)</label>
+            <input id="adaptAutre" type="text" placeholder="Ex. énoncé sans double négation, calculatrice autorisée…">
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <span class="lbl">Nombre de versions</span>
+        <div class="chips" id="chips-versions"></div>
+        <p class="hint">Plusieurs sujets parallèles (A, B, C…) de difficulté équivalente, pour limiter la copie.</p>
+      </div>
+
+      <div class="field">
+        <label for="consignesNouveau">Consignes particulières (optionnel)</label>
+        <textarea id="consignesNouveau" placeholder="Ex. inclure un exercice de raisonnement, éviter les QCM, contexte de la classe…"></textarea>
+      </div>
+    </div>
+
+    <!-- ===== Mode VARIANTE ===== -->
+    <div id="paneVariante">
+      <div class="field">
+        <label for="variantSource">Sujet original à décliner</label>
+        <textarea id="variantSource" placeholder="Collez ici l'énoncé complet du sujet à décliner…"></textarea>
+      </div>
+      <div class="field">
+        <span class="lbl">Changements souhaités</span>
+        <div class="checks" id="variantChecks"></div>
+      </div>
+      <div class="field">
+        <label for="consignesVariante">Consignes particulières (optionnel)</label>
+        <textarea id="consignesVariante" placeholder="Ex. garder le même contexte, adapter uniquement l'exercice 2…"></textarea>
+      </div>
+    </div>
+
+    <!-- ===== Mode ADAPTATION ===== -->
+    <div id="paneAdaptation">
+      <div class="field">
+        <label for="adaptSource">Sujet original à adapter</label>
+        <textarea id="adaptSource" placeholder="Collez ici l'énoncé complet du sujet à adapter…"></textarea>
+      </div>
+      <div class="field">
+        <span class="lbl">Aménagements souhaités</span>
+        <div class="checks" id="adaptSourceChecks"></div>
+      </div>
+      <div class="field">
+        <label for="adaptSourceAutre">Autre aménagement (optionnel)</label>
+        <input id="adaptSourceAutre" type="text" placeholder="Ex. énoncé sans double négation, calculatrice autorisée…">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="act primary" id="submitBtn">Générer le prompt</button>
+      <button type="reset" class="act ghost">Réinitialiser</button>
+      <span class="err" id="formErr" hidden></span>
+    </div>
+  </form>
+
+  <div class="output" id="output" hidden>
+    <h2>Prompt généré <span class="badge" id="charCount"></span></h2>
+    <pre id="result"></pre>
+    <div class="actions">
+      <button type="button" class="act ghost" id="copyBtn">Copier le prompt</button>
+      <span class="copied" id="copied" hidden>Copié ✓</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var form = document.getElementById('form');
+  var typeGroup = document.getElementById('typeGroup');
+
+  // Définition des groupes de puces (aucun parsing d'attribut HTML)
+  var groupsConfig = {
+    matiere: { options: ['Allemand', 'Anglais', 'Arts plastiques', 'EPS', 'Espagnol', 'Français', 'Histoire-Géographie', 'Mathématiques', 'Musique', 'NSI', 'Philosophie', 'Physique-Chimie', 'SES', 'SVT', 'Technologie'], custom: 'matière', def: '' },
+    niveau: { options: ['6e', '5e', '4e', '3e', 'Seconde', 'Première', 'Terminale'], custom: 'niveau', def: '' },
+    duree:  { options: ['15 min', '30 min', '45 min', '1 h', '1 h 30', '2 h'], custom: 'durée', def: '1 h' },
+    nbExos: { options: ['2', '3', '4', '5', 'Au choix de l\u2019IA'], custom: 'nombre', def: '' },
+    bareme: { options: ['/20', '/10', '/40'], custom: 'barème', def: '/20' },
+    format: { options: ['Énoncé papier', 'Évaluation numérique', 'Indifférent'], custom: '', def: 'Indifférent' },
+    versions: { options: ['1', '2', '3', '4'], custom: 'nombre', def: '1' },
+    fichier: { options: ['Word', 'PDF'], custom: 'format', def: 'Word' }
+  };
+
+  var picks = { matiere: '', niveau: '', duree: '', nbExos: '', bareme: '', format: '', versions: '', fichier: '' };
+
+  function syncChecked() {
+    var radios = typeGroup.querySelectorAll('.radio');
+    for (var i = 0; i < radios.length; i++) {
+      var input = radios[i].querySelector('input');
+      if (input.checked) radios[i].classList.add('checked');
+      else radios[i].classList.remove('checked');
+    }
+  }
+  typeGroup.addEventListener('change', syncChecked);
+  syncChecked();
+
+  function selectChip(container, chip, value, group) {
+    var chips = container.querySelectorAll('.chip');
+    for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+    chip.classList.add('active');
+    var custom = container.querySelector('.chip-custom input');
+    if (custom) custom.value = '';
+    picks[group] = value;
+  }
+
+  function buildGroup(group) {
+    var cfg = groupsConfig[group];
+    var container = document.getElementById('chips-' + group);
+
+    cfg.options.forEach(function (opt) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = opt;
+      b.addEventListener('click', function () { selectChip(container, b, opt, group); });
+      container.appendChild(b);
+    });
+
+    if (cfg.custom) {
+      var wrap = document.createElement('span');
+      wrap.className = 'chip chip-custom';
+      var span = document.createElement('span');
+      span.textContent = 'Autre :';
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = cfg.custom;
+      inp.addEventListener('input', function () {
+        var v = inp.value.trim();
+        if (v) {
+          var chips = container.querySelectorAll('.chip');
+          for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+          wrap.classList.add('active');
+          picks[group] = v;
+        } else {
+          wrap.classList.remove('active');
+          picks[group] = '';
+        }
+      });
+      wrap.appendChild(span);
+      wrap.appendChild(inp);
+      container.appendChild(wrap);
+    }
+
+    if (cfg.def) {
+      var chips = container.querySelectorAll('.chip');
+      for (var i = 0; i < chips.length; i++) {
+        if (chips[i].textContent === cfg.def && !chips[i].classList.contains('chip-custom')) {
+          selectChip(container, chips[i], cfg.def, group);
+          break;
+        }
+      }
+    }
+  }
+
+  Object.keys(groupsConfig).forEach(buildGroup);
+
+  // --- Onglets nouveau / variante / adaptation ---
+  var currentMode = 'nouveau';
+  (function initTabs() {
+    var tabs = document.querySelectorAll('#tabs .tab');
+    var panes = {
+      nouveau: document.getElementById('paneNouveau'),
+      variante: document.getElementById('paneVariante'),
+      adaptation: document.getElementById('paneAdaptation')
+    };
+    var submitBtn = document.getElementById('submitBtn');
+    var submitLabels = {
+      nouveau: 'Générer le prompt',
+      variante: 'Générer le prompt de variante',
+      adaptation: 'Générer le prompt d\u2019adaptation'
+    };
+
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function () {
+        var mode = this.getAttribute('data-mode');
+        currentMode = mode;
+        for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+        this.classList.add('active');
+        Object.keys(panes).forEach(function (k) {
+          if (k === mode) panes[k].classList.add('active');
+          else panes[k].classList.remove('active');
+        });
+        submitBtn.textContent = submitLabels[mode] || 'Générer le prompt';
+        document.getElementById('formErr').hidden = true;
+      });
+    }
+  })();
+
+  // --- Cases de la variante ---
+  var variantOptions = [
+    { key: 'valeurs', label: 'Valeurs numériques' },
+    { key: 'ordre', label: 'Ordre des exercices' },
+    { key: 'contextes', label: 'Contextes / énoncés reformulés' },
+    { key: 'difficulte', label: 'Difficulté équivalente garantie' }
+  ];
+  var variantChecksState = {};
+
+  (function buildVariantChecks() {
+    var container = document.getElementById('variantChecks');
+    variantOptions.forEach(function (opt) {
+      variantChecksState[opt.key] = false;
+      var lab = document.createElement('label');
+      lab.className = 'check';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      var txt = document.createElement('span');
+      txt.textContent = opt.label;
+      cb.addEventListener('change', function () {
+        variantChecksState[opt.key] = cb.checked;
+        if (cb.checked) lab.classList.add('checked');
+        else lab.classList.remove('checked');
+      });
+      lab.appendChild(cb);
+      lab.appendChild(txt);
+      container.appendChild(lab);
+    });
+  })();
+
+  // --- Adaptation besoins particuliers ---
+  var adaptOptions = [
+    { key: 'dys', label: 'Adapté dys (police, espacement)' },
+    { key: 'tierstemps', label: 'Tiers-temps (sujet allégé)' },
+    { key: 'consignes', label: 'Consignes simplifiées' },
+    { key: 'aere', label: 'Mise en page aérée' },
+    { key: 'etapes', label: 'Exercices décomposés en étapes' },
+    { key: 'aides', label: 'Aides / rappels de cours' }
+  ];
+
+  // construit un jeu de cases d'aménagement dans un conteneur donné, alimentant un objet d'état
+  function buildAdaptChecks(containerId, state) {
+    var container = document.getElementById(containerId);
+    adaptOptions.forEach(function (opt) {
+      state[opt.key] = false;
+      var lab = document.createElement('label');
+      lab.className = 'check';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      var txt = document.createElement('span');
+      txt.textContent = opt.label;
+      cb.addEventListener('change', function () {
+        state[opt.key] = cb.checked;
+        if (cb.checked) lab.classList.add('checked');
+        else lab.classList.remove('checked');
+      });
+      lab.appendChild(cb);
+      lab.appendChild(txt);
+      container.appendChild(lab);
+    });
+  }
+
+  // décrit les aménagements cochés sous forme de liste de phrases
+  var adaptLabelsLong = {
+    dys: 'adaptation dys (police lisible type sans-serif, interlignage augmenté, pas de justification)',
+    tierstemps: 'volume réduit pour un tiers-temps (moins de questions, l’essentiel des compétences conservé)',
+    consignes: 'consignes simplifiées (phrases courtes, une seule instruction à la fois)',
+    aere: 'mise en page aérée (espaces de réponse larges, un exercice par bloc bien séparé)',
+    etapes: 'exercices décomposés en étapes guidées',
+    aides: 'ajout d’aides et de rappels de cours au fil du sujet'
+  };
+  function collectAmenagements(state, autreValue) {
+    var out = [];
+    Object.keys(adaptLabelsLong).forEach(function (k) {
+      if (state[k]) out.push(adaptLabelsLong[k]);
+    });
+    if (autreValue) out.push(autreValue);
+    return out;
+  }
+
+  // consigne de format de fichier de sortie
+  function fichierConsigne(fichier) {
+    if (!fichier) return '';
+    var map = {
+      'Word': 'Fournis le résultat sous forme de document Word (.docx) prêt à mettre en forme.',
+      'PDF': 'Fournis le résultat sous forme de document PDF prêt à imprimer.',
+      'LaTeX': 'Fournis le résultat en code LaTeX compilable (article ou classe adaptée).'
+    };
+    return map[fichier] || ('Fournis le résultat au format : ' + fichier + '.');
+  }
+
+  // état du bloc adaptation dans "Nouveau sujet"
+  var adaptChecksState = {};
+  // état des cases dans l'onglet "Adaptation d'un sujet"
+  var adaptSourceChecksState = {};
+
+  (function buildAdapt() {
+    var toggle = document.getElementById('adaptToggle');
+    var box = document.getElementById('adaptBox');
+    toggle.addEventListener('change', function () {
+      box.hidden = !toggle.checked;
+    });
+    buildAdaptChecks('adaptChecks', adaptChecksState);
+    buildAdaptChecks('adaptSourceChecks', adaptSourceChecksState);
+  })();
+
+  function buildPrompt() {
+    var niveau = picks.niveau;
+    var theme = document.getElementById('theme').value.trim();
+    var compRaw = document.getElementById('competences').value.trim();
+    var type = form.elements['type'].value;
+
+    var variantOn = (currentMode === 'variante');
+    var adaptationOn = (currentMode === 'adaptation');
+    var consignesRaw = variantOn
+      ? document.getElementById('consignesVariante').value.trim()
+      : (adaptationOn ? '' : document.getElementById('consignesNouveau').value.trim());
+
+    var matiere = picks.matiere, duree = picks.duree, nbExos = picks.nbExos, bareme = picks.bareme, format = picks.format, versions = picks.versions, fichier = picks.fichier;
+
+    var variantSource = document.getElementById('variantSource').value.trim();
+
+    // --- Mode variante : décliner un sujet existant ---
+    if (variantOn) {
+      var vManquants = [];
+      if (!matiere) vManquants.push('matière');
+      if (!niveau) vManquants.push('niveau');
+      if (!variantSource) vManquants.push('sujet original à décliner');
+      if (vManquants.length) return { error: vManquants };
+
+      var changements = [];
+      if (variantChecksState.valeurs) changements.push('Change toutes les valeurs numériques (données, coefficients, résultats), de sorte que les réponses diffèrent de l’original.');
+      if (variantChecksState.ordre) changements.push("Modifie l'ordre des exercices par rapport à l'original.");
+      if (variantChecksState.contextes) changements.push('Reformule les contextes et énoncés (situations, prénoms, objets) tout en conservant la notion évaluée.');
+      if (variantChecksState.difficulte) changements.push('Garantis une difficulté strictement équivalente à l’original, exercice par exercice.');
+      if (!changements.length) changements.push('Change les valeurs numériques et reformule légèrement les énoncés.');
+
+      var V = [];
+      V.push('Tu es un enseignant expérimenté en ' + matiere + ' (niveau ' + niveau + ').');
+      V.push("À partir du sujet original ci-dessous, produis une VARIANTE parallèle (sujet B) : même structure, mêmes compétences et même niveau de difficulté, mais suffisamment différente pour empêcher la copie entre voisins.");
+      V.push('');
+      V.push('Changements à appliquer :');
+      changements.forEach(function (c) { V.push('- ' + c); });
+      V.push('');
+      V.push('Contraintes :');
+      V.push('- Conserve exactement les mêmes notions évaluées et le même barème que l’original.');
+      V.push('- Assure-toi que les nouvelles valeurs numériques donnent des résultats cohérents et calculables (évite les résultats inutilement complexes).');
+      V.push('- Fournis un corrigé détaillé de la variante, séparé de l’énoncé.');
+      if (consignesRaw) {
+        V.push('');
+        V.push('Consignes particulières :');
+        consignesRaw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).forEach(function (l) { V.push('- ' + l); });
+      }
+      V.push('');
+      V.push('--- SUJET ORIGINAL À DÉCLINER ---');
+      V.push(variantSource);
+      if (fichier) { V.push(''); V.push('Format de sortie :'); V.push('- ' + fichierConsigne(fichier)); }
+      return { prompt: V.join('\n') };
+    }
+
+    // --- Mode adaptation : aménager un sujet existant ---
+    if (adaptationOn) {
+      var adaptSource = document.getElementById('adaptSource').value.trim();
+      var aManquants = [];
+      if (!matiere) aManquants.push('matière');
+      if (!niveau) aManquants.push('niveau');
+      if (!adaptSource) aManquants.push('sujet original à adapter');
+      if (aManquants.length) return { error: aManquants };
+
+      var aAutre = document.getElementById('adaptSourceAutre').value.trim();
+      var amenagementsA = collectAmenagements(adaptSourceChecksState, aAutre);
+
+      var A = [];
+      A.push('Tu es un enseignant expérimenté en ' + matiere + ' (niveau ' + niveau + ').');
+      A.push('À partir du sujet original ci-dessous, produis une VERSION ADAPTÉE pour des élèves à besoins particuliers : mêmes compétences évaluées, même barème, mais accessibilité renforcée. Ne baisse pas les exigences de fond.');
+      A.push('');
+      A.push('Aménagements à appliquer :');
+      if (amenagementsA.length) {
+        amenagementsA.forEach(function (a) { A.push('- ' + a); });
+      } else {
+        A.push('- Applique les aménagements usuels (lisibilité, consignes clarifiées, charge cognitive réduite).');
+      }
+      A.push('');
+      A.push('Contraintes :');
+      A.push('- Conserve les mêmes notions et le même barème que l’original.');
+      A.push('- Indique brièvement les modifications apportées par rapport au sujet d’origine.');
+      A.push('- Fournis le corrigé de la version adaptée.');
+      if (consignesRaw) {
+        A.push('');
+        A.push('Consignes particulières :');
+        consignesRaw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).forEach(function (l) { A.push('- ' + l); });
+      }
+      A.push('');
+      A.push('--- SUJET ORIGINAL À ADAPTER ---');
+      A.push(adaptSource);
+      if (fichier) { A.push(''); A.push('Format de sortie :'); A.push('- ' + fichierConsigne(fichier)); }
+      return { prompt: A.join('\n') };
+    }
+
+    var manquants = [];
+    if (!matiere) manquants.push('matière');
+    if (!niveau) manquants.push('niveau');
+    if (!duree) manquants.push('durée');
+    if (manquants.length) return { error: manquants };
+
+    var typeLabel = (type === 'controle')
+      ? 'un contrôle de connaissances (court, centré sur la restitution de notions précises)'
+      : 'un devoir surveillé (plus long, mobilisant le raisonnement et plusieurs notions)';
+
+    var formatMap = {
+      'Énoncé papier': "Énoncé destiné à l'impression : mise en page claire, espaces de réponse, consignes explicites.",
+      'Évaluation numérique': 'Évaluation numérique : questions formulées pour être auto-corrigeables (réponses attendues précises).',
+      'Indifférent': 'Format libre.'
+    };
+    var formatLabel = formatMap[format] || 'Format libre.';
+
+    var competences = compRaw
+      ? compRaw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) { return '- ' + l; }).join('\n')
+      : '- (à préciser)';
+
+    var L = [];
+    L.push('Tu es un enseignant expérimenté en ' + matiere + '. Conçois ' + typeLabel + '.');
+    L.push('');
+    L.push("Paramètres de l'évaluation :");
+    L.push('- Matière : ' + matiere);
+    L.push('- Niveau : ' + niveau);
+    L.push('- Durée prévue : ' + duree);
+    if (theme) L.push('- Thème / chapitre : ' + theme);
+    if (nbExos) L.push("- Nombre d'exercices souhaité : " + nbExos);
+    if (bareme) L.push('- Barème total : ' + bareme);
+    if (versions && versions !== '1') L.push('- Nombre de versions parallèles : ' + versions + ' (sujets A, B, C…)');
+    L.push('');
+    L.push('Compétences à évaluer :');
+    L.push(competences);
+    L.push('');
+    L.push('Format attendu :');
+    L.push('- ' + formatLabel);
+    if (fichier) L.push('- ' + fichierConsigne(fichier));
+    L.push('');
+    L.push('Consignes :');
+    L.push('- Adapte le nombre et la difficulté des exercices à la durée et au niveau indiqués.');
+    L.push('- Pour chaque exercice, précise la ou les compétences visées et les points attribués.');
+    if (bareme) L.push('- Le total des points doit correspondre au barème ' + bareme + '.');
+    L.push('- Propose un corrigé détaillé séparé, avec les critères de réussite.');
+    L.push('- Veille à une progression de difficulté cohérente du début à la fin.');
+    if (versions && versions !== '1') {
+      L.push('- Produis ' + versions + ' versions parallèles distinctes, de même structure et difficulté équivalente, avec des valeurs numériques et contextes différents. Numérote-les clairement (Sujet A, Sujet B…) et fournis le corrigé de chacune.');
+    }
+    if (consignesRaw) {
+      L.push('');
+      L.push('Consignes particulières :');
+      consignesRaw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).forEach(function (l) { L.push('- ' + l); });
+    }
+
+    // Version adaptée (besoins particuliers)
+    var adaptOn = document.getElementById('adaptToggle').checked;
+    if (adaptOn) {
+      var adaptAutre = document.getElementById('adaptAutre').value.trim();
+      var amenagements = collectAmenagements(adaptChecksState, adaptAutre);
+
+      L.push('');
+      L.push('Version adaptée (élèves à besoins particuliers) :');
+      L.push('- En plus du ou des sujets ci-dessus, produis une version adaptée supplémentaire, évaluant les mêmes compétences et notée sur le même barème.');
+      if (amenagements.length) {
+        L.push('- Aménagements à appliquer : ' + amenagements.join(' ; ') + '.');
+      } else {
+        L.push('- Applique les aménagements usuels pour élèves à besoins particuliers (lisibilité, consignes clarifiées, charge cognitive réduite) sans baisser les exigences de fond.');
+      }
+      L.push('- Présente clairement la version adaptée séparément, avec son propre corrigé.');
+    }
+
+    return { prompt: L.join('\n') };
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var res = buildPrompt();
+    var err = document.getElementById('formErr');
+    if (res.error) {
+      err.textContent = 'À compléter : ' + res.error.join(', ') + '.';
+      err.hidden = false;
+      return;
+    }
+    err.hidden = true;
+    document.getElementById('result').textContent = res.prompt;
+    document.getElementById('charCount').textContent = res.prompt.length + ' caractères';
+    document.getElementById('output').hidden = false;
+    document.getElementById('copied').hidden = true;
+    document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var text = document.getElementById('result').textContent;
+    function done() { document.getElementById('copied').hidden = false; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var r = document.createRange();
+      r.selectNode(document.getElementById('result'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(r);
+      try { document.execCommand('copy'); } catch (e) {}
+      window.getSelection().removeAllRanges();
+      done();
+    }
+  });
+
+  // --- Démo : profils préremplis ---
+  var demos = {
+    pc5: {
+      matiere: 'Physique-Chimie', niveau: '5e', type: 'controle',
+      duree: '30 min', nbExos: '3', bareme: '/20', format: 'Énoncé papier', versions: '2',
+      theme: 'États et changements d’état de l’eau',
+      competences: 'Distinguer les trois états de la matière\nInterpréter un changement d’état\nLire et exploiter un graphique de température',
+      consignes: 'Inclure une expérience simple à décrire',
+      adapt: true, adaptChecks: ['dys', 'aere'], adaptAutre: ''
+    },
+    hg3: {
+      matiere: 'Histoire-Géographie', niveau: '3e', type: 'devoir',
+      duree: '1 h', nbExos: '3', bareme: '/20', format: 'Énoncé papier', versions: '1',
+      theme: 'La France depuis 1945 : société et politique',
+      competences: 'Situer des événements dans le temps\nAnalyser un document historique\nRédiger un paragraphe argumenté',
+      consignes: 'Prévoir une analyse de document et une question de synthèse',
+      adapt: true, adaptChecks: ['consignes', 'etapes'], adaptAutre: ''
+    },
+    fr1: {
+      matiere: 'Français', niveau: 'Première', type: 'devoir',
+      duree: '2 h', nbExos: '2', bareme: '/20', format: 'Énoncé papier', versions: '1',
+      theme: 'Le roman et le récit : commentaire et dissertation',
+      competences: 'Analyser un texte littéraire\nConstruire une argumentation\nMaîtriser l’expression écrite',
+      consignes: 'Proposer au choix un commentaire ou une dissertation',
+      adapt: false, adaptChecks: [], adaptAutre: ''
+    }
+  };
+
+  function setChipByValue(group, value) {
+    var container = document.getElementById('chips-' + group);
+    if (!container) return;
+    var chips = container.querySelectorAll('.chip');
+    for (var i = 0; i < chips.length; i++) {
+      if (chips[i].textContent === value && !chips[i].classList.contains('chip-custom')) {
+        selectChip(container, chips[i], value, group);
+        return;
+      }
+    }
+    // sinon, passer par le champ "Autre"
+    var custom = container.querySelector('.chip-custom input');
+    if (custom) {
+      for (var j = 0; j < chips.length; j++) chips[j].classList.remove('active');
+      var wrap = container.querySelector('.chip-custom');
+      if (wrap) wrap.classList.add('active');
+      custom.value = value;
+      picks[group] = value;
+    }
+  }
+
+  function applyDemo(key) {
+    var d = demos[key];
+    if (!d) return;
+
+    // passer en mode "nouveau"
+    var tabs = document.querySelectorAll('#tabs .tab');
+    for (var t = 0; t < tabs.length; t++) {
+      var isN = tabs[t].getAttribute('data-mode') === 'nouveau';
+      tabs[t].classList.toggle('active', isN);
+    }
+    currentMode = 'nouveau';
+    document.getElementById('paneNouveau').classList.add('active');
+    document.getElementById('paneVariante').classList.remove('active');
+    document.getElementById('paneAdaptation').classList.remove('active');
+    document.getElementById('submitBtn').textContent = 'Générer le prompt';
+
+    // puces
+    setChipByValue('matiere', d.matiere);
+    setChipByValue('niveau', d.niveau);
+    setChipByValue('duree', d.duree);
+    setChipByValue('nbExos', d.nbExos);
+    setChipByValue('bareme', d.bareme);
+    setChipByValue('format', d.format);
+    setChipByValue('versions', d.versions);
+
+    // type d'évaluation
+    var radios = form.elements['type'];
+    for (var r = 0; r < radios.length; r++) radios[r].checked = (radios[r].value === d.type);
+    syncChecked();
+
+    // textareas / inputs
+    document.getElementById('theme').value = d.theme || '';
+    document.getElementById('competences').value = d.competences || '';
+    document.getElementById('consignesNouveau').value = d.consignes || '';
+
+    // adaptation
+    var at = document.getElementById('adaptToggle');
+    at.checked = !!d.adapt;
+    document.getElementById('adaptBox').hidden = !d.adapt;
+    var aChecks = document.getElementById('adaptChecks').querySelectorAll('.check');
+    Object.keys(adaptChecksState).forEach(function (k) { adaptChecksState[k] = false; });
+    for (var a = 0; a < aChecks.length; a++) {
+      var cb = aChecks[a].querySelector('input');
+      cb.checked = false;
+      aChecks[a].classList.remove('checked');
+    }
+    (d.adaptChecks || []).forEach(function (key2, idx) {
+      // retrouver la case correspondant à la clé via l'ordre de adaptOptions
+      for (var b = 0; b < adaptOptions.length; b++) {
+        if (adaptOptions[b].key === key2 && aChecks[b]) {
+          var cb2 = aChecks[b].querySelector('input');
+          cb2.checked = true;
+          aChecks[b].classList.add('checked');
+          adaptChecksState[key2] = true;
+        }
+      }
+    });
+    document.getElementById('adaptAutre').value = d.adaptAutre || '';
+
+    document.getElementById('demoMenu').classList.remove('open');
+  }
+
+  (function initDemo() {
+    var btn = document.getElementById('demoBtn');
+    var menu = document.getElementById('demoMenu');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', function () { menu.classList.remove('open'); });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); });
+    var items = menu.querySelectorAll('button[data-demo]');
+    for (var i = 0; i < items.length; i++) {
+      items[i].addEventListener('click', function () {
+        applyDemo(this.getAttribute('data-demo'));
+      });
+    }
+  })();
+
+  form.addEventListener('reset', function () {
+    document.getElementById('output').hidden = true;
+    document.getElementById('formErr').hidden = true;
+    Object.keys(picks).forEach(function (k) { picks[k] = ''; });
+    Object.keys(groupsConfig).forEach(function (group) {
+      var container = document.getElementById('chips-' + group);
+      var chips = container.querySelectorAll('.chip');
+      for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+      var custom = container.querySelector('.chip-custom input');
+      if (custom) custom.value = '';
+      var cfg = groupsConfig[group];
+      if (cfg.def) {
+        for (var j = 0; j < chips.length; j++) {
+          if (chips[j].textContent === cfg.def && !chips[j].classList.contains('chip-custom')) {
+            selectChip(container, chips[j], cfg.def, group);
+            break;
+          }
+        }
+      }
+    });
+    // reset : revenir à l'onglet "nouveau"
+    var tabs = document.querySelectorAll('#tabs .tab');
+    for (var t = 0; t < tabs.length; t++) {
+      if (tabs[t].getAttribute('data-mode') === 'nouveau') tabs[t].classList.add('active');
+      else tabs[t].classList.remove('active');
+    }
+    currentMode = 'nouveau';
+    document.getElementById('paneNouveau').classList.add('active');
+    document.getElementById('paneVariante').classList.remove('active');
+    document.getElementById('paneAdaptation').classList.remove('active');
+    document.getElementById('submitBtn').textContent = 'Générer le prompt';
+    Object.keys(variantChecksState).forEach(function (k) { variantChecksState[k] = false; });
+    var vChecks = document.getElementById('variantChecks');
+    if (vChecks) {
+      var labs = vChecks.querySelectorAll('.check');
+      for (var m = 0; m < labs.length; m++) {
+        labs[m].classList.remove('checked');
+        var cb = labs[m].querySelector('input');
+        if (cb) cb.checked = false;
+      }
+    }
+    var vs = document.getElementById('variantSource');
+    if (vs) vs.value = '';
+
+    // reset adaptation
+    var at = document.getElementById('adaptToggle');
+    if (at) { at.checked = false; document.getElementById('adaptBox').hidden = true; }
+    Object.keys(adaptChecksState).forEach(function (k) { adaptChecksState[k] = false; });
+    var aChecks = document.getElementById('adaptChecks');
+    if (aChecks) {
+      var alabs = aChecks.querySelectorAll('.check');
+      for (var a = 0; a < alabs.length; a++) {
+        alabs[a].classList.remove('checked');
+        var acb = alabs[a].querySelector('input');
+        if (acb) acb.checked = false;
+      }
+    }
+    var aAutre = document.getElementById('adaptAutre');
+    if (aAutre) aAutre.value = '';
+
+    // reset onglet "adaptation d'un sujet"
+    var aSrc = document.getElementById('adaptSource');
+    if (aSrc) aSrc.value = '';
+    Object.keys(adaptSourceChecksState).forEach(function (k) { adaptSourceChecksState[k] = false; });
+    var asChecks = document.getElementById('adaptSourceChecks');
+    if (asChecks) {
+      var aslabs = asChecks.querySelectorAll('.check');
+      for (var s = 0; s < aslabs.length; s++) {
+        aslabs[s].classList.remove('checked');
+        var ascb = aslabs[s].querySelector('input');
+        if (ascb) ascb.checked = false;
+      }
+    }
+    var asAutre = document.getElementById('adaptSourceAutre');
+    if (asAutre) asAutre.value = '';
+
+    setTimeout(syncChecked, 0);
+  });
+})();
+</script>
+</body>
+</html>
