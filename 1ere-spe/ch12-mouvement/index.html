@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 12 – Mouvement d'un système</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css">
+</head>
+<body class="niveau-1spe" data-page="1spe-ch12">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#1ere-spe">1re Spé</a><span>/</span><b>Chapitre 12</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe" aria-current="page">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme">5ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Spécialité physique-chimie · Chapitre 12</div>
+    <h1>Mouvement d'un système</h1>
+    <div class="meta">11 étapes · 2 semaines<br>Toutes obligatoires : fiche méthode et activités 12A à 12C d'abord</div>
+    <div class="objectifs">
+      <h2>À la fin, je sais…</h2>
+      <ul>
+        <li>définir le système et le référentiel, décrire la trajectoire</li>
+        <li>représenter le vecteur vitesse, avec <code>v<sub>i</sub> = M<sub>i</sub>M<sub>i+1</sub> / Δt</code></li>
+        <li>construire le vecteur variation de vitesse <code>Δv⃗ = v⃗<sub>j</sub> − v⃗<sub>i</sub></code></li>
+        <li>relier forces et mouvement : <code>ΣF⃗ = m·Δv⃗/Δt</code> et principe d'inertie</li>
+        <li>exploiter un pointage vidéo et expliquer le rôle de la masse</li>
+      </ul>
+    </div>
+    <div class="progress">
+      <div class="count"><span id="nb-done">0</span><small>étapes sur 11</small></div>
+      <div class="bar"><i id="bar"></i></div>
+      <button id="reset" type="button">Tout décocher</button>
+    </div>
+  </aside>
+
+  <main>
+    <section class="intro">
+      <div class="intro-bloc">
+        <h2>Plan de travail</h2>
+        <p>La version numérique de ton plan de travail papier : les étapes, l'auto-évaluation et le mode d'emploi des six ateliers.</p>
+        <div class="docs"><button class="doc" data-url="https://drive.google.com/file/d/1BneAHyIitlufQibObZqTcvtyni-MCYkr/preview" data-title="Plan de travail – Chapitre 12"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Plan de travail du chapitre</button></div>
+      </div>
+      <div class="intro-bloc">
+        <h2>Cours</h2>
+        <p>La fiche de synthèse FS 12, à lire activement en surlignant les définitions de v⃗ et de Δv⃗ et la relation ΣF⃗ = m·Δv⃗/Δt avec ses unités, et les vidéos qui reprennent les notions.</p>
+        <div class="docs"><button class="doc" data-url="https://drive.google.com/file/d/1q-s9DUZU1876T0O9m7JN4ugGnD_M4R4G/preview" data-title="FS 12 – Mouvement d'un système"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h6a2 2 0 012 2v11a1.5 1.5 0 00-1.5-1.5H2zM18 4h-6a2 2 0 00-2 2v11a1.5 1.5 0 011.5-1.5H18z"/></svg>FS 12 — Mouvement d'un système</button></div>
+        <div class="docs videos">
+          <span class="livre">Vidéos :</span>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1-CGF-r23fG4eDx61Om_DKQhCym4jMvEB/preview" data-title="Vidéo – Mouvement d'une balle"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Mouvement d'une balle</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1IkCvgKZVVQiRy_dKRc1yV2_Ln5Sl3OO8/preview" data-title="Vidéo – Vecteur variation de vitesse"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Vecteur variation de vitesse</button>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="parcours-titre">Mon parcours</h2>
+    <ol class="etapes">
+      <li class="etape" style="--c:var(--brown)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 1 comme faite"><span>1</span></button>
+        <div class="head"><h2 class="titre">Fiche méthode Les vecteurs</h2><span class="type">Méthode</span><span class="duree">20 min</span></div>
+        <p class="consigne">Lire la fiche, puis s'entraîner à additionner et soustraire deux vecteurs. À faire avant l'activité 12A.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1-_FHlzZHWc04TzOqjSLQvDrAc9V22D8Q/preview" data-title="Fiche méthode – Les vecteurs"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche méthode Les vecteurs</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--blue)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 2 comme faite"><span>2</span></button>
+        <div class="head"><h2 class="titre">Mouvements et forces</h2><span class="type">Documentaire</span><span class="duree">50 min</span></div>
+        <p class="consigne">Activité 12A — fusée, Lune : tracer Δv⃗ et le comparer aux forces.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/13hL2Z0H50Lcon4mFUXaLq9DFxjp-T2HY/preview" data-title="Activité 12A – Mouvements et forces"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 12A</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 3 comme faite"><span>3</span></button>
+        <div class="head"><h2 class="titre">Le champ de pesanteur</h2><span class="type">Pointage vidéo</span><span class="duree">1 h — 20 min de pointage + 40 min d'exploitation</span></div>
+        <p class="consigne">Activité 12B — chute libre d'une balle et d'une boule de pétanque.</p>
+        <span class="securite">En binôme sur ordinateur · respecter les appels professeur de la fiche</span>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1bmpTcpHC81mNbbJi4iOVf7VZ_KoeiVyW/preview" data-title="Activité 12B – Le champ de pesanteur"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 12B</button>
+          <a class="doc" href="../../Outils/pointage-mouvement.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M7 10h6M10 7v6"/></svg>Outil Pointage vidéo</a>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 4 comme faite"><span>4</span></button>
+        <div class="head"><h2 class="titre">Catapulter un avion</h2><span class="type">Pointage vidéo</span><span class="duree">1 h 15 — 2 vidéos à pointer</span></div>
+        <p class="consigne">Activité 12C — mobile tracté, vérification de ΣF⃗ = m·Δv⃗/Δt.</p>
+        <span class="securite">En binôme sur ordinateur · respecter les appels professeur de la fiche</span>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1HbB0d0NYP0AlEISqhxDex58y7pYpr1VC/preview" data-title="Activité 12C – Catapulter un avion"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 12C</button>
+          <a class="doc" href="../../Outils/pointage-mouvement.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M7 10h6M10 7v6"/></svg>Outil Pointage vidéo</a>
+        </div>
+      </li>
+
+      <li class="repere"><b>La fiche méthode et les trois activités d'abord.</b> Ensuite, dans l'ordre de ton choix — toutes les étapes sont obligatoires.</li>
+      <li class="etape" style="--c:var(--brown)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 5 comme faite"><span>5</span></button>
+        <div class="head"><h2 class="titre">Fiche de synthèse FS 12</h2><span class="type">Lecture</span><span class="duree">20 min</span></div>
+        <p class="consigne">Lecture active : surligner les définitions de v⃗ et de Δv⃗ et la relation ΣF⃗ = m·Δv⃗/Δt avec ses unités.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1q-s9DUZU1876T0O9m7JN4ugGnD_M4R4G/preview" data-title="FS 12 – Mouvement d'un système"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h6a2 2 0 012 2v11a1.5 1.5 0 00-1.5-1.5H2zM18 4h-6a2 2 0 00-2 2v11a1.5 1.5 0 011.5-1.5H18z"/></svg>FS 12</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--purple)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 6 comme faite"><span>6</span></button>
+        <div class="head"><h2 class="titre">Atelier court n°1</h2><span class="type">Atelier</span><span class="duree">15 à 20 min</span></div>
+        <p class="consigne">Au choix parmi les six ateliers du plan de travail (A flashcards, B schéma-bilan, C chasse à l'erreur, D tracés chrono, E vrai/faux justifié, F calculs chrono). Conseillé : le schéma-bilan. Le groupe fabrique, un autre groupe corrige.</p>
+      </li>
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 7 comme faite"><span>7</span></button>
+        <div class="head"><h2 class="titre">Exercices 1 à 3 — échauffement</h2><span class="type">Entraînement</span><span class="duree">50 min · ≈ 14 questions</span></div>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1AZv1IdFJnl6ZFU1hzM_H9D2zNjystHXz/preview" data-title="Chapitre 12 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1-GPD4NYQcogRoa5D3-7qmdf9MsuKfVle/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 8 comme faite"><span>8</span></button>
+        <div class="head"><h2 class="titre">Exercices 4 à 7 — intermédiaire</h2><span class="type">Entraînement</span><span class="duree">1 h 45 · ≈ 29 questions</span></div>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1AZv1IdFJnl6ZFU1hzM_H9D2zNjystHXz/preview" data-title="Chapitre 12 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1-GPD4NYQcogRoa5D3-7qmdf9MsuKfVle/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--purple)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 9 comme faite"><span>9</span></button>
+        <div class="head"><h2 class="titre">Atelier court n°2</h2><span class="type">Atelier</span><span class="duree">15 à 20 min</span></div>
+        <p class="consigne">Différent du premier.</p>
+      </li>
+      <li class="etape" style="--c:var(--olive)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 10 comme faite"><span>10</span></button>
+        <div class="head"><h2 class="titre">Exercices 8 et 9 — expert et type bac</h2><span class="type">Expert / bac</span><span class="duree">1 h 30</span></div>
+        <p class="consigne">Exercice 8 « Quatre fois son poids dans le virage » et exercice 9 type bac « Le décollage du drone de livraison ».</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1AZv1IdFJnl6ZFU1hzM_H9D2zNjystHXz/preview" data-title="Chapitre 12 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1-GPD4NYQcogRoa5D3-7qmdf9MsuKfVle/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--ink)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 11 comme faite"><span>11</span></button>
+        <div class="head"><h2 class="titre">Je m'évalue</h2><span class="type">Bilan</span><span class="duree">15 min</span></div>
+        <p class="consigne">Auto-évaluation du plan de travail (partie 4), puis remédiation ciblée : une case « à revoir » = un exercice de la bande correspondante ou un atelier.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1BneAHyIitlufQibObZqTcvtyni-MCYkr/preview" data-title="Plan de travail – auto-évaluation"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Plan de travail et auto-évaluation</button>
+        </div>
+      </li>
+
+      <li class="repere" style="border-color:var(--video);margin-top:20px"><b>Boîte à outils</b>
+        <div class="docs" style="margin-top:10px;--c:var(--video)">
+          <a class="doc" href="../../Outils/pointage-mouvement.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M7 10h6M10 7v6"/></svg>Pointage vidéo</a>
+          <button class="doc" data-url="https://drive.google.com/file/d/1-_FHlzZHWc04TzOqjSLQvDrAc9V22D8Q/preview" data-title="Fiche méthode – Les vecteurs"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche méthode Les vecteurs</button>
+        </div>
+      </li>
+
+    </ol>
+  </main>
+</div>
+
+<div id="viewer" aria-hidden="true">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank" rel="noopener">Ouvrir dans un onglet</a>
+    <button id="viewer-close" aria-label="Fermer">✕</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen title="Document"></iframe>
+</div>
+
+<script src="../../assets/js/parcours.js"></script>
+</body>
+</html>
