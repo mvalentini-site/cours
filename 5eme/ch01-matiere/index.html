@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 1 – La matière dans tous ses états</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css">
+</head>
+<body class="niveau-5e" data-page="5e-ch01">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><b>Chapitre 1</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Physique-chimie · Chapitre 1</div>
+    <h1>La matière dans tous ses états</h1>
+    <div class="meta">10 étapes · 5 h en classe<br>+ un distillateur à fabriquer à la maison</div>
+    <div class="objectifs">
+      <h2>À la fin, je sais…</h2>
+      <ul>
+        <li>citer les trois états de l'eau et le moteur de son cycle</li>
+        <li>dire ce qui distingue un solide d'un liquide</li>
+        <li>dessiner la surface libre d'un liquide au repos</li>
+        <li>décrire le test au sulfate de cuivre anhydre</li>
+        <li>rédiger un protocole et schématiser une expérience</li>
+      </ul>
+    </div>
+    <div class="progress">
+      <div class="count"><span id="nb-done">0</span><small>étapes sur 10</small></div>
+      <div class="bar"><i id="bar"></i></div>
+      <button id="reset" type="button">Tout décocher</button>
+    </div>
+  </aside>
+
+  <main>
+    <ol class="etapes">
+
+      <li class="etape" style="--c:var(--blue)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 1 comme faite"><span>1</span></button>
+        <div class="head"><h2 class="titre">Les changements d'état de l'eau</h2><span class="type">Documentaire</span><span class="duree">30 min</span></div>
+        <p class="consigne">Activité 1 du livre, p. 14 — le cycle de l'eau, questions 1 à 6.</p>
+        <div class="docs">
+          <span class="livre">Livre :</span>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1Ym0LjOkKuZ9-1DbyvBNzNSltftm58Rq7/preview" data-title="Sommaire 1">Sommaire 1</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1dhrXdPAlNFPU8QXwH1epxtG-OJQQe-JX/preview" data-title="Sommaire 2">Sommaire 2</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1MCXXp7Srbng2vh1u6DeDcNCpX30fsw2l/preview" data-title="Activité – page 1">Activité 1</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1dlbzI-35gPt3uEZka7XFOy7tuNzp2RZe/preview" data-title="Activité – page 2">Activité 2</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1oQTxM_lyCgMnhdGBOc9qCrnpltgrrKQ6/preview" data-title="Activité – page 3">Activité 3</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--blue)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 2 comme faite"><span>2</span></button>
+        <div class="head"><h2 class="titre">Caractériser l'état solide et l'état liquide</h2><span class="type">Documentaire</span><span class="duree">30 min</span></div>
+        <p class="consigne">Activité 2 du livre, p. 15 — glaçons, fil à plomb et équerre, questions 1 à 6.</p>
+        <div class="docs">
+          <span class="livre">Livre :</span>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1nuNHfu8wUHjyqYAgNGxEY1dogIl1YFyO/preview" data-title="Activité – page 4">Activité 4</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/12FSAVSlX0_8s6ktnitLTQilPB-BGWEdR/preview" data-title="Activité – page 5">Activité 5</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1QZiMAsG9t29d_6dykPXd0WLcBrAqRksf/preview" data-title="Activité – page 6">Activité 6</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 3 comme faite"><span>3</span></button>
+        <div class="head"><h2 class="titre">Comment détecter la présence d'eau ?</h2><span class="type">TP</span><span class="duree">50 min</span></div>
+        <p class="consigne">Activité 1A — hypothèse, test au sulfate de cuivre sur des aliments, schémas, conclusion.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/11yZ9w6EGyO9NrhSjUEnTTpW8R5n-Ro-V/preview" data-title="Activité 1A"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v6l-4 8a1.5 1.5 0 001.3 2h11.4a1.5 1.5 0 001.3-2l-4-8V2M5.5 2h9"/></svg>Fiche d'activité 1A</button>
+          <button class="doc" data-url="https://drive.google.com/file/d/1pE29VWR4vcMFYEKPm7fLaXo7nZTPFBSA/preview" data-title="Fiche technique FT1"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche technique FT1</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 4 comme faite"><span>4</span></button>
+        <div class="head"><h2 class="titre">Comment produire de l'eau douce ?</h2><span class="type">TP, 2 séances</span><span class="duree">30 + 40 min</span></div>
+        <p class="consigne">Activité 1B — séance 1 (documents 1 à 3), puis un distillateur à fabriquer à la maison ; séance 2 une semaine plus tard, protocole au nitrate d'argent.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://docs.google.com/document/d/1ARGAspCfbJLJ5nVXpNYRhcp8n5bfjEqKhvRtO2jeYs8/preview" data-title="Activité 1B"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v6l-4 8a1.5 1.5 0 001.3 2h11.4a1.5 1.5 0 001.3-2l-4-8V2M5.5 2h9"/></svg>Fiche d'activité 1B</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--brown)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 5 comme faite"><span>5</span></button>
+        <div class="head"><h2 class="titre">Le cours</h2><span class="type">Lecture</span><span class="duree">15 min</span></div>
+        <p class="consigne">Lire le Bilan p. 20 (parties 1 et 2 sans le gaz, et le test au sulfate de cuivre) et L'essentiel p. 21. Puis, livre fermé, redire les propriétés du solide, du liquide et le test de l'eau.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1gMAhaIg6e8AD5QnZK5tXwgzDC5heiEeD/preview" data-title="Bilan p. 20"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h6a2 2 0 012 2v11a1.5 1.5 0 00-1.5-1.5H2zM18 4h-6a2 2 0 00-2 2v11a1.5 1.5 0 011.5-1.5H18z"/></svg>Bilan p. 20</button>
+          <button class="doc" data-url="https://drive.google.com/file/d/153r_GXqWZkuIzqtiZyikqlTULhAHBGn5/preview" data-title="L'essentiel p. 21"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h6a2 2 0 012 2v11a1.5 1.5 0 00-1.5-1.5H2zM18 4h-6a2 2 0 00-2 2v11a1.5 1.5 0 011.5-1.5H18z"/></svg>L'essentiel p. 21</button>
+        </div>
+      </li>
+
+      <li class="repere"><b>À partir d'ici,</b> dans l'ordre de ton choix. Les corrigés sont en bas de page.</li>
+
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 6 comme faite"><span>6</span></button>
+        <div class="head"><h2 class="titre">Exercices 7, 9 et 10</h2><span class="type">Entraînement</span><span class="duree">30 min</span></div>
+        <p class="consigne">p. 24 — représenter la surface d'un liquide, solide ou liquide ?, j'avance à mon rythme.</p>
+        <div class="docs">
+          <span class="livre">Livre :</span>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1eAY-MxPWwJNYu11UPo1P4GEWd_5yTEJw/preview" data-title="Exercices – page 1">Exos 1</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1MtjX6XaRwr5qsPXtZgS0UvaHfF8oPOmu/preview" data-title="Exercices – page 2">Exos 2</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1gVz-eQJoNy7EenTjKdlqpUgXktkLPRdd/preview" data-title="Exercices – page 3">Exos 3</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 7 comme faite"><span>7</span></button>
+        <div class="head"><h2 class="titre">Exercices 6, 11, 15 et 17</h2><span class="type">Entraînement</span><span class="duree">45 min</span></div>
+        <p class="consigne">p. 24-25 — répartition de l'eau, j'expérimente, le détecteur de l'eau, un protocole expérimental.</p>
+        <div class="docs">
+          <span class="livre">Livre :</span>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1uLQBa7rFJwHsMmmEn7umQi8w09xY5RM1/preview" data-title="Exercices – page 4">Exos 4</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/13UJZQ-MIepsDxQ31_Q4rb4MJTgw9kQLg/preview" data-title="Exercices – page 5">Exos 5</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1dA9mpWBwFH_f-las2KKqyiLbmZyqC5ta/preview" data-title="Exercices – page 6">Exos 6</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--purple)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 8 comme faite"><span>8</span></button>
+        <div class="head"><h2 class="titre">Atelier court au choix</h2><span class="type">Atelier</span><span class="duree">15 min</span></div>
+        <p class="consigne">Flashcards, schéma-bilan ou vrai / faux justifié — les fiches sont en annexe du plan de travail. Conseillé : les flashcards.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1mTtsY-tB_ubMvsBuZzZpoeEtlL2twbCy/preview" data-title="Plan de travail – annexe ateliers"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiches ateliers (plan de travail)</button>
+        </div>
+      </li>
+
+      <li class="etape facultatif" style="--c:var(--olive)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 9 comme faite"><span>9</span></button>
+        <div class="head"><h2 class="titre">Pour aller plus loin</h2><span class="type">Approfondissement</span><span class="duree">20 min</span></div>
+        <p class="consigne">Exercices 16 (p. 25) et 18 (p. 26).</p>
+        <div class="docs">
+          <span class="livre">Livre :</span>
+          <button class="doc page" data-url="https://drive.google.com/file/d/13UJZQ-MIepsDxQ31_Q4rb4MJTgw9kQLg/preview" data-title="Exercices – page 5">Exos 5</button>
+          <button class="doc page" data-url="https://drive.google.com/file/d/1dA9mpWBwFH_f-las2KKqyiLbmZyqC5ta/preview" data-title="Exercices – page 6">Exos 6</button>
+        </div>
+      </li>
+
+      <li class="etape" style="--c:var(--ink)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 10 comme faite"><span>10</span></button>
+        <div class="head"><h2 class="titre">Je m'évalue</h2><span class="type">Bilan</span><span class="duree">20 min</span></div>
+        <p class="consigne">p. 23 — QCM a. et e., phrase c. du n° 3 (corrigés p. 218), puis l'auto-évaluation du plan de travail.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1mTtsY-tB_ubMvsBuZzZpoeEtlL2twbCy/preview" data-title="Plan de travail – auto-évaluation"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Plan de travail et auto-évaluation</button>
+        </div>
+      </li>
+
+      <li class="repere" style="border-color:#5c2a2a"><b>Corrigés</b> — à ouvrir seulement après avoir cherché.
+        <div class="docs" style="margin-top:10px;--c:#5c2a2a">
+          <button class="doc" data-url="https://drive.google.com/file/d/1hYNN6MFxuscCKSJVVA4-YQSn25LtLMzv/preview" data-title="Corrigés des activités"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Activités 1A et 1B</button>
+          <button class="doc" data-url="https://drive.google.com/file/d/17zwoXd6X_oCgPyk8YfFxQP4dfR6Lwx2X/preview" data-title="Corrigés activités et exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Activités et exercices</button>
+        </div>
+      </li>
+
+    </ol>
+  </main>
+</div>
+
+<div id="viewer" aria-hidden="true">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank" rel="noopener">Ouvrir dans un onglet</a>
+    <button id="viewer-close" aria-label="Fermer">✕</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen title="Document"></iframe>
+</div>
+
+<script src="../../assets/js/parcours.js"></script>
+</body>
+</html>

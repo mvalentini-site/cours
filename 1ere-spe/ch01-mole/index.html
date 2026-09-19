@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 1 – Quantité de matière, mole et concentration</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css">
+</head>
+<body class="niveau-1spe" data-page="1spe-ch01">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#1ere-spe">1re Spé</a><span>/</span><b>Chapitre 1</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe" aria-current="page">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme">5ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Spécialité physique-chimie · Chapitre 1</div>
+    <h1>Quantité de matière, mole et concentration</h1>
+    <div class="meta">10 étapes · 3 semaines<br>Activités 1A à 1D d'abord, puis exercices et ateliers</div>
+    <div class="objectifs">
+      <h2>À la fin, je sais…</h2>
+      <ul>
+        <li>passer de N à n avec <code>N = n·N<sub>A</sub></code></li>
+        <li>calculer une masse molaire atomique ou moléculaire</li>
+        <li>trouver n pour un solide, un liquide, un gaz</li>
+        <li>utiliser <code>C = n/V</code>, <code>C<sub>m</sub> = m/V</code> et <code>C = C<sub>m</sub>/M</code></li>
+        <li>convertir les unités et conclure par rapport à une référence</li>
+      </ul>
+    </div>
+    <div class="progress">
+      <div class="count"><span id="nb-done">0</span><small>étapes sur 10</small></div>
+      <div class="bar"><i id="bar"></i></div>
+      <button id="reset" type="button">Tout décocher</button>
+    </div>
+  </aside>
+
+  <main>
+    <section class="intro">
+      <div class="intro-bloc">
+        <h2>Plan de travail</h2>
+        <p>La version numérique de ton plan de travail papier : les étapes, l'auto-évaluation et le mode d'emploi des ateliers.</p>
+        <div class="docs"><button class="doc" data-url="https://drive.google.com/file/d/1CUL8T9s-R38PnsnhXN9wpafxFvXFpuYx/preview" data-title="Plan de travail – Chapitre 1"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Plan de travail du chapitre</button></div>
+      </div>
+      <div class="intro-bloc">
+        <h2>Cours</h2>
+        <p>La fiche de synthèse FS 1, à lire activement en surlignant les six relations et leurs unités, et les vidéos qui reprennent chaque notion.</p>
+        <div class="docs"><button class="doc" data-url="https://drive.google.com/file/d/1vc-yrKSWwdinbmj5O4hImdYVNf77H2xN/preview" data-title="FS 1 – La mole"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h6a2 2 0 012 2v11a1.5 1.5 0 00-1.5-1.5H2zM18 4h-6a2 2 0 00-2 2v11a1.5 1.5 0 011.5-1.5H18z"/></svg>FS 1 — La mole</button></div>
+        <div class="docs videos">
+          <span class="livre">Vidéos :</span>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1B2qqXXUNIMNjtqQjETTA1FcNbyuiYW-v/preview" data-title="Vidéo – La mole"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>La mole</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/144Ktkls-JiOg1OwznItMgpw2_tDWbNWz/preview" data-title="Vidéo – Déterminer une quantité de matière"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Déterminer une quantité de matière</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1D1VnKkVuwyRDHmZuDMIUPliWTLanlHco/preview" data-title="Vidéo – Dissolution"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Dissolution</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1ZllZPdYJ5L2xZZ8KljPY_NoxJCb4vKl5/preview" data-title="Vidéo – Dilution"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Dilution</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1YcwnS3oSSag5gq24SvbMGG20Uhn-Sceu/preview" data-title="Vidéo – Dosage par étalonnage"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Dosage par étalonnage</button>
+          <button class="doc video" data-url="https://drive.google.com/file/d/1DgAZ6qcnxMzvDMMDlBPdvUc2BHTqq2Li/preview" data-title="Vidéo – Chromatographie"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Chromatographie</button>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="parcours-titre">Mon parcours</h2>
+    <ol class="etapes">
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 1 comme faite"><span>1</span></button>
+        <div class="head"><h2 class="titre">La lampe à lave</h2><span class="type">TP</span><span class="duree">1 h 10 — 45 min + 25 min de manips</span></div>
+        <p class="consigne">Activité 1A — découverte de la mole et de la constante d'Avogadro.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/108Y5BNUcMB0k7-mFiiJDW0zKfIsfmWlM/preview" data-title="Activité 1A – La lampe à lave"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v6l-4 8a1.5 1.5 0 001.3 2h11.4a1.5 1.5 0 001.3-2l-4-8V2M5.5 2h9"/></svg>Fiche d'activité 1A</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1wQBZox-xC8IBJ4oTyTwtIcn3HOsGAaAN/preview" data-title="Corrigé 1A"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--blue)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 2 comme faite"><span>2</span></button>
+        <div class="head"><h2 class="titre">Les gaz en chimie analytique</h2><span class="type">Documentaire</span><span class="duree">40 min</span></div>
+        <p class="consigne">Activité 1B — le volume molaire et n = V / V<sub>m</sub>.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1exXjAqC9VJ0Fhl8IObtWVPatNmbBSHSZ/preview" data-title="Activité 1B – Les gaz en chimie analytique"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 1B</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1WS0g2Kx-d2RhSNH6ld9Llv6zf5dNXgIB/preview" data-title="Corrigé 1B"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--blue)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 3 comme faite"><span>3</span></button>
+        <div class="head"><h2 class="titre">Analyse médicale et système d'unités</h2><span class="type">Documentaire</span><span class="duree">45 min</span></div>
+        <p class="consigne">Activité 1C — concentrations en quantité de matière et en masse, conversions d'unités.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/11babEJBII7yDNMBhyah--BiqlAnEUm5j/preview" data-title="Activité 1C – Analyse médicale"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 1C</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1ep0vD7b7vNtyhFF2o-PebuPxATijesvO/preview" data-title="Corrigé 1C"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--green)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 4 comme faite"><span>4</span></button>
+        <div class="head"><h2 class="titre">Les arbres fruitiers</h2><span class="type">TP</span><span class="duree">1 h — 40 min + 20 min de manips</span></div>
+        <p class="consigne">Activité 1D — dosage par étalonnage, travail en groupe évalué.</p>
+        <span class="securite">Blouse en coton, cheveux attachés, lunettes selon consigne</span>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/18epNYJtoGoOUnhrIYa05gPSe6tk1Tv2o/preview" data-title="Activité 1D – Les arbres fruitiers"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v6l-4 8a1.5 1.5 0 001.3 2h11.4a1.5 1.5 0 001.3-2l-4-8V2M5.5 2h9"/></svg>Fiche d'activité 1D</button>
+          <button class="doc" data-url="https://drive.google.com/file/d/1glfmg1pt6GuT1z8WnDc5-cNjtkI-SrFb/preview" data-title="Fiche d'évaluation de groupe – 1D"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'évaluation du groupe</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1yEWXuCHG_VDvlWT4-BNQO6Opjc1lTLWG/preview" data-title="Corrigé 1D"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+
+      <li class="repere"><b>Les quatre activités d'abord.</b> Ensuite, dans l'ordre de ton choix — sauf l'étape 9, qui est facultative.</li>
+      <li class="etape" style="--c:var(--purple)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 5 comme faite"><span>5</span></button>
+        <div class="head"><h2 class="titre">Atelier court n°1</h2><span class="type">Atelier</span><span class="duree">15 à 20 min</span></div>
+        <p class="consigne">Au choix parmi les six ateliers du plan de travail (A flashcards, B schéma-bilan, C chasse à l'erreur, D conversions chrono, E vrai/faux, F masses molaires). Conseillé : les flashcards. Le groupe fabrique, un autre groupe corrige.</p>
+      </li>
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 6 comme faite"><span>6</span></button>
+        <div class="head"><h2 class="titre">Exercices 1 à 3 — échauffement</h2><span class="type">Entraînement</span><span class="duree">55 min · 8 questions</span></div>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1QvWuXBGGJrtW2mk8HPK1uTvLBdITL-ZF/preview" data-title="Chapitre 1 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1q2I1PYtX3BfzWSzj1Zvmvuq31ZjVjEaD/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+          <a class="doc" href="calculateur-mole.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="2" width="12" height="16" rx="1.5"/><path d="M7 6h6M7 10h2M11 10h2M7 13h2M11 13h2"/></svg>Calculateur de moles</a>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--red)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 7 comme faite"><span>7</span></button>
+        <div class="head"><h2 class="titre">Exercices intermédiaires</h2><span class="type">Entraînement</span><span class="duree">1 h 15 · ≈ 12 questions</span></div>
+        <p class="consigne">En choisir 4 parmi les exercices 4 à 10, avec au moins un exercice sur les gaz et un sur les concentrations.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1QvWuXBGGJrtW2mk8HPK1uTvLBdITL-ZF/preview" data-title="Chapitre 1 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1q2I1PYtX3BfzWSzj1Zvmvuq31ZjVjEaD/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--purple)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 8 comme faite"><span>8</span></button>
+        <div class="head"><h2 class="titre">Atelier court n°2</h2><span class="type">Atelier</span><span class="duree">15 à 20 min</span></div>
+        <p class="consigne">Différent du premier.</p>
+      </li>
+      <li class="etape facultatif" style="--c:var(--olive)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 9 comme faite"><span>9</span></button>
+        <div class="head"><h2 class="titre">Pour aller plus loin</h2><span class="type">Expert</span><span class="duree">1 h 30</span></div>
+        <p class="consigne">Exercice 11 « Alcootest au bord de la route » et exercice 12 type bac.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1QvWuXBGGJrtW2mk8HPK1uTvLBdITL-ZF/preview" data-title="Chapitre 1 – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
+          <button class="doc corrige" data-url="https://drive.google.com/file/d/1q2I1PYtX3BfzWSzj1Zvmvuq31ZjVjEaD/preview" data-title="Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
+        </div>
+      </li>
+      <li class="etape" style="--c:var(--ink)">
+        <button class="marker" type="button" aria-label="Marquer l'étape 10 comme faite"><span>10</span></button>
+        <div class="head"><h2 class="titre">Je m'évalue</h2><span class="type">Bilan</span><span class="duree">15 min</span></div>
+        <p class="consigne">Auto-évaluation du plan de travail, puis remédiation ciblée : une case « à revoir » = un exercice de la même famille ou un atelier.</p>
+        <div class="docs">
+          <button class="doc" data-url="https://drive.google.com/file/d/1CUL8T9s-R38PnsnhXN9wpafxFvXFpuYx/preview" data-title="Plan de travail – auto-évaluation"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Plan de travail et auto-évaluation</button>
+        </div>
+      </li>
+
+      <li class="repere" style="border-color:var(--video);margin-top:20px"><b>Boîte à outils</b>
+        <div class="docs" style="margin-top:10px;--c:var(--video)">
+          <button class="doc video" data-url="https://drive.google.com/file/d/1DgqdepwsqU6ffyK_ZKgoIftMDf9ZsmYl/preview" data-title="Vidéo – Utiliser sa calculatrice TI"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Utiliser sa calculatrice TI</button>
+        </div>
+      </li>
+
+    </ol>
+  </main>
+</div>
+
+<div id="viewer" aria-hidden="true">
+  <div id="viewer-bar">
+    <span id="viewer-title">Document</span>
+    <a id="viewer-newTab" href="#" target="_blank" rel="noopener">Ouvrir dans un onglet</a>
+    <button id="viewer-close" aria-label="Fermer">✕</button>
+  </div>
+  <iframe id="viewer-frame" src="about:blank" allowfullscreen title="Document"></iframe>
+</div>
+
+<script src="../../assets/js/parcours.js"></script>
+</body>
+</html>

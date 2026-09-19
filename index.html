@@ -3,233 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cahier de Physique-Chimie</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<title>Cahier de physique-chimie</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/parcours.css">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --paper:#f6f1e4;--paper2:#ede7d3;--paper3:#e4ddc8;
-  --ink:#1c1208;--ink2:#2d200a;--faded:#5f4e33;--faded2:#87704c;
-  --red:#a63020;--blue:#1c3d6e;
-  --tape:#e9dcb4;--desk:#6a6258;
-  --sticker:#fdfaf0;--sticker-shadow:0 1px 4px rgba(0,0,0,.10);
-  --gmaj:rgba(70,90,200,0.13);--gmin:rgba(70,90,200,0.055);
-  --margin:rgba(190,50,30,0.28);
-  --tab-w:44px;
-  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
-}
-html,body{width:100%;height:100vh;overflow:hidden;
-  background:var(--desk);
-  background-image:radial-gradient(ellipse at 15% 10%,#7a7268 0%,transparent 50%),
-    radial-gradient(ellipse at 85% 90%,#5a5248 0%,transparent 50%);
-  font-family:var(--mono);}
-#app{display:grid;grid-template-columns:var(--tab-w) 1fr var(--tab-w);height:100vh;}
-#tabs-left{display:flex;flex-direction:column;justify-content:space-between;
-  padding:20px 0;z-index:20;background:rgba(0,0,0,.12);}
-.tabs-group{display:flex;flex-direction:column;gap:3px;}
-.tab-l{height:76px;width:var(--tab-w);border:none;cursor:pointer;
-  border-radius:0 4px 4px 0;box-shadow:2px 2px 6px rgba(0,0,0,.3);
-  transition:width .15s,opacity .15s;opacity:.72;
-  display:flex;align-items:center;justify-content:center;
-  position:relative;flex-shrink:0;overflow:hidden;}
-.tab-l:hover{width:54px;opacity:1;}
-.tab-l.active{width:58px;opacity:1;box-shadow:3px 2px 12px rgba(0,0,0,.4);}
-.tab-l.active::after{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);
-  border-left:8px solid currentColor;border-top:8px solid transparent;border-bottom:8px solid transparent;}
-.tab-l span{writing-mode:vertical-rl;font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  color:rgba(255,255,255,.88);white-space:nowrap;pointer-events:none;}
-#tabs-right{display:flex;flex-direction:column;justify-content:center;gap:3px;
-  padding:20px 0;z-index:20;background:rgba(0,0,0,.08);}
-.tab-r{height:72px;width:var(--tab-w);border:none;cursor:pointer;
-  border-radius:4px 0 0 4px;box-shadow:-2px 2px 6px rgba(0,0,0,.3);
-  transition:width .15s,opacity .15s;opacity:.68;
+/* ===== Accueil : complète parcours.css (jetons, topbar, police) ===== */
+.topbar .brand{text-decoration:none;font-weight:600;letter-spacing:-.01em;white-space:nowrap;}
+.topbar nav{align-items:center;}
+.topbar nav a{cursor:pointer;white-space:nowrap;}
+.topbar nav .sep{width:1px;height:18px;background:rgba(255,255,255,.2);margin:0 6px;}
+
+.home{max-width:1160px;margin:0 auto;padding:44px clamp(16px,4vw,48px) 40px;}
+.hero{padding-bottom:26px;border-bottom:1px solid var(--rule);margin-bottom:10px;}
+.hero h1{margin-bottom:12px;}
+.hero h1 em{font-style:normal;color:var(--c,var(--ink));}
+.lead{font-size:16px;color:var(--faded);max-width:62ch;}
+
+.bloc{margin-top:34px;}
+.bloc-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid var(--rule);}
+.bloc-head h2{font-size:21px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;}
+.bloc-head h2::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--c,var(--ink));}
+.bloc-head .nb{font-size:14px;color:var(--faded);}
+.bloc-head .voir{margin-left:auto;font-size:14px;color:var(--faded);text-decoration:none;}
+.bloc-head .voir:hover{color:var(--ink);text-decoration:underline;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;}
+.cat{grid-column:1/-1;font-size:14px;font-weight:600;color:var(--faded);margin:18px 0 2px;}
+.cat:first-child{margin-top:0;}
+.card{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px 38px 14px 14px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:4px;text-decoration:none;color:var(--ink);transition:border-color .12s,background .12s;}
+a.card:hover,a.card:focus-visible{background:#fff;border-color:var(--c,var(--ink));outline:none;}
+a.card:focus-visible{box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+a.card::after{content:'→';position:absolute;right:14px;top:14px;color:var(--faded2);transition:transform .12s,color .12s;}
+a.card:hover::after{transform:translateX(3px);color:var(--c,var(--ink));}
+.card .num{width:34px;height:34px;border-radius:50%;background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:15px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.tab-r:hover{width:54px;opacity:1;}
-.tab-r.active{width:56px;opacity:1;}
-.tab-r span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;letter-spacing:2px;
-  text-transform:uppercase;color:rgba(255,255,255,.85);white-space:nowrap;pointer-events:none;}
-#book{position:relative;overflow:hidden;height:100vh;
-  box-shadow:inset 5px 0 16px rgba(0,0,0,.15),inset -5px 0 16px rgba(0,0,0,.15);}
-#page-wrap{height:100%;overflow-y:auto;overflow-x:hidden;}
-.paper{min-height:100%;background:var(--paper);padding:48px 52px 72px 80px;position:relative;}
-.paper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    repeating-linear-gradient(transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
-    repeating-linear-gradient(90deg,transparent,transparent 9px,var(--gmin) 9px,var(--gmin) 10px),
-    repeating-linear-gradient(transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px),
-    repeating-linear-gradient(90deg,transparent,transparent 49px,var(--gmaj) 49px,var(--gmaj) 50px);}
-.paper::after{content:'';position:absolute;left:62px;top:0;bottom:0;width:1.5px;
-  background:var(--margin);pointer-events:none;z-index:1;}
-.paper>*{position:relative;z-index:2;}
-.holes{position:absolute;left:18px;top:0;bottom:0;z-index:10;
-  display:flex;flex-direction:column;justify-content:space-around;padding:80px 0;pointer-events:none;}
-.hole{width:15px;height:15px;border-radius:50%;background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);}
-.tape{display:inline-block;background:var(--tape);padding:4px 18px 4px 12px;
-  font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);
-  margin-bottom:12px;position:relative;}
-.tape::before,.tape::after{content:'';position:absolute;top:0;bottom:0;width:5px;background:#d8c693;}
-.tape::before{left:0;}.tape::after{right:0;}
-.page-header{display:flex;justify-content:space-between;align-items:flex-end;
-  margin-bottom:28px;padding-bottom:12px;border-bottom:1.5px solid var(--ink2);}
-.exp-tag{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--faded);margin-bottom:5px;}
-h1{font-family:var(--serif);font-size:clamp(28px,3.5vw,46px);font-weight:700;font-style:italic;
-  color:var(--ink);line-height:1;letter-spacing:-.5px;}
-h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,.3);}
-.ph-right{text-align:right;font-size:13px;color:var(--faded);line-height:1.9;}
-.ph-date{font-family:var(--serif);font-size:16px;color:var(--blue);font-weight:600;}
-.sec{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:28px;}
-.sec-num{font-size:10px;font-weight:500;padding:3px 8px;letter-spacing:1px;color:var(--paper);}
-.sec-name{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--faded);}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:6px;}
-.card{display:block;border:1.5px solid var(--ink2);padding:16px 32px 14px 14px;
-  background:var(--sticker);box-shadow:var(--sticker-shadow);
-  position:relative;text-decoration:none;color:inherit;
-  transition:background .13s,transform .12s,box-shadow .12s;}
-.card:hover{background:#fff;transform:translateY(-2px);box-shadow:0 3px 8px rgba(0,0,0,.14);}
-.card-tape{position:absolute;top:-9px;left:10px;background:var(--tape);padding:2px 9px;
-  font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);
-  box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.card-title{font-family:var(--serif);font-size:19px;font-style:italic;color:var(--ink);
-  margin-bottom:4px;margin-top:4px;line-height:1.2;}
-.card-sub{font-size:12px;color:var(--faded);line-height:1.6;}
-.card-arrow{position:absolute;bottom:10px;right:12px;font-size:15px;color:var(--faded2);}
-.card-tag{display:inline-block;margin-top:8px;font-size:10px;color:var(--paper);padding:2px 8px;letter-spacing:1px;}
-.card .bar{position:absolute;bottom:0;left:0;right:0;height:2.5px;opacity:.55;}
-.chap-num{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);margin-bottom:3px;}
-.chap-title{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--faded);
-  line-height:1.3;margin-bottom:4px;}
-.chap-partie{font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--paper);padding:2px 8px;display:inline-block;margin-top:4px;}
-.chap-cat{grid-column:1/-1;font-family:var(--serif);font-size:20px;font-style:italic;
-  color:var(--ink2);border-bottom:1.5px solid var(--ink2);padding:18px 0 8px;margin-bottom:2px;}
-.empty{font-size:13px;color:var(--faded2);font-style:italic;padding:12px 0;}
-.page-footer{margin-top:44px;padding-top:14px;border-top:1px solid rgba(28,18,8,.1);
-  display:flex;justify-content:space-between;font-size:12px;color:var(--faded2);}
+.card .txt{min-width:0;}
+.card .t{display:block;font-size:17px;font-weight:600;line-height:1.25;letter-spacing:-.01em;}
+.card .s{display:block;font-size:14px;color:var(--faded);margin-top:3px;line-height:1.4;}
+.card .tag{display:block;font-size:13px;font-weight:500;color:var(--c,var(--ink));margin-bottom:2px;}
+.card.coming{background:transparent;border-style:dashed;color:var(--faded2);}
+.card.coming .num{background:transparent;color:var(--faded2);box-shadow:inset 0 0 0 1.5px var(--faded2);}
+.card.coming .s{color:var(--faded2);}
+.card.coming.admin-link{cursor:pointer;}
+.card.coming.admin-link:hover{border-color:var(--faded);color:var(--faded);}
+.empty{font-size:15px;color:var(--faded2);padding:6px 0;}
+
+.page-footer{max-width:1160px;margin:0 auto;padding:18px clamp(16px,4vw,48px) 40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  font-size:13px;color:var(--faded2);}
 .page-footer a{color:var(--faded2);text-decoration:none;}
-.page-footer a:hover{color:var(--red);}
-.page-num{position:absolute;bottom:20px;right:48px;font-size:11px;color:var(--faded2);letter-spacing:2px;}
+.page-footer a:hover{color:var(--ink);text-decoration:underline;}
 
-/* ── Chapitre masqué (à venir) ── */
-.card.coming{opacity:.45;border-style:dashed;cursor:default;background:rgba(255,255,255,.08);}
-.card.coming:hover{background:rgba(255,255,255,.08);transform:none;}
-.card.coming .chap-title{color:var(--faded2);}
-.card.coming.admin-link{cursor:pointer;opacity:.6;}
-.card.coming.admin-link:hover{opacity:.9;background:rgba(255,255,255,.35);transform:translateY(-2px);}
-.coming-tape{position:absolute;top:-8px;right:10px;background:var(--tape);padding:1px 8px;
-  font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);
-  box-shadow:0 1px 2px rgba(0,0,0,.08);}
+@media (max-width:820px){
+  .topbar{height:auto;flex-wrap:wrap;padding-block:10px;gap:6px;}
+  .topbar nav{display:flex;width:100%;overflow-x:auto;padding-bottom:2px;}
+  .home{padding-top:28px;}
+}
 
-/* ── ADMIN ── */
-.admin-fab{position:fixed;bottom:24px;right:60px;z-index:500;display:none;
-  background:var(--ink);color:var(--paper);border:none;border-radius:2px;cursor:pointer;
-  font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;
-  box-shadow:0 2px 12px rgba(28,18,8,.35);transition:background .15s;}
+/* ===== Mode admin (sommaire 1res Spé) ===== */
+.admin-fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:20px;z-index:500;display:none;
+  background:var(--ink);color:var(--paper);border:none;border-radius:999px;cursor:pointer;
+  font:inherit;font-size:14px;padding:9px 16px;box-shadow:0 2px 12px rgba(28,18,8,.3);}
 .admin-fab.visible{display:flex;align-items:center;gap:6px;}
-.admin-fab:hover{background:#3a2a18;}
+.admin-fab:hover{background:var(--ink2);}
 .admin-fab.open{background:var(--red);}
-.admin-panel{position:fixed;top:0;right:0;bottom:0;width:380px;z-index:400;
-  background:var(--paper);border-left:1.5px solid var(--ink2);
-  display:flex;flex-direction:column;transform:translateX(100%);
-  transition:transform .25s ease;box-shadow:-4px 0 24px rgba(28,18,8,.25);
-  font-family:var(--mono);}
+.admin-panel{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:100%;z-index:400;background:var(--paper);
+  border-left:1px solid var(--rule);display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform .25s ease;box-shadow:-4px 0 24px rgba(28,18,8,.2);font-size:14px;}
 .admin-panel.open{transform:translateX(0);}
-.ap-head{padding:14px 16px;border-bottom:1.5px solid var(--ink2);
-  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.ap-head h2{font-family:var(--serif);font-size:16px;font-weight:600;font-style:italic;color:var(--ink);}
-.ap-close{background:none;border:none;cursor:pointer;font-size:16px;color:var(--faded);padding:2px 6px;}
-.ap-close:hover{color:var(--ink);}
-.ap-status{padding:6px 16px;font-size:10px;color:var(--faded2);
-  border-bottom:1px solid rgba(28,18,8,.12);background:rgba(28,18,8,.03);flex-shrink:0;min-height:24px;}
-.ap-status.changed{color:#9a6a10;}
-.ap-status.ok{color:#2a5c3a;}
+.ap-head{padding:14px 18px;background:var(--ink);color:var(--paper);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.ap-head h2{font-size:16px;font-weight:600;}
+.ap-close{background:none;border:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,.75);padding:2px 6px;}
+.ap-close:hover{color:#fff;}
+.ap-status{padding:7px 18px;font-size:13px;color:var(--faded);border-bottom:1px solid var(--rule);background:var(--paper2);flex-shrink:0;min-height:30px;}
+.ap-status.changed{color:#8a5a00;}
+.ap-status.ok{color:var(--green);}
 .ap-status.err{color:var(--red);}
-.ap-toolbar{padding:10px 16px;border-bottom:1px solid rgba(28,18,8,.12);flex-shrink:0;
-  display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.ap-btn{background:none;border:1px solid rgba(28,18,8,.3);border-radius:2px;
-  padding:5px 10px;font-family:var(--mono);font-size:10px;color:var(--ink);
-  cursor:pointer;transition:all .15s;}
-.ap-btn:hover{background:rgba(28,18,8,.06);}
+.ap-toolbar{padding:10px 18px;border-bottom:1px solid var(--rule);flex-shrink:0;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.ap-btn{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:6px 11px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;}
+.ap-btn:hover{background:#fff;border-color:var(--ink);}
 .ap-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-.ap-btn.primary:hover{background:#3a2a18;}
-.ap-btn.primary:disabled{background:rgba(28,18,8,.2);border-color:transparent;cursor:not-allowed;}
-.ap-form{padding:12px 16px;border-bottom:1px solid rgba(28,18,8,.12);flex-shrink:0;
-  background:rgba(28,18,8,.03);display:none;}
+.ap-btn.primary:hover{background:var(--ink2);}
+.ap-btn.primary:disabled{background:var(--paper2);color:var(--faded2);border-color:transparent;cursor:not-allowed;}
+.ap-form{padding:12px 18px;border-bottom:1px solid var(--rule);flex-shrink:0;background:var(--surface);display:none;}
 .ap-form.open{display:block;}
-.ap-form h3{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--faded);margin-bottom:10px;}
+.ap-form h3{font-size:14px;font-weight:600;color:var(--faded);margin-bottom:10px;}
 .form-row{margin-bottom:8px;}
-.form-row label{display:block;font-size:9px;color:var(--faded);margin-bottom:3px;}
-.form-row input{width:100%;border:1px solid rgba(28,18,8,.3);border-radius:2px;
-  background:rgba(255,255,255,.5);font-family:var(--mono);font-size:11px;
-  color:var(--ink);padding:5px 8px;outline:none;}
+.form-row label{display:block;font-size:12px;color:var(--faded);margin-bottom:3px;}
+.form-row input{width:100%;border:1px solid var(--rule);border-radius:4px;background:#fff;font:inherit;font-size:14px;color:var(--ink);padding:6px 9px;outline:none;}
 .form-row input:focus{border-color:var(--blue);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .form-actions{display:flex;gap:8px;margin-top:10px;}
-.ap-list{flex:1;overflow-y:auto;padding:6px 0;}
-.al-item{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:10px;
-  border-bottom:1px solid rgba(28,18,8,.07);transition:background .1s;}
-.al-item:hover{background:rgba(28,18,8,.04);}
-.al-item.is-cat{background:rgba(28,61,110,.07);font-family:var(--serif);font-style:italic;font-size:12px;}
+.ap-list{flex:1;overflow-y:auto;padding:4px 0;}
+.al-item{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 18px;font-size:14px;border-bottom:1px solid var(--rule);}
+.al-item:hover{background:var(--paper2);}
+.al-item.is-cat{background:rgba(28,61,110,.06);font-weight:600;}
 .al-item.is-hidden .al-title{color:var(--faded2);text-decoration:line-through;}
-.al-num{color:var(--faded2);font-size:9px;white-space:nowrap;width:26px;flex-shrink:0;}
-.al-title{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-.al-actions{display:flex;gap:2px;flex-shrink:0;}
-.al-btn{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;
-  color:var(--faded2);border-radius:2px;transition:all .1s;line-height:1;}
-.al-btn:hover{background:rgba(28,18,8,.1);color:var(--ink);}
+.al-num{color:var(--faded2);font-size:12px;width:24px;flex-shrink:0;}
+.al-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.al-actions{display:flex;gap:1px;flex-shrink:0;}
+.al-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:3px 5px;color:var(--faded2);border-radius:3px;line-height:1;}
+.al-btn:hover{background:rgba(28,18,8,.08);color:var(--ink);}
 .al-btn.del:hover{color:var(--red);}
 .al-btn.eye-off{color:var(--red);}
-.ap-footer{padding:10px 16px;border-top:1px solid rgba(28,18,8,.12);flex-shrink:0;
-  font-size:10px;color:var(--faded2);display:flex;justify-content:space-between;align-items:center;}
-.ap-footer button{background:none;border:none;cursor:pointer;font-size:10px;
-  color:var(--faded);font-family:var(--mono);text-decoration:underline;}
+.ap-footer{padding:10px 18px;border-top:1px solid var(--rule);flex-shrink:0;font-size:13px;color:var(--faded2);display:flex;justify-content:space-between;align-items:center;}
+.ap-footer button{background:none;border:none;cursor:pointer;font:inherit;font-size:13px;color:var(--faded);text-decoration:underline;}
 .ap-footer button:hover{color:var(--ink);}
-.token-dialog{position:fixed;inset:0;z-index:600;display:none;align-items:center;
-  justify-content:center;background:rgba(28,18,8,.4);backdrop-filter:blur(2px);font-family:var(--mono);}
+.token-dialog{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(28,18,8,.45);}
 .token-dialog.open{display:flex;}
-.td-box{background:var(--paper);border:1.5px solid var(--ink2);border-radius:2px;
-  padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(28,18,8,.3);}
-.td-box h3{font-family:var(--serif);font-weight:600;font-style:italic;font-size:15px;margin-bottom:6px;color:var(--ink);}
-.td-box p{font-size:10px;color:var(--faded);margin-bottom:14px;line-height:1.5;}
+.td-box{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:22px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(28,18,8,.3);}
+.td-box h3{font-size:17px;font-weight:600;margin-bottom:6px;}
+.td-box p{font-size:14px;color:var(--faded);margin-bottom:14px;line-height:1.5;}
 .td-box a{color:var(--blue);}
-.td-box input{width:100%;border:1px solid rgba(28,18,8,.3);border-radius:2px;
-  background:rgba(255,255,255,.5);font-family:var(--mono);font-size:11px;
-  color:var(--ink);padding:7px 10px;outline:none;margin-bottom:12px;}
+.td-box input{width:100%;border:1px solid var(--rule);border-radius:4px;background:#fff;font:inherit;font-size:14px;color:var(--ink);padding:8px 10px;outline:none;margin-bottom:12px;}
 .td-box input:focus{border-color:var(--blue);}
 .td-actions{display:flex;gap:8px;justify-content:flex-end;}
-.toast{position:fixed;bottom:72px;right:60px;z-index:600;background:var(--ink);color:var(--paper);
-  padding:8px 14px;border-radius:2px;font-size:11px;font-family:var(--mono);
-  opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;
-  pointer-events:none;max-width:300px;}
-.toast.ok{background:#2a5c3a;}
+.toast{position:fixed;bottom:72px;right:20px;z-index:600;background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:4px;font-size:14px;
+  opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:320px;}
+.toast.ok{background:var(--green);}
 .toast.err{background:var(--red);}
 .toast.show{opacity:1;transform:translateY(0);}
-@media(max-width:640px){.admin-panel{width:100%;}}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="tabs-left">
-    <div class="tabs-group" id="tabs-top"></div>
-    <div class="tabs-group" id="tabs-bot"></div>
-  </div>
-  <div id="book">
-    <div id="page-wrap">
-      <div class="paper" id="paper">
-        <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
-      </div>
-    </div>
-  </div>
-  <div id="tabs-right"></div>
-</div>
 
-<!-- ── ADMIN FAB ── -->
+<header class="topbar">
+  <a class="brand" href="#accueil">Cahier de physique-chimie</a>
+  <nav id="tabs" aria-label="Sections"></nav>
+</header>
+
+<main class="home" id="page"></main>
+
+<footer class="page-footer">
+  <span>Physique-chimie · Lycée</span>
+  <span><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> · <a href="https://github.com/mvalentini-site/cours" target="_blank" rel="noopener">GitHub</a></span>
+</footer>
+
+<!-- ── ADMIN ── -->
 <button class="admin-fab" id="admin-fab" onclick="toggleAdmin()" title="Mode administrateur">⚙ Admin</button>
-
-<!-- ── ADMIN PANEL ── -->
 <div class="admin-panel" id="admin-panel">
   <div class="ap-head">
     <h2>Sommaire 1res Spé — Admin</h2>
-    <button class="ap-close" onclick="toggleAdmin()">✕</button>
+    <button class="ap-close" onclick="toggleAdmin()" aria-label="Fermer">✕</button>
   </div>
   <div class="ap-status" id="ap-status">—</div>
   <div class="ap-toolbar">
@@ -246,7 +161,7 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
         <div class="form-row"><label>Partie (optionnel)</label><input type="text" id="f-partie" placeholder="Partie 1"></div>
       </div>
       <div class="form-row"><label>Titre</label><input type="text" id="f-title" placeholder="La mole"></div>
-      <div class="form-row"><label>Lien (fichier)</label><input type="text" id="f-file" placeholder="1ere-spe/01-La-mole/index.html"></div>
+      <div class="form-row"><label>Lien (fichier)</label><input type="text" id="f-file" placeholder="1ere-spe/ch02-oxydoreduction/index.html"></div>
     </div>
     <div id="ff-cat" style="display:none">
       <div class="form-row"><label>Nom de la catégorie</label><input type="text" id="f-cat" placeholder="Ondes et signaux"></div>
@@ -262,13 +177,11 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
     <button onclick="showTokenDialog()">Modifier le token</button>
   </div>
 </div>
-
-<!-- ── TOKEN DIALOG ── -->
 <div class="token-dialog" id="token-dialog">
   <div class="td-box">
     <h3>Token GitHub (PAT)</h3>
     <p>Nécessaire pour publier les modifications sur le serveur.<br>
-    Créer sur <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens</a> avec la permission <strong>Contents → Read &amp; write</strong> sur le repo <code>cours</code>.</p>
+    Créer sur <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens</a> avec la permission <strong>Contents → Read &amp; write</strong> sur le repo <code>cours</code>.</p>
     <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
     <div class="td-actions">
       <button class="ap-btn" onclick="closeTokenDialog()">Annuler</button>
@@ -276,234 +189,132 @@ h1 em{color:var(--red);font-style:normal;border-bottom:2px solid rgba(166,48,32,
     </div>
   </div>
 </div>
-
-<!-- ── TOAST ── -->
 <div class="toast" id="toast"></div>
 
 <script>
-const SITE_TITLE    = 'Cahier de Physique-Chimie';
-const SITE_TAGLINE  = 'Physique - Chimie - Lycée';
-const SITE_GITHUB   = 'https://github.com';
-
 const TABS_LEFT = [
-  {
-    "id": "accueil",
-    "label": "Accueil",
-    "color": "#3a2010"
-  },
-  {
-    "id": "1ere-spe",
-    "label": "1res Spe",
-    "color": "#1c3d6e"
-  },
-  {
-    "id": "1ere-ens",
-    "label": "Ens. Sci.",
-    "color": "#2a5c3a"
-  },
-  {
-    "id": "5eme",
-    "label": "5eme",
-    "color": "#6b3a1c"
-  },
-  {
-    "id": "outils",
-    "label": "Outils",
-    "color": "#3a3a1c"
-  }
+  { id:'accueil',  label:'Accueil',   title:'Cahier de physique-chimie',  color:'#1c1208' },
+  { id:'1ere-spe', label:'1res Spé',  title:'1re Spécialité',             color:'#1c3d6e' },
+  { id:'1ere-ens', label:'Ens. Sci.', title:'Enseignement scientifique',  color:'#2a5c3a' },
+  { id:'5eme',     label:'5ème',      title:'5ème',                       color:'#6b3a1c' },
+  { id:'outils',   label:'Outils',    title:'Outils interactifs',         color:'#3a3a1c' }
 ];
 const TABS_RIGHT = [
-  {
-    "id": "postbac",
-    "label": "Post Bac.",
-    "color": "#3a1c6b"
-  },
-  {
-    "id": "apropos",
-    "label": "A propos",
-    "color": "#1c4a4a"
-  }
+  { id:'postbac',  label:'Post Bac.', title:'Post-bac',                   color:'#3a1c6b' },
+  { id:'apropos',  label:'À propos',  title:'À propos',                   color:'#1c4a4a' }
 ];
 
+/* Sommaires de chapitres. Celui de 1res Spé est rechargé depuis data/sommaire-1ere-spe.json (mode admin). */
 const SOMMAIRES = {
   '1ere-spe': [
-    { cat:'Organisation et transformation de la matiere' },
-    { num:'01', title:'La mole' , partie:'Partie 1', file:'1ere-spe/01-La-mole/index.html'},
-    { num:'01', title:'Dosage par etalonnage' , partie:'Partie 2', file:'1ere-spe/01-Dosage-par-etalonnage/index.html'},
-    { num:'02', title:'Oxydoreduction' , file:'1ere-spe/02-Oxydoreduction/index.html'},
-    { num:'03', title:'Avancement' , file:'1ere-spe/03-Avancement/index.html'},
-    { num:'04', title:'Titrages' , file:'1ere-spe/04-Titrages/index.html'},
-    { num:'05', title:'De la structure a la polarite' , file:'1ere-spe/05-De-la-structure-a-la-polarite/index.html'},
-    { num:'06', title:'Cohesion de la matiere' , file:'1ere-spe/06-Cohesion-de-la-matiere/index.html'},
-    { num:'07', title:'Structure des entites organiques' , file:'1ere-spe/07-Structure-des-entites-organiques/index.html'},
-    { num:'08', title:'Syntheses chimiques' , file:'1ere-spe/08-Syntheses-chimiques/index.html'},
-    { num:'09', title:'Combustions' , file:'1ere-spe/09-Combustions/index.html'},
-    { cat:'Mouvements et interactions' },
-    { num:'10', title:'Interactions et champs' , file:'1ere-spe/10-Interactions-et-champs/index.html'},
-    { num:'11', title:'Fluides au repos' , file:'1ere-spe/11-Fluides-au-repos/index.html'},
-    { num:'12', title:'Mouvement d\'un systeme' , file:'1ere-spe/12-Mouvement-dun-systeme/index.html'},
-    { cat:'Energie, conversions et transferts' },
-    { num:'13', title:'Energie des systemes electriques' , file:'1ere-spe/13-Energie-des-systemes-electriques/index.html'},
-    { num:'14', title:'Energie mecanique' , file:'1ere-spe/14-Energie-mecanique/index.html'},
-    { cat:'Ondes et signaux' },
-    { num:'15', title:'Ondes mecaniques' , file:'1ere-spe/15-Ondes-mecaniques/index.html'},
-    { num:'16', title:'Lentilles minces' , file:'1ere-spe/16-Lentilles-minces/index.html'},
-    { num:'17', title:'Couleurs' , file:'1ere-spe/17-Couleurs/index.html'},
-    { num:'18', title:'Lumiere, onde et particules' , file:'1ere-spe/18-Lumiere-onde-et-particules/index.html'}
+    { cat:'Organisation et transformation de la matière' },
+    { num:'01', title:'La mole', partie:'Partie 1', file:'1ere-spe/ch01-mole/index.html' }
+  ],
+  '5eme': [
+    { num:'01', title:'La matière dans tous ses états', file:'5eme/ch01-matiere/index.html' }
   ]
 };
 
 const PAGES = {
   'outils': [
-    { file:'Outils/oscillateur-labo-a3.html', title:'Oscillateur harmonique', sub:'Masse-Ressort - Frequence - Energie', tag:'Mecanique', color:'#1c3d6e' },
-    { file:'Outils/masse-volumique-labo.html', title:'Masse volumique', sub:'p x V = m - Visualisation a l\'echelle', tag:'Matiere', color:'#2a5c3a' },
-    { file:'Outils/pointage-mouvement.html', title:'Pointage de mouvement', sub:'Video frame par frame - Vecteurs v et a', tag:'Cinematique', color:'#3a1c6b' },
-    { file:'Outils/gravite_terre_lune.html', title:'Gravite Terre-Lune', sub:'Champ gravitationnel - Force d\'attraction', tag:'Gravitation', color:'#6b3a1c' },
-    { file:'Outils/mariotte.html', title:'Loi de Mariotte', sub:'Arduino - P x V = cste - Gaz parfaits', tag:'Thermodynamique', color:'#5c2a2a' },
-    { file:'Outils/corde-de-melde.html', title:'Corde de Melde', sub:'Ondes stationnaires - Resonance - Stroboscope', tag:'Ondes', color:'#1c5c5c' },
-    { file:'Outils/plan.html', title:'Plan de classe', sub:'Places - Feu de travail - Minuteur - Notes', tag:'Gestion', color:'#3a5c1c' },
-    { file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouille par mot de passe', tag:'Gestion', color:'#5c3a1c' },
-    { file:'progression-1ere-spe.html', title:'Progression 1res Spe', sub:'Sequence annuelle 2025-2026 — toutes les seances', tag:'1res Spe', color:'#1c3d6e' }
-  ],
-  'accueil': [],
-  '1ere-spe': [],
-  '1ere-ens': [],
-  '5eme': [],
-  'postbac': [],
-  'apropos': []
+    { file:'Outils/oscillateur-labo-a3.html', title:'Oscillateur harmonique', sub:'Masse-ressort · fréquence · énergie', tag:'Mécanique', color:'#1c3d6e' },
+    { file:'Outils/masse-volumique-labo.html', title:'Masse volumique', sub:'ρ × V = m · visualisation à l\'échelle', tag:'Matière', color:'#2a5c3a' },
+    { file:'Outils/pointage-mouvement.html', title:'Pointage vidéo', sub:'Image par image · vecteurs v et a · énergies', tag:'Cinématique', color:'#3a1c6b' },
+    { file:'Outils/gravite_terre_lune.html', title:'Gravité Terre-Lune', sub:'Champ gravitationnel · force d\'attraction', tag:'Gravitation', color:'#6b3a1c' },
+    { file:'Outils/mariotte.html', title:'Loi de Mariotte', sub:'Arduino · P × V = cste · gaz parfaits', tag:'Thermodynamique', color:'#a63020' },
+    { file:'Outils/desintegration-radioactive.html', title:'Désintégration radioactive', sub:'Modèle des dés · demi-vie · activité · datation', tag:'Noyaux', color:'#6b1c4a' },
+    { file:'Outils/corde-de-melde.html', title:'Corde de Melde', sub:'Ondes stationnaires · résonance · stroboscope', tag:'Ondes', color:'#1c5c5c' },
+    { file:'Outils/plan.html', title:'Plan de classe', sub:'Places · feu de travail · minuteur · notes', tag:'Gestion', color:'#3a5c1c' },
+    { file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouillé par mot de passe', tag:'Gestion', color:'#5c3a1c' },
+    { file:'progression-1ere-spe.html', title:'Progression 1res Spé', sub:'Séquence annuelle 2025-2026 — toutes les séances', tag:'1res Spé', color:'#1c3d6e' }
+  ]
 };
 
-let currentTab = 'accueil';
 const ALL_TABS = [...TABS_LEFT, ...TABS_RIGHT];
-{ const h=(location.hash||'').slice(1); if(h && ALL_TABS.some(t=>t.id===h)) currentTab=h; }
-function tabInfo(id){ return ALL_TABS.find(t=>t.id===id)||{label:'',color:'#3a2010'}; }
-function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tabFromHash(){ const h=(location.hash||'').slice(1); return ALL_TABS.some(t=>t.id===h) ? h : 'accueil'; }
+let currentTab = tabFromHash();
+function tabInfo(id){ return ALL_TABS.find(t=>t.id===id)||TABS_LEFT[0]; }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function buildTabs(){
-  const top = document.getElementById('tabs-top');
-  const bot = document.getElementById('tabs-right');
-  TABS_LEFT.forEach(t=>{
-    const b=document.createElement('button');
-    b.className='tab-l'+(t.id===currentTab?' active':'');
-    b.style.background=t.color; b.style.color=t.color;
-    b.dataset.tab=t.id;
-    b.innerHTML='<span>'+t.label+'</span>';
-    b.addEventListener('click',()=>switchTab(t.id));
-    top.appendChild(b);
-  });
-  TABS_RIGHT.forEach(t=>{
-    const b=document.createElement('button');
-    b.className='tab-r'+(t.id===currentTab?' active':'');
-    b.style.background=t.color; b.style.color=t.color;
-    b.dataset.tab=t.id;
-    b.innerHTML='<span>'+t.label+'</span>';
-    b.addEventListener('click',()=>switchTab(t.id));
-    bot.appendChild(b);
-  });
+  const nav=document.getElementById('tabs');
+  const link=t=>'<a href="#'+t.id+'" data-tab="'+t.id+'">'+escH(t.label)+'</a>';
+  nav.innerHTML = TABS_LEFT.map(link).join('') + '<span class="sep" aria-hidden="true"></span>' + TABS_RIGHT.map(link).join('');
 }
-
 function updateTabsUI(){
-  document.querySelectorAll('.tab-l,.tab-r').forEach(b=>{
-    b.classList.toggle('active', b.dataset.tab===currentTab);
+  document.querySelectorAll('#tabs a').forEach(a=>{
+    if(a.dataset.tab===currentTab) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
   });
 }
-
 function switchTab(id){
   currentTab=id;
-  history.replaceState(null,'','#'+id);
   updateTabsUI();
   render();
-  document.getElementById('page-wrap').scrollTop=0;
+  window.scrollTo(0,0);
   document.getElementById('admin-fab').classList.toggle('visible', id===ADMIN_TAB);
   if(id!==ADMIN_TAB && adminOpen) toggleAdmin();
 }
+window.addEventListener('hashchange',()=>switchTab(tabFromHash()));
 
 function render(){
-  const paper = document.getElementById('paper');
-  const date  = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-  const ti    = tabInfo(currentTab);
-  const content = currentTab==='accueil' ? renderAccueil(date) : renderSection(ti, date);
-  paper.innerHTML =
-    '<div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>'
-    + content
-    + '<div class="page-num">-- '+escH(ti.label)+' --</div>';
+  const ti=tabInfo(currentTab);
+  document.getElementById('page').innerHTML = currentTab==='accueil' ? renderAccueil() : renderSection(ti);
+  document.title = currentTab==='accueil' ? 'Cahier de physique-chimie' : ti.title+' · Cahier de physique-chimie';
 }
 
-function renderAccueil(date){
-  const sections = TABS_LEFT.filter(t=>t.id!=='accueil').map((t,i)=>{
-    const chaps = (SOMMAIRES[t.id]||[]);
-    const pages = PAGES[t.id]||[];
-    const items = chaps.length
-      ? chaps.map(c=>chapHTML(c,t.color)).join('')
-      : pages.length
-        ? pages.map(p=>cardHTML(p)).join('')
-        : '<p class="empty">Aucune page pour le moment.</p>';
-    return '<div class="sec"><span class="sec-num" style="background:'+t.color+'">'+String(i+1).padStart(2,'0')+'</span><span class="sec-name">'+escH(t.label)+'</span></div><div class="cards">'+items+'</div>';
+function countLabel(chaps,pages){
+  const n=chaps.filter(c=>c.num&&!c.hidden).length, h=chaps.filter(c=>c.num&&c.hidden).length;
+  if(chaps.some(c=>c.num)) return n+' chapitre'+(n>1?'s':'')+(h?' · '+h+' à venir':'');
+  return pages.length ? pages.length+' page'+(pages.length>1?'s':'') : '';
+}
+
+function renderAccueil(){
+  const blocs = TABS_LEFT.filter(t=>t.id!=='accueil').map(t=>{
+    const chaps=SOMMAIRES[t.id]||[], pages=PAGES[t.id]||[];
+    const visibles=chaps.filter(c=>c.num&&!c.hidden);
+    const items = visibles.length ? visibles.map(c=>chapHTML(c,t.color)).join('')
+      : pages.length ? pages.map(cardHTML).join('')
+      : '<p class="empty">Aucune page pour le moment.</p>';
+    return '<section class="bloc" style="--c:'+t.color+'">'
+      +'<div class="bloc-head"><h2>'+escH(t.title)+'</h2><span class="nb">'+countLabel(chaps,pages)+'</span>'
+      +'<a class="voir" href="#'+t.id+'">Tout voir →</a></div>'
+      +'<div class="grid">'+items+'</div></section>';
   }).join('');
-  return '<div class="tape">'+escH(SITE_TAGLINE)+'</div>'
-    +'<div class="page-header"><div><div class="exp-tag">Outils interactifs</div><h1>Cahier de <em>laboratoire</em></h1></div>'
-    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>GitHub Pages</div></div></div>'
-    +sections
-    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><span style="display:flex;gap:10px;align-items:center;"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" style="letter-spacing:.04em;">CC BY-NC-SA 4.0</a><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></span></div>';
+  return '<div class="hero"><div class="kicker">Physique-chimie · Lycée et collège</div>'
+    +'<h1>Cahier de <em style="--c:var(--blue)">physique-chimie</em></h1>'
+    +'<p class="lead">Les parcours de chapitre, les documents de cours et les outils interactifs utilisés en classe.</p></div>'
+    +blocs;
 }
 
-function renderSection(ti, date){
-  const chapitres = SOMMAIRES[ti.id]||[];
-  const pages     = PAGES[ti.id]||[];
-  const nbChap    = chapitres.filter(c=>c.num).length;
-  const nbVisible = chapitres.filter(c=>c.num && !c.hidden).length;
-  const tocHTML = nbChap
-    ? '<div class="cards">'+chapitres.map(c=>chapHTML(c,ti.color)).join('')+'</div>'
-    : '<div class="sec"><span class="sec-num" style="background:'+ti.color+'">-&gt;</span><span class="sec-name">Outils disponibles</span></div>'
-      +'<div class="cards">'+(pages.length ? pages.map(p=>cardHTML(p)).join('') : '<p class="empty">Aucune page pour le moment.</p>')+'</div>';
-  const count = nbChap ? nbVisible+' chapitres' : pages.length+' outil'+(pages.length>1?'s':'');
-  const expTag = nbChap ? 'Liste des chapitres' : 'Physique - Chimie';
-  const h1 = nbChap ? '' : '<h1>'+escH(ti.label)+'</h1>';
-  return '<div class="tape" style="background:'+ti.color+'22;color:'+ti.color+'">'+escH(ti.label)+'</div>'
-    +'<div class="page-header"><div><div class="exp-tag">'+expTag+'</div>'+h1+'</div>'
-    +'<div class="ph-right"><div class="ph-date">'+date+'</div><div>'+count+'</div></div></div>'
-    +tocHTML
-    +'<div class="page-footer"><span>'+escH(SITE_TAGLINE)+'</span><span style="display:flex;gap:10px;align-items:center;"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" style="letter-spacing:.04em;">CC BY-NC-SA 4.0</a><a href="'+escH(SITE_GITHUB)+'" target="_blank">GitHub</a></span></div>';
+function renderSection(ti){
+  const chaps=SOMMAIRES[ti.id]||[], pages=PAGES[ti.id]||[];
+  const hasChaps=chaps.some(c=>c.num);
+  const items = hasChaps ? chaps.map(c=>chapHTML(c,ti.color)).join('')
+    : pages.length ? pages.map(cardHTML).join('')
+    : '<p class="empty">Aucune page pour le moment.</p>';
+  return '<div class="hero" style="--c:'+ti.color+'"><div class="kicker">'+(hasChaps?'Liste des chapitres':'Physique-chimie')+'</div>'
+    +'<h1><em>'+escH(ti.title)+'</em></h1>'
+    +'<p class="lead">'+countLabel(chaps,pages)+'</p></div>'
+    +'<section class="bloc" style="--c:'+ti.color+'"><div class="grid">'+items+'</div></section>';
 }
 
 function chapHTML(c, color){
-  if(c.cat) return '<div class="chap-cat">'+escH(c.cat)+'</div>';
-  if(c.hidden){
-    const adminLink = adminOpen && c.file && c.file.trim() !== '';
-    const tag  = adminLink ? 'a' : 'div';
-    const href = adminLink ? ' href="'+escH(c.file)+'"' : '';
-    return '<'+tag+' class="card coming'+(adminLink?' admin-link':'')+'"'+href+'>'
-      +'<span class="coming-tape">À venir</span>'
-      +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
-      +'<div class="chap-title">'+escH(c.title)+'</div>'
-      +(c.partie ? '<span class="chap-partie" style="background:'+color+';opacity:.6">'+escH(c.partie)+'</span>' : '')
-      +(adminLink ? '<span class="card-arrow">-&gt;</span>' : '')
-      +'<div class="bar" style="background:'+color+'"></div>'
-      +'</'+tag+'>';
-  }
-  const hasLink = c.file && c.file.trim() !== '';
-  const tag  = hasLink ? 'a' : 'div';
-  const href = hasLink ? ' href="'+escH(c.file)+'"' : '';
-  const cursor = hasLink ? '' : ' style="cursor:default;"';
-  const arrow = hasLink ? '<span class="card-arrow">-&gt;</span>' : '';
-  return '<'+tag+' class="card"'+href+cursor+'>'
-    +'<div class="chap-num">Chapitre '+escH(c.num)+'</div>'
-    +'<div class="chap-title">'+escH(c.title)+'</div>'
-    +(c.partie ? '<span class="chap-partie" style="background:'+color+'">'+escH(c.partie)+'</span>' : '')
-    +arrow
-    +'<div class="bar" style="background:'+color+'"></div>'
-    +'</'+tag+'>';
+  if(c.cat) return '<div class="cat">'+escH(c.cat)+'</div>';
+  const hasLink = !!(c.file && c.file.trim()!=='');
+  const subs = [c.partie, c.hidden ? 'À venir' : ''].filter(Boolean).join(' · ');
+  const inner = '<span class="num">'+escH(String(c.num).replace(/^0(?=\d)/,''))+'</span>'
+    +'<span class="txt"><span class="t">'+escH(c.title)+'</span>'+(subs?'<span class="s">'+escH(subs)+'</span>':'')+'</span>';
+  const linked = hasLink && (!c.hidden || adminOpen);   // un chapitre masqué n'est cliquable qu'en mode admin
+  const cls = 'card'+(c.hidden?' coming':'')+(c.hidden&&linked?' admin-link':'');
+  return linked
+    ? '<a class="'+cls+'" href="'+escH(c.file)+'" style="--c:'+color+'">'+inner+'</a>'
+    : '<div class="'+cls+'" style="--c:'+color+'">'+inner+'</div>';
 }
 
 function cardHTML(p){
-  return '<a class="card" href="'+escH(p.file)+'">'
-    +'<div class="card-tape">'+escH(p.tag)+'</div>'
-    +'<div class="card-title">'+escH(p.title)+'</div>'
-    +'<div class="card-sub">'+escH(p.sub)+'</div>'
-    +'<span class="card-tag" style="background:'+p.color+'">'+escH(p.tag)+'</span>'
-    +'<span class="card-arrow">-&gt;</span>'
-    +'<div class="bar" style="background:'+p.color+'"></div>'
-    +'</a>';
+  return '<a class="card" href="'+escH(p.file)+'" style="--c:'+p.color+'">'
+    +'<span class="txt"><span class="tag">'+escH(p.tag)+'</span><span class="t">'+escH(p.title)+'</span>'
+    +'<span class="s">'+escH(p.sub)+'</span></span></a>';
 }
 
 // ═══════════════════ MODE ADMIN — Sommaire 1res Spé ═══════════════════
@@ -790,7 +601,9 @@ function showToast(msg,type){
 window.addEventListener('beforeunload',e=>{ if(pendingChanges){e.preventDefault();e.returnValue='';} });
 
 buildTabs();
+updateTabsUI();
 render();
+document.getElementById('admin-fab').classList.toggle('visible', currentTab===ADMIN_TAB);
 loadSommaire();
 </script>
 </body>
