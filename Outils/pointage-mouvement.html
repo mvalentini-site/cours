@@ -247,7 +247,7 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
         <div class="bloc">
           <div class="row">
             <div class="field">
-              <label>Vidéo intégrée</label>
+              <label>Choisir une vidéo intégrée</label>
               <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
                 <option value="">— Choisir —</option>
                 <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
@@ -257,8 +257,11 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
                 <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
               </select>
             </div>
-            <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo</button>
+            <span style="align-self:flex-end;padding-bottom:8px;font-weight:600;color:var(--faded);">ou</span>
+            <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
             <input type="file" id="input-video" accept="video/*" style="display:none;">
+          </div>
+          <div class="row">
             <div class="field"><label>Fréquence (img/s)</label>
               <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
             <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
