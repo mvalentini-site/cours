@@ -73,7 +73,8 @@
     {
       "num": "12",
       "title": "Mouvement d'un système",
-      "hidden": true
+      "file": "1ere-spe/ch12-mouvement/index.html",
+      "hidden": false
     },
     {
       "cat": "Énergie, conversions et transferts"
