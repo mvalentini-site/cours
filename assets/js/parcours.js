@@ -1,34 +1,27 @@
 /* =========================================================
-   parcours.js — visionneuse + étapes cochées
+   parcours.js - ouverture des documents + etapes cochees
    ---------------------------------------------------------
    Utilisation : <script src="../../assets/js/parcours.js"></script> en fin de <body>
    Sur <body>, poser data-page="identifiant-unique" (ex. "1spe-ch01") :
-   c'est la clé de mémorisation des étapes cochées sur l'appareil de l'élève.
+   c'est la cle de memorisation des etapes cochees sur l'appareil de l'eleve.
    Contrat HTML :
-     .doc[data-url][data-title]  -> s'ouvre dans la visionneuse (#viewer)
-     .etape > .marker            -> clic = étape cochée / décochée
-     #nb-done, #bar, #reset      -> compteur, barre, bouton de remise à zéro
+     .doc[data-url][data-title]  -> s'ouvre dans un NOUVEL ONGLET du navigateur
+     .etape > .marker            -> clic = etape cochee / decochee
+     #nb-done, #bar, #reset      -> compteur, barre, bouton de remise a zero
    ========================================================= */
 (function(){
-  /* --- visionneuse --- */
-  var v=document.getElementById('viewer'),f=document.getElementById('viewer-frame'),
-      t=document.getElementById('viewer-title'),n=document.getElementById('viewer-newTab');
-  function open(url,title){
-    f.src=url;t.textContent=title;n.href=url.replace('/preview','/view');
-    v.classList.add('open');v.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+  /* --- ouverture des documents dans un nouvel onglet --- */
+  function openDoc(d){
+    var url=d.dataset.url||'';
+    if(!url)return;
+    if(url.indexOf('drive.google.com/file/')>-1) url=url.replace('/preview','/view');
+    window.open(url,'_blank','noopener');
   }
-  function close(){
-    v.classList.remove('open');v.setAttribute('aria-hidden','true');f.src='about:blank';document.body.style.overflow='';
-  }
-  if(v){
-    document.querySelectorAll('.doc[data-url]').forEach(function(d){
-      d.addEventListener('click',function(){open(d.dataset.url,d.dataset.title||d.textContent.trim());});
-      if(d.tagName!=='BUTTON'){d.setAttribute('tabindex','0');
-        d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click();}});}
-    });
-    document.getElementById('viewer-close').addEventListener('click',close);
-    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
-  }
+  document.querySelectorAll('.doc[data-url]').forEach(function(d){
+    d.addEventListener('click',function(){openDoc(d);});
+    if(d.tagName!=='BUTTON'){d.setAttribute('role','button');d.setAttribute('tabindex','0');
+      d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click();}});}
+  });
 
   /* --- étapes cochées, mémorisées sur l'appareil (localStorage) --- */
   var KEY='parcours:'+(document.body.dataset.page||location.pathname),

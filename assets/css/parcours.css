@@ -90,15 +90,6 @@ h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing
 .repere b{font-weight:600}
 .facultatif .titre::after{content:' facultatif';font-size:13px;font-weight:500;color:var(--faded2);margin-left:8px;}
 
-#viewer{position:fixed;inset:0;background:rgba(28,18,8,.9);z-index:100;display:none;flex-direction:column;}
-#viewer.open{display:flex;}
-#viewer-bar{display:flex;align-items:center;gap:16px;padding:10px 20px;background:var(--ink);flex-shrink:0;}
-#viewer-title{font-size:15px;font-weight:500;color:var(--paper);flex:1;}
-#viewer-newTab{font-size:13px;color:rgba(255,255,255,.65);text-decoration:none;}
-#viewer-newTab:hover{color:#fff;}
-#viewer-close{background:none;border:none;color:rgba(255,255,255,.75);font-size:20px;cursor:pointer;line-height:1;}
-#viewer-close:hover{color:#fff;}
-#viewer-frame{flex:1;border:none;background:#fff;}
 
 @media (max-width:820px){
   .layout{grid-template-columns:1fr;gap:28px;padding-top:24px;}
@@ -114,6 +105,7 @@ h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing
 .niveau-1spe{--accent:var(--blue);--crumb:#a9c4ea;}
 .niveau-ens{--accent:var(--green);--crumb:#b7dcc0;}
 .niveau-5e{--accent:var(--brown);--crumb:#e4c79a;}
+.niveau-4e{--accent:#6b1c4a;--crumb:#e8b3cf;}
 .topbar .crumb b{color:var(--crumb,#e4c79a);}
 
 /* --- vignettes de pages scannées (manuel) --- */

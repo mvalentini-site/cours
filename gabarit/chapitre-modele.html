@@ -1,12 +1,13 @@
 <!--
   GABARIT DE PAGE CHAPITRE
   1. Copier ce fichier dans NIVEAU/chXX-nom/index.html
-  2. Sur <body> : class="niveau-1spe" | "niveau-ens" | "niveau-5e", et data-page="identifiant unique"
+  2. Sur <body> : class="niveau-1spe" | "niveau-ens" | "niveau-5e" | "niveau-4e", et data-page="identifiant unique"
   3. Dans le bandeau <nav>, poser aria-current="page" sur le bon niveau
   4. Remplacer ID_DRIVE par l'identifiant du fichier (partage : « tous les utilisateurs disposant du lien »)
      - fichier Drive   : https://drive.google.com/file/d/ID/preview
      - Google Doc      : https://docs.google.com/document/d/ID/preview
-     - vidéo mp4 Drive : même forme que fichier Drive, elle se lit dans la visionneuse
+     - vidéo mp4 Drive : même forme que fichier Drive
+     Les documents s'ouvrent dans un nouvel onglet du navigateur (pas de visionneuse intégrée).
   Les chemins ../../assets/ supposent une page à deux niveaux sous la racine du site.
 -->
 <!DOCTYPE html>
@@ -16,7 +17,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chapitre 1 – Titre du chapitre</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/parcours.css">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=3">
 </head>
 <body class="niveau-1spe" data-page="NIVEAU-chXX">
 
@@ -27,6 +28,7 @@
     <a href="../../index.html#1ere-spe" aria-current="page">1res Spé</a>
     <a href="../../index.html#1ere-ens">Ens. Sci.</a>
     <a href="../../index.html#5eme">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
     <a href="../../index.html#outils">Outils</a>
   </nav>
 </header>
@@ -119,15 +121,7 @@
   </main>
 </div>
 
-<div id="viewer" aria-hidden="true">
-  <div id="viewer-bar">
-    <span id="viewer-title">Document</span>
-    <a id="viewer-newTab" href="#" target="_blank" rel="noopener">Ouvrir dans un onglet</a>
-    <button id="viewer-close" aria-label="Fermer">✕</button>
-  </div>
-  <iframe id="viewer-frame" src="about:blank" allowfullscreen title="Document"></iframe>
-</div>
 
-<script src="../../assets/js/parcours.js"></script>
+<script src="../../assets/js/parcours.js?v=3"></script>
 </body>
 </html>
