@@ -110,6 +110,8 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-rad
 /* vidéo */
 #video-wrap{position:relative;display:block;width:100%;user-select:none;background:#000;}
 #video-wrap video{display:block;width:100%;}
+#video-placeholder{margin-top:14px;width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:1px solid var(--rule);color:var(--blue);font-weight:700;font-size:clamp(22px,5vw,44px);text-align:center;}
 #overlay-canvas{position:absolute;top:0;left:0;pointer-events:none;}
 #click-canvas{position:absolute;top:0;left:0;cursor:crosshair;touch-action:none;}
 #scrubber{width:100%;accent-color:var(--ink);cursor:pointer;margin:10px 0 6px;height:28px;}
@@ -159,18 +161,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
 .vec-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);margin:0;}
 #canvas-chrono{width:100%;display:block;border:1px solid var(--rule);background:#000;}
 
-/* interprétation */
-.interp-section-title{font-size:14px;font-weight:600;color:var(--faded);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--rule);}
-.interp-block{margin-bottom:12px;}
-.interp-q{font-size:14px;color:var(--faded);margin-bottom:4px;}
-.interp-result{padding:9px 14px;font-size:14px;line-height:1.55;border-left:3px solid var(--rule);background:var(--paper2);}
-.interp-result b{font-weight:600}
-.interp-result.ok{background:var(--green-bg);border-color:var(--green);color:var(--green);}
-.interp-result.warn{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
-.interp-result.bad{background:var(--red-bg);border-color:var(--red);color:var(--red);}
-.interp-result.info{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);}
-.interp-result.neutral{color:var(--faded2);font-style:italic;}
-
 @media (max-width:1000px){
   .layout{grid-template-columns:220px minmax(0,1fr);gap:24px;padding:24px 16px 80px;}
   aside{top:16px;}
@@ -216,7 +206,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
       <a href="#etape-3" data-target="etape-3" style="--c:var(--green)"><span class="num">3</span>Pointage</a>
       <a href="#etape-4" data-target="etape-4" style="--c:var(--red)"><span class="num">4</span>Graphiques et modélisation</a>
       <a href="#etape-5" data-target="etape-5" style="--c:var(--purple)"><span class="num">5</span>Chronophotographie</a>
-      <a href="#etape-6" data-target="etape-6" style="--c:var(--ink)"><span class="num">6</span>Interprétation</a>
     </nav>
   </aside>
 
@@ -266,6 +255,7 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
               <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
             <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
           </div>
+          <div id="video-placeholder">Choisir une vidéo</div>
           <div id="video-container" class="hidden" style="margin-top:14px;">
             <div id="video-wrap">
               <video id="vid" preload="auto" playsinline></video>
@@ -425,34 +415,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
         </div>
       </li>
 
-      <!-- 6. INTERPRÉTATION -->
-      <li class="etape" id="etape-6" style="--c:var(--ink)">
-        <div class="marker" aria-hidden="true"><span>6</span></div>
-        <div class="head"><h2 class="titre">Interprétation automatique</h2><span class="type">Bilan</span><span class="duree">à partir de 4 points</span></div>
-        <p class="consigne">Des tests simples sur les données : nature du mouvement, accélération, énergie. Ce sont des indications à confronter à ton raisonnement, pas des réponses définitives.</p>
-        <div class="bloc">
-          <div id="interp-hint" class="hint">Enregistre des points pour activer l'interprétation.</div>
-          <div id="interp-container" class="hidden">
-
-            <div class="interp-section-title">Nature du mouvement</div>
-            <div class="interp-block"><div class="interp-q">Description générale</div><div class="interp-result neutral" id="ir-description"></div></div>
-            <div class="interp-block"><div class="interp-q">Le mouvement est-il rectiligne ?</div><div class="interp-result neutral" id="ir-rectiligne"></div></div>
-            <div class="interp-block"><div class="interp-q">Le mouvement est-il uniforme (vitesse constante) ?</div><div class="interp-result neutral" id="ir-uniforme"></div></div>
-            <div class="interp-block"><div class="interp-q">Le mouvement est-il circulaire ? <span class="hint">(valable si l'origine O est au centre du cercle)</span></div><div class="interp-result neutral" id="ir-circulaire"></div></div>
-            <div class="interp-block"><div class="interp-q">Le mouvement est-il parabolique ?</div><div class="interp-result neutral" id="ir-parabolique"></div></div>
-
-            <div class="interp-section-title" style="margin-top:18px;">Accélération</div>
-            <div class="interp-block"><div class="interp-q">L'accélération est-elle constante (MRUA) ?</div><div class="interp-result neutral" id="ir-mrua"></div></div>
-            <div class="interp-block"><div class="interp-q">Le mouvement est-il en chute libre ?</div><div class="interp-result neutral" id="ir-chute"></div></div>
-
-            <div class="interp-section-title" style="margin-top:18px;">Énergie <span id="interp-energy-hint" class="hint" style="font-weight:400;color:var(--amber);">(saisir une masse pour activer)</span></div>
-            <div class="interp-block"><div class="interp-q">Théorème de l'énergie cinétique — ΔEc = W(poids) ?</div><div class="interp-result neutral" id="ir-tec"></div></div>
-            <div class="interp-block"><div class="interp-q">L'énergie mécanique est-elle conservée ?</div><div class="interp-result neutral" id="ir-em"></div></div>
-
-          </div>
-        </div>
-      </li>
-
     </ol>
   </main>
 </div>
@@ -544,7 +506,7 @@ function initVideoSrc(src, label){
     totalFrames=Math.floor(duration*fps);videoLoaded=true;currentFrame=0;
     const sc=$('scrubber');sc.max=totalFrames-1;sc.value=0;
     seekToFrame(0);resizeCanvases();
-    $('video-container').classList.remove('hidden');
+    $('video-container').classList.remove('hidden');$('video-placeholder').classList.add('hidden');
     $('pill-video').textContent=(label||'Vidéo chargée')+' · '+fmtTime(duration);$('pill-video').className='info-pill ok';
     $('btn-calib-start').disabled=false;$('btn-prev').disabled=false;$('btn-next').disabled=false;
     updatePillFrame();$('pill-calib').textContent='Clique "Étalonner" puis sélectionne 2 points.';$('pill-calib').className='info-pill warn';
@@ -570,8 +532,6 @@ $('input-video').addEventListener('change',e=>{
 
 // Chargement automatique de la vidéo par défaut
 window.addEventListener('DOMContentLoaded',()=>{
-  const def=PRESET_VIDEOS[0];
-  if(def){$('sel-video-preset').value=def.url;loadPresetVideo(def.url);}
   checkAutosave();updateSteps();
 });
 $('fps').addEventListener('change',()=>{fps=parseFloat($('fps').value)||25;if(videoLoaded){totalFrames=Math.floor(duration*fps);$('scrubber').max=totalFrames-1;updatePillFrame();}});
@@ -613,7 +573,10 @@ function handleVideoClick(e){
   const sx=cv.width/rect.width,sy=cv.height/rect.height;
   const px=(e.clientX-rect.left)*sx,py=(e.clientY-rect.top)*sy;
   if(calibMode){
-    calibPts.push({px,py});const n=calibPts.length;logCalib('Point étalon '+n+' enregistré.');
+    calibPts.push({px,py});
+    if(calibPts.length>2){calibPts.shift();logCalib('Nouveau point : le plus ancien a été remplacé.');}
+    else logCalib('Point étalon '+calibPts.length+' enregistré.');
+    const n=calibPts.length;
     if(n===1){$('pill-calib').textContent='Clique le point 2…';}
     else if(n===2){$('btn-calib-ok').classList.remove('hidden');$('btn-calib-ok').disabled=false;$('pill-calib').textContent='2 points — clique ✓ Valider.';$('pill-calib').className='info-pill warn';}
     drawOverlay();return;
@@ -669,7 +632,7 @@ function computeDerived(){
   if(!points.length){derived=[];lignes=[];return;}
   const n=points.length,m=parseFloat($('masse').value),hasM=isFinite(m)&&m>0,g=9.81;
   const t0=points[0].t_raw;
-  const ts=points.map(p=>p.t_raw-t0),xs=points.map(p=>p.xReal),ys=points.map(p=>p.yReal);
+  const ts=points.map(p=>p.t_raw-t0),xs=points.map(p=>r2(p.xReal)),ys=points.map(p=>r2(p.yReal));
   const Vx=ts.map((_,i)=>{
     if(i===0||i===n-1)return null;
     return(xs[i+1]-xs[i-1])/(ts[i+1]-ts[i-1]);
@@ -713,7 +676,7 @@ function refreshTable(){
       const v=getColVal(d,c.id);
       return`<td${(c.id==='V'||c.id==='A')?' style="font-weight:500"':''}>${v!=null&&isFinite(v)?fmtN4(v):'—'}</td>`;
     }).join('');
-    return`<tr><td>${i+1}</td><td>${points[i].frame+1}</td><td>${fmtN4(d.t)}</td><td style="color:var(--accent)">${fmtN4(d.x)}</td><td style="color:var(--blue)">${fmtN4(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
+    return`<tr><td>${i+1}</td><td>${points[i].frame+1}</td><td>${fmtN4(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
   }).join('');
 }
 function getColVal(d,id){return{V:d.V,A:d.A,d:d.d,alpha:d.alpha,Ec:d.Ec,Ep:d.Ep,Em:d.Em,Vx:d.Vx,Vy:d.Vy,Ax:d.Ax,Ay:d.Ay}[id];}
@@ -1339,8 +1302,8 @@ function refreshChronoTable(){
       <td>${i+1}</td>
       <td>${points[i].frame+1}</td>
       <td>${fmtN4(d.t)}</td>
-      <td style="color:var(--accent)">${fmtN4(d.x)}</td>
-      <td style="color:var(--blue)">${fmtN4(d.y)}</td>
+      <td style="color:var(--accent)">${fmt2(d.x)}</td>
+      <td style="color:var(--blue)">${fmt2(d.y)}</td>
       <td>${d.V!=null&&isFinite(d.V)?fmtN4(d.V):'—'}</td>
       <td>${d.A!=null&&isFinite(d.A)?fmtN4(d.A):'—'}</td>
     </tr>`;
@@ -1468,209 +1431,7 @@ $('btn-chrono-dl').addEventListener('click',()=>{
   a.download='chronophoto_'+new Date().toISOString().slice(0,16).replace('T','_')+'.png';a.click();
 });
 
-// ══ INTERPRÉTATION AUTOMATIQUE — panneaux fixes ══
-
-function setIR(id,cls,html){
-  const el=$('ir-'+id);if(!el)return;
-  el.className='interp-result '+cls;
-  el.innerHTML=html;
-}
-
-function refreshAllInterp(){
-  if(!derived.length){
-    $('interp-hint').classList.remove('hidden');
-    $('interp-container').classList.add('hidden');
-    return;
-  }
-  $('interp-hint').classList.add('hidden');
-  $('interp-container').classList.remove('hidden');
-
-  const d=derived, u=calibUnit;
-  const n=d.length;
-
-  // ── SS1 : Nature du mouvement ──────────────────────────
-
-  // Description générale
-  {
-    const xs=d.map(p=>p.x),ys=d.map(p=>p.y);
-    const dx=Math.max(...xs)-Math.min(...xs),dy=Math.max(...ys)-Math.min(...ys);
-    const Vvals=d.map(p=>p.V).filter(v=>v!=null&&isFinite(v));
-    const Vmoy=Vvals.reduce((s,v)=>s+v,0)/Vvals.length;
-    const Vmin=Math.min(...Vvals),Vmax=Math.max(...Vvals);
-    const duree=d[d.length-1].t-d[0].t;
-    const dist=d.map((p,i)=>i===0?0:Math.sqrt((p.x-d[i-1].x)**2+(p.y-d[i-1].y)**2)).reduce((s,v)=>s+v,0);
-    setIR('description','info',
-      `Durée analysée : <b>${fmtN4(duree)} s</b> — ${n} points.<br>
-       Déplacement horizontal : <b>${fmtN4(dx)} ${u}</b>, vertical : <b>${fmtN4(dy)} ${u}</b>.<br>
-       Distance totale parcourue : <b>${fmtN4(dist)} ${u}</b>.<br>
-       Vitesse : de <b>${fmtN4(Vmin)}</b> à <b>${fmtN4(Vmax)} ${u}/s</b> (moyenne : <b>${fmtN4(Vmoy)} ${u}/s</b>).`);
-  }
-
-  // Rectiligne — étendue des angles de la vitesse
-  {
-    if(n<2){setIR('rectiligne','neutral','Pas assez de points.');}
-    else{
-      const alphas=d.map(p=>p.alpha).filter(v=>v!=null&&isFinite(v));
-      const mean=alphas.reduce((s,v)=>s+v,0)/alphas.length;
-      const etendue=Math.max(...alphas)-Math.min(...alphas);
-      if(etendue<5)
-        setIR('rectiligne','ok',`<b>Oui.</b> La direction du vecteur vitesse varie de seulement <b>${etendue.toFixed(1)}°</b> sur l'ensemble de la trajectoire (direction moyenne : ${fmtN4(mean)}°). Le mouvement est <b>rectiligne</b>.`);
-      else if(etendue<20)
-        setIR('rectiligne','warn',`<b>Approximativement.</b> La direction du vecteur vitesse varie de <b>${etendue.toFixed(1)}°</b> — le mouvement est légèrement courbe.`);
-      else
-        setIR('rectiligne','bad',`<b>Non.</b> La direction du vecteur vitesse change de <b>${etendue.toFixed(1)}°</b> entre le début et la fin. Le mouvement est <b>curviligne</b>.`);
-    }
-  }
-
-  // Uniforme — variation de la norme de la vitesse
-  {
-    if(n<2){setIR('uniforme','neutral','Pas assez de points.');}
-    else{
-      const V=d.map(p=>p.V).filter(v=>v!=null&&isFinite(v));
-      const Vmin=Math.min(...V),Vmax=Math.max(...V);
-      const mean=V.reduce((s,v)=>s+v,0)/V.length;
-      const variation=mean>0?(Vmax-Vmin)/mean*100:Infinity;
-      if(variation<8)
-        setIR('uniforme','ok',`<b>Oui.</b> La norme du vecteur vitesse varie de <b>${fmtN4(Vmin)}</b> à <b>${fmtN4(Vmax)} ${u}/s</b>, soit une variation de <b>${variation.toFixed(1)} %</b> autour de ${fmtN4(mean)} ${u}/s. Le mouvement est <b>uniforme</b>.`);
-      else if(variation<25)
-        setIR('uniforme','warn',`<b>Pas tout à fait.</b> La vitesse varie de <b>${variation.toFixed(1)} %</b> (de ${fmtN4(Vmin)} à ${fmtN4(Vmax)} ${u}/s) — elle n'est pas vraiment constante.`);
-      else
-        setIR('uniforme','bad',`<b>Non.</b> La vitesse passe de <b>${fmtN4(Vmin)}</b> à <b>${fmtN4(Vmax)} ${u}/s</b> (variation de <b>${variation.toFixed(1)} %</b>). Le mouvement n'est pas uniforme.`);
-    }
-  }
-
-  // Circulaire — distance à l'origine constante ?
-  {
-    if(n<3){setIR('circulaire','neutral','Pas assez de points.');}
-    else{
-      const dist=d.map(p=>Math.sqrt(p.x*p.x+p.y*p.y));
-      const mean=dist.reduce((s,v)=>s+v,0)/dist.length;
-      const etendue=Math.max(...dist)-Math.min(...dist);
-      const variation=mean>0?etendue/mean*100:Infinity;
-      if(variation<5)
-        setIR('circulaire','ok',`<b>Oui.</b> La distance à l'origine varie de <b>${variation.toFixed(1)} %</b> autour de r = <b>${fmtN4(mean)} ${u}</b>. Le mouvement est compatible avec un <b>mouvement circulaire</b>.`);
-      else if(variation<15)
-        setIR('circulaire','warn',`<b>Approximativement.</b> La distance à l'origine varie de <b>${variation.toFixed(1)} %</b> — pas parfaitement circulaire.`);
-      else
-        setIR('circulaire','bad',`<b>Non.</b> La distance à l'origine varie de <b>${variation.toFixed(1)} %</b>. Le mouvement n'est pas circulaire.`);
-    }
-  }
-
-  // Parabolique — R² de x(t) affine et y(t) quadratique
-  {
-    if(n<4){setIR('parabolique','neutral','Pas assez de points (min 4).');}
-    else{
-      const ts=d.map(p=>p.t),xs=d.map(p=>p.x),ys=d.map(p=>p.y);
-      function Sarr(arr){return arr.reduce((s,v)=>s+v,0);}
-      const st=Sarr(ts),sx=Sarr(xs),st2=Sarr(ts.map(t=>t*t)),sxt=Sarr(ts.map((t,i)=>t*xs[i]));
-      const D=n*st2-st*st;
-      const ax=(n*sxt-st*sx)/D,bx=(sx-ax*st)/n;
-      const r2x=1-xs.reduce((s,x,i)=>s+(x-(ax*ts[i]+bx))**2,0)/xs.reduce((s,x)=>s+(x-sx/n)**2,0);
-      const st3=Sarr(ts.map(t=>t**3)),st4=Sarr(ts.map(t=>t**4)),sy=Sarr(ys);
-      const syt=Sarr(ts.map((t,i)=>t*ys[i])),syt2=Sarr(ts.map((t,i)=>t*t*ys[i]));
-      let M=[[st4,st3,st2,syt2],[st3,st2,st,syt],[st2,st,n,sy]];
-      for(let c=0;c<3;c++){let mr=c;for(let r=c+1;r<3;r++)if(Math.abs(M[r][c])>Math.abs(M[mr][c]))mr=r;[M[c],M[mr]]=[M[mr],M[c]];for(let r=0;r<3;r++){if(r===c||!M[c][c])continue;const f=M[r][c]/M[c][c];for(let k=c;k<=3;k++)M[r][k]-=f*M[c][k];}}
-      const ay=M[0][3]/M[0][0],by=M[1][3]/M[1][1],cy=M[2][3]/M[2][2];
-      const r2y_tot=ys.reduce((s,y)=>s+(y-sy/n)**2,0);
-      const r2y=r2y_tot>0?1-ys.reduce((s,y,i)=>s+(y-(ay*ts[i]**2+by*ts[i]+cy))**2,0)/r2y_tot:1;
-      if(r2x>0.98&&r2y>0.95)
-        setIR('parabolique','ok',`<b>Oui.</b> x(t) suit une loi affine (R² = ${r2x.toFixed(3)}) : la vitesse horizontale est constante. y(t) suit une loi quadratique (R² = ${r2y.toFixed(3)}) : l'accélération verticale est constante. La trajectoire est <b>parabolique</b>, cohérente avec un lancer de projectile.`);
-      else if(r2x>0.90&&r2y>0.85)
-        setIR('parabolique','warn',`<b>Approximativement parabolique.</b> R²(x affine) = ${r2x.toFixed(3)}, R²(y quadratique) = ${r2y.toFixed(3)}. Des écarts existent — frottements ou imprécision de pointage.`);
-      else
-        setIR('parabolique','bad',`<b>Non.</b> R²(x affine) = ${r2x.toFixed(3)}, R²(y quadratique) = ${r2y.toFixed(3)}. La trajectoire n'est pas parabolique.`);
-    }
-  }
-
-  // ── SS2 : Accélération ─────────────────────────────────
-
-  // MRUA — variation de la norme de l'accélération
-  {
-    const A=d.map(p=>p.A).filter(v=>v!=null&&isFinite(v));
-    if(A.length<2){setIR('mrua','neutral','Pas assez de points (min 4).');}
-    else{
-      const Amin=Math.min(...A),Amax=Math.max(...A);
-      const mean=A.reduce((s,v)=>s+v,0)/A.length;
-      const variation=mean>0?(Amax-Amin)/mean*100:Infinity;
-      if(variation<20)
-        setIR('mrua','ok',`<b>Oui.</b> L'accélération varie de <b>${fmtN4(Amin)}</b> à <b>${fmtN4(Amax)} ${u}/s²</b> (écart de <b>${variation.toFixed(1)} %</b> autour de ${fmtN4(mean)} ${u}/s²). Le mouvement est compatible avec un <b>MRUA</b>.`);
-      else if(variation<50)
-        setIR('mrua','warn',`<b>Approximativement.</b> L'accélération varie de <b>${variation.toFixed(1)} %</b> (de ${fmtN4(Amin)} à ${fmtN4(Amax)} ${u}/s²) — imprécision du pointage probable.`);
-      else
-        setIR('mrua','bad',`<b>Non.</b> L'accélération varie de <b>${variation.toFixed(1)} %</b> (de ${fmtN4(Amin)} à ${fmtN4(Amax)} ${u}/s²). Ce n'est pas un MRUA.`);
-    }
-  }
-
-  // Chute libre — comparaison à g
-  {
-    const Ay=d.map(p=>p.Ay).filter(v=>v!=null&&isFinite(v));
-    const Ax=d.map(p=>p.Ax).filter(v=>v!=null&&isFinite(v));
-    if(!Ay.length){setIR('chute','neutral','Pas assez de points (min 3).');}
-    else if(u!=='m'){setIR('chute','neutral','Analyse valide uniquement si l\'unité est le mètre.');}
-    else{
-      const meanAy=Ay.reduce((s,v)=>s+v,0)/Ay.length;
-      const meanAx=Ax.reduce((s,v)=>s+v,0)/Ax.length;
-      const g=9.81;
-      const ecartPct=Math.abs(meanAy+g)/g*100;
-      const axPct=Math.abs(meanAx)/g*100;
-      if(ecartPct<10&&axPct<15)
-        setIR('chute','ok',`<b>Oui.</b> L'accélération verticale mesurée est Ay = <b>${fmtN4(meanAy)} m/s²</b>, soit un écart de <b>${ecartPct.toFixed(1)} %</b> par rapport à −g = −9,81 m/s². L'accélération horizontale (${fmtN4(meanAx)} m/s²) est négligeable. Le mouvement est en <b>chute libre</b>.`);
-      else if(ecartPct<25)
-        setIR('chute','warn',`<b>Probablement non.</b> Ay = <b>${fmtN4(meanAy)} m/s²</b>, écart de <b>${ecartPct.toFixed(1)} %</b> par rapport à −g. Causes possibles : frottements, inclinaison de la caméra, imprécision du pointage.`);
-      else
-        setIR('chute','bad',`<b>Non.</b> Ay = <b>${fmtN4(meanAy)} m/s²</b>, écart de <b>${ecartPct.toFixed(1)} %</b> par rapport à −g. D'autres forces agissent sur l'objet.`);
-    }
-  }
-
-  // ── SS3 : Énergie ──────────────────────────────────────
-  const hasM=hasMasse();
-  const iv=d.map((p,i)=>p.Ec!=null?i:-1).filter(i=>i>=0);const i0=iv[0],i1=iv[iv.length-1];
-  $('interp-energy-hint').classList.toggle('hidden',hasM);
-
-  // TEC — W(poids) = ΔEc (entre le premier et le dernier point où V est défini)
-  {
-    if(!hasM){setIR('tec','neutral','Saisir une masse dans la section Étalonnage.');}
-    else if(iv.length<2){setIR('tec','neutral','Pas assez de points (min 4).');}
-    else{
-      const g=9.81;
-      const masse=parseFloat($('masse').value);
-      const deltaEc=d[i1].Ec-d[i0].Ec;
-      const deltaY=d[i1].y-d[i0].y;
-      // W(poids) de A vers B = m·g·(yA − yB) = −m·g·Δy (axe y vers le haut)
-      const Wpoids=-masse*g*deltaY;
-      const ref=Math.max(Math.abs(deltaEc),Math.abs(Wpoids),1e-6);
-      const ecartPct=Math.abs(deltaEc-Wpoids)/ref*100;
-      const span=`entre les points ${i0+1} et ${i1+1}`;
-      if(ecartPct<10)
-        setIR('tec','ok',`<b>Oui.</b> ${span} : ΔEc = <b>${fmtN4(deltaEc)} J</b> et W(poids) = −m·g·Δy = <b>${fmtN4(Wpoids)} J</b> (écart : <b>${ecartPct.toFixed(1)} %</b>). Le théorème de l'énergie cinétique est vérifié avec le seul poids — les frottements sont négligeables.`);
-      else if(ecartPct<30)
-        setIR('tec','warn',`<b>Partiellement.</b> ${span} : ΔEc = <b>${fmtN4(deltaEc)} J</b>, W(poids) = <b>${fmtN4(Wpoids)} J</b> (écart : <b>${ecartPct.toFixed(1)} %</b>). La différence suggère un travail non nul des frottements ou une imprécision du pointage.`);
-      else
-        setIR('tec','bad',`<b>Non vérifié.</b> ${span} : ΔEc = <b>${fmtN4(deltaEc)} J</b>, W(poids) = <b>${fmtN4(Wpoids)} J</b> (écart : <b>${ecartPct.toFixed(1)} %</b>). D'autres forces que le poids effectuent un travail significatif.`);
-    }
-  }
-
-  // Conservation Em — et W(frottements)
-  {
-    if(!hasM){setIR('em','neutral','Saisir une masse dans la section Étalonnage.');}
-    else if(iv.length<2){setIR('em','neutral','Pas assez de points (min 4).');}
-    else{
-      const Em=d.map(p=>p.Em).filter(v=>v!=null&&isFinite(v));
-      const Emin=Math.min(...Em),Emax=Math.max(...Em);
-      const mean=Em.reduce((s,v)=>s+v,0)/Em.length;
-      const deltaEm=d[i1].Em-d[i0].Em; // variation totale entre les points où Em est défini
-      const variation=mean!==0?Math.abs(Emax-Emin)/Math.abs(mean)*100:0;
-      // W(frottements) = ΔEm (théorème de l'énergie mécanique)
-      const Wfrot=deltaEm;
-      if(variation<8)
-        setIR('em','ok',`<b>Oui, l'énergie mécanique est conservée.</b> Em varie de <b>${fmtN4(Emin)}</b> à <b>${fmtN4(Emax)} J</b> (écart maximal de <b>${variation.toFixed(1)} %</b>). Par le théorème de l'énergie mécanique, W(frottements) ≈ ΔEm = <b>${fmtN4(Wfrot)} J</b> ≈ 0 : les frottements sont <b>négligeables</b>.`);
-      else if(variation<20)
-        setIR('em','warn',`<b>Partiellement conservée.</b> Em varie de <b>${fmtN4(Emin)}</b> à <b>${fmtN4(Emax)} J</b> (écart de <b>${variation.toFixed(1)} %</b>). Par le théorème de l'énergie mécanique : W(frottements) = ΔEm = <b>${fmtN4(Wfrot)} J</b>. Les frottements effectuent un travail modéré et ne peuvent pas être complètement négligés.`);
-      else
-        setIR('em','bad',`<b>Non conservée.</b> Em varie de <b>${fmtN4(Emin)}</b> à <b>${fmtN4(Emax)} J</b> (écart de <b>${variation.toFixed(1)} %</b>). Par le théorème de l'énergie mécanique : W(frottements) = ΔEm = <b>${fmtN4(Wfrot)} J</b>. Les frottements effectuent un travail significatif et <b>ne peuvent pas être négligés</b>.`);
-    }
-  }
-}
+function refreshAllInterp(){} // interprétation automatique retirée (version simplifiée)
 
 function buildSession(){
   return {version:1,video:currentVideoLabel,calibration:{pts:calibPts,pxPerUnit,originPx,calibUnit,dist:parseFloat($('calib-dist').value)||1},fps,masse:$('masse').value,autoStep:$('auto-step').value,points};
@@ -1742,6 +1503,8 @@ function applySession(s, silent){
 
 // ══ UTILS ══
 function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
+function r2(v){return Math.round(v*100)/100;}
+function fmt2(v){return(v==null||!isFinite(v))?'—':v.toFixed(2);}
 function fmtN4(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.0001&&a>0))return v.toExponential(3);if(a>=100)return v.toFixed(2);return v.toFixed(4);}
 function fmtN(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(2);if(a>=1000)return v.toFixed(0);if(a>=100)return v.toFixed(1);if(a>=10)return v.toFixed(2);return v.toFixed(3);}
 function fc(v){if(!isFinite(v))return'?';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(3);return v.toPrecision(4);}
