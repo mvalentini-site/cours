@@ -202,6 +202,7 @@ const TABS_LEFT = [
 ];
 const TABS_RIGHT = [
   { id:'postbac',  label:'Post Bac.', title:'Post-bac',                   color:'#3a1c6b' },
+  { id:'profs',    label:'Profs',     title:'Espace professeurs',         color:'#2f4a5c' },
   { id:'apropos',  label:'À propos',  title:'À propos',                   color:'#1c4a4a' }
 ];
 
@@ -222,6 +223,10 @@ const SOMMAIRES = {
 };
 
 const PAGES = {
+  'profs': [
+    { file:'Outils/generateur-prompt.html', title:'Prompt d\'évaluation', sub:'Nouveau sujet · variante · version adaptée', tag:'IA', color:'#2f4a5c' },
+    { file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }
+  ],
   'outils': [
     { file:'Outils/pointage-mouvement.html', title:'Pointage vidéo', sub:'Image par image · vecteurs v et a · énergies', tag:'Cinématique', color:'#3a1c6b' },
     // --- outils désactivés : retirer les // pour les réafficher ---
