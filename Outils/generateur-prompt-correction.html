@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur de prompt — Correction de copies</title>
+<style>
+  :root {
+    --ink: #1a2238;
+    --paper: #fbf9f4;
+    --line: #d8d2c4;
+    --accent: #2f6f6a;
+    --accent-soft: #e3efed;
+    --amber: #b5651d;
+    --muted: #6b6557;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    background: var(--paper); color: var(--ink); line-height: 1.55;
+    padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .eyebrow {
+    font-family: "SF Mono", "Consolas", monospace;
+    letter-spacing: .18em; text-transform: uppercase;
+    font-size: .7rem; color: var(--accent); margin: 0 0 .4rem;
+  }
+  h1 { margin: 0; font-size: 2rem; font-weight: 600; letter-spacing: -.01em; }
+  .lede { color: var(--muted); margin: .5rem 0 0; font-size: 1rem; }
+  .notice {
+    margin: 1rem 0 0; padding: .7rem .9rem; border: 1px solid var(--line);
+    border-left: 3px solid var(--accent); background: #fff; font-size: .9rem; color: var(--ink);
+  }
+
+  form { display: grid; gap: 1.6rem; }
+  .field { display: grid; gap: .4rem; align-content: start; }
+  .grid2 { display: grid; gap: 1.6rem; grid-template-columns: 1fr 1fr; align-items: start; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+  label, .lbl {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+  }
+  input, select, textarea {
+    font: inherit; padding: .65rem .7rem; border: 1px solid var(--line);
+    border-radius: 2px; background: #fff; color: var(--ink); width: 100%;
+  }
+  input:focus, select:focus, textarea:focus, .chip:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .hint { font-size: .8rem; color: var(--muted); margin: 0; }
+
+  fieldset { border: 1px solid var(--line); border-radius: 3px; padding: 1rem; margin: 0; display: grid; gap: 1.2rem; }
+  legend {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); padding: 0 .4rem;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; align-content: flex-start; }
+  .chip {
+    font: inherit; cursor: pointer; padding: .45rem .85rem;
+    border: 1px solid var(--line); border-radius: 999px; background: #fff;
+    color: var(--ink); transition: background .15s, border-color .15s, color .15s;
+  }
+  .chip:hover { background: var(--accent-soft); }
+  .chip.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .chip-custom { display: inline-flex; align-items: center; gap: .4rem; }
+  .chip-custom input { width: 8.5rem; padding: .35rem .5rem; border-radius: 999px; }
+  .chip .code { font-family: "SF Mono", "Consolas", monospace; font-size: .75rem; opacity: .75; margin-right: .35rem; }
+
+  .actions { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
+  button.act {
+    font: inherit; cursor: pointer; padding: .7rem 1.3rem; border-radius: 2px; border: 1px solid var(--ink);
+  }
+  button.small { padding: .4rem .8rem; font-size: .9rem; }
+  .primary { background: var(--ink); color: var(--paper); }
+  .primary:hover { background: var(--accent); border-color: var(--accent); }
+  .ghost { background: transparent; color: var(--ink); }
+  .ghost:hover { background: var(--accent-soft); }
+
+  .output { margin-top: 2.2rem; }
+  .output h2 {
+    font-family: "SF Mono", "Consolas", monospace;
+    font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); border-top: 1px solid var(--line); padding-top: 1.2rem;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  }
+  .badge { font-size: .72rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  pre {
+    background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--amber);
+    border-radius: 2px; padding: 1.2rem; white-space: pre-wrap; word-wrap: break-word;
+    font-family: "SF Mono", "Consolas", monospace; font-size: .9rem; line-height: 1.55; color: var(--ink);
+  }
+  pre.short { border-left-color: var(--accent); }
+  .copied { color: var(--accent); font-size: .85rem; }
+  .err { color: var(--amber); font-size: .85rem; }
+
+  .checks { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .check {
+    display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+    padding: .45rem .85rem; border: 1px solid var(--line); border-radius: 999px;
+    background: #fff; transition: background .15s, border-color .15s;
+  }
+  .check:hover { background: var(--accent-soft); }
+  .check input { width: auto; }
+  .check.checked { border-color: var(--accent); background: var(--accent-soft); }
+
+  .toggle-line { display: flex; gap: .7rem; align-items: flex-start; cursor: pointer; }
+  .toggle-line input { width: auto; margin-top: .3rem; }
+  .toggle-line strong { display: block; }
+  .toggle-line span.desc { color: var(--muted); font-size: .88rem; }
+
+  /* Sujets */
+  .sujet { border: 1px solid var(--line); border-radius: 3px; padding: .9rem; display: grid; gap: .8rem; background: #fff; }
+  .sujet h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .sujet textarea { min-height: 80px; background: var(--paper); }
+
+  /* Barème détaillé */
+  table.bareme { width: 100%; border-collapse: collapse; }
+  table.bareme th {
+    font-family: "SF Mono", "Consolas", monospace; font-size: .68rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); font-weight: normal; text-align: left; padding: 0 .3rem .3rem;
+  }
+  table.bareme td { padding: .2rem .3rem; vertical-align: middle; }
+  table.bareme td input { padding: .45rem .55rem; }
+  table.bareme .c-pts { width: 5.5rem; }
+  table.bareme .c-comp { width: 11rem; }
+  table.bareme .c-del { width: 2.4rem; text-align: center; }
+  .del {
+    font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fff; color: var(--muted);
+    width: 2rem; height: 2rem; border-radius: 2px; line-height: 1;
+  }
+  .del:hover { border-color: var(--amber); color: var(--amber); }
+  .no-points .c-pts { display: none; }
+  .sum { font-size: .9rem; }
+  .sum.bad { color: var(--amber); }
+
+  .add-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  .add-row input { width: auto; flex: 1 1 14rem; }
+  .add-row input.code-in { flex: 0 0 6rem; }
+
+  /* En-tête + menu démo */
+  .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .demo-wrap { position: relative; flex-shrink: 0; }
+  .demo-menu {
+    position: absolute; right: 0; top: calc(100% + .3rem); z-index: 10;
+    background: #fff; border: 1px solid var(--line); border-radius: 4px;
+    box-shadow: 0 6px 20px rgba(26,34,56,.12); grid-template-columns: 1fr; min-width: 240px; overflow: hidden;
+    display: none;
+  }
+  .demo-menu.open { display: grid; }
+  .demo-menu button {
+    font: inherit; text-align: left; cursor: pointer; padding: .7rem .9rem;
+    background: #fff; border: none; border-bottom: 1px solid var(--line); color: var(--ink);
+  }
+  .demo-menu button:last-child { border-bottom: none; }
+  .demo-menu button:hover { background: var(--accent-soft); }
+
+  [hidden] { display: none !important; }
+  label.check, label.toggle-line {
+    font-family: inherit; font-size: .95rem; letter-spacing: 0; text-transform: none; color: var(--ink);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="head-row">
+      <div>
+        <p class="eyebrow">Outil enseignant</p>
+        <h1>Générateur de prompt de correction</h1>
+      </div>
+      <div class="demo-wrap">
+        <button type="button" class="act ghost" id="demoBtn">Démo ▾</button>
+        <div class="demo-menu" id="demoMenu">
+          <button type="button" data-demo="pc1">1re Spé — Physique-Chimie (2 sujets)</button>
+          <button type="button" data-demo="pc5">5e — Physique-Chimie (compétences)</button>
+          <button type="button" data-demo="ma2">Seconde — Mathématiques</button>
+        </div>
+      </div>
+    </div>
+    <p class="lede">Renseignez le sujet, le corrigé, le barème et les compétences : le prompt produit est à coller dans une conversation Claude en navigation privée, avec les copies en pièces jointes.</p>
+    <p class="notice"><strong>Avant d'envoyer les copies :</strong> masquez les noms des élèves (numéro ou code à la place). Relisez toujours les notes proposées : l'IA assiste la correction, elle ne la remplace pas.</p>
+  </header>
+
+  <form id="form" novalidate>
+    <div class="field">
+      <span class="lbl">Matière</span>
+      <div class="chips" id="chips-matiere"></div>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Niveau de classe</span>
+      <div class="chips" id="chips-niveau"></div>
+    </div>
+
+    <div class="field">
+      <label for="intitule">Intitulé de l'évaluation (optionnel)</label>
+      <input id="intitule" type="text" placeholder="Ex. DS n°2 — Mouvement d'un système">
+    </div>
+
+    <!-- ===== Sujets ===== -->
+    <fieldset>
+      <legend>Sujets et corrigés</legend>
+      <div class="field">
+        <span class="lbl">Nombre de sujets</span>
+        <div class="chips" id="chips-nbSujets"></div>
+        <p class="hint">Plusieurs sujets (A, B…) : l'IA identifie le sujet de chaque copie et applique le bon corrigé.</p>
+      </div>
+      <div id="sujets" style="display:grid; gap:1rem;"></div>
+      <p class="hint">Champs vides = le document sera joint en pièce jointe avec les copies.</p>
+    </fieldset>
+
+    <!-- ===== Mode d'évaluation ===== -->
+    <div class="field">
+      <span class="lbl">Mode d'évaluation</span>
+      <div class="chips" id="chips-mode"></div>
+    </div>
+
+    <!-- ===== Barème ===== -->
+    <fieldset id="baremeBox">
+      <legend id="baremeLegend">Barème</legend>
+      <div class="field" id="baremeTotalField">
+        <span class="lbl">Barème total</span>
+        <div class="chips" id="chips-bareme"></div>
+      </div>
+      <div class="field">
+        <span class="lbl" id="detailLbl">Barème détaillé (optionnel)</span>
+        <table class="bareme" id="baremeTable">
+          <thead><tr>
+            <th>Question / exercice</th>
+            <th class="c-pts">Points</th>
+            <th class="c-comp">Compétence(s)</th>
+            <th class="c-del"></th>
+          </tr></thead>
+          <tbody id="baremeRows"></tbody>
+        </table>
+        <div class="actions">
+          <button type="button" class="act ghost small" id="addRow">+ Ajouter une ligne</button>
+          <span class="sum" id="sum"></span>
+        </div>
+        <p class="hint" id="baremeHint">Laisser vide si le barème détaillé figure dans le corrigé. Colonne « Compétence(s) » : utiliser les codes ci-dessous (APP, REA…).</p>
+      </div>
+      <div class="field" id="arrondiField">
+        <span class="lbl">Arrondi de la note</span>
+        <div class="chips" id="chips-arrondi"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===== Compétences ===== -->
+    <fieldset id="compBox">
+      <legend>Compétences évaluées</legend>
+      <div class="field">
+        <span class="lbl">Compétences (cliquer pour sélectionner)</span>
+        <div class="chips" id="compChips"></div>
+        <p class="hint" id="compHint"></p>
+      </div>
+      <div class="field">
+        <span class="lbl">Ajouter une compétence</span>
+        <div class="add-row">
+          <input id="compCode" class="code-in" type="text" placeholder="Code" maxlength="8">
+          <input id="compLabel" type="text" placeholder="Ex. Exploiter un graphique">
+          <button type="button" class="act ghost small" id="compAdd">Ajouter</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Échelle de maîtrise</span>
+        <div class="chips" id="chips-echelle"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===== Règles de correction ===== -->
+    <fieldset>
+      <legend>Règles de correction</legend>
+      <div class="field">
+        <span class="lbl">Exigence</span>
+        <div class="chips" id="chips-exigence"></div>
+      </div>
+      <div class="field">
+        <span class="lbl">Options</span>
+        <div class="checks" id="reglesChecks"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===== Copies ===== -->
+    <fieldset>
+      <legend>Copies</legend>
+      <div class="grid2">
+        <div class="field">
+          <span class="lbl">Format des copies</span>
+          <div class="chips" id="chips-copies"></div>
+        </div>
+        <div class="field">
+          <span class="lbl">Identification des copies</span>
+          <div class="chips" id="chips-ident"></div>
+        </div>
+      </div>
+      <label class="toggle-line">
+        <input type="checkbox" id="lotsToggle">
+        <span><strong>Envoyer les copies en plusieurs lots</strong>
+        <span class="desc">Pour une classe entière : l'IA attend chaque lot, puis produit le bilan quand vous écrivez FIN. Des messages de relance sont générés.</span></span>
+      </label>
+      <div class="field" id="lotBox" hidden>
+        <label for="lotTaille">Copies par lot (optionnel)</label>
+        <input id="lotTaille" type="number" min="1" max="40" placeholder="Ex. 8" style="max-width:10rem">
+      </div>
+    </fieldset>
+
+    <!-- ===== Restitution ===== -->
+    <fieldset>
+      <legend>Restitution attendue</legend>
+      <div class="field">
+        <span class="lbl">Pour chaque copie / pour la classe</span>
+        <div class="checks" id="retourChecks"></div>
+      </div>
+      <div class="grid2" id="appBox">
+        <div class="field">
+          <span class="lbl">Longueur de l'appréciation</span>
+          <div class="chips" id="chips-appLong"></div>
+        </div>
+        <div class="field">
+          <span class="lbl">Destinataire de l'appréciation</span>
+          <div class="chips" id="chips-appAdresse"></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label for="consignes">Consignes particulières (optionnel)</label>
+      <textarea id="consignes" placeholder="Ex. accepter g = 9,8 ou 9,81 N/kg ; question 3b hors barème ; ne pas pénaliser l'absence de schéma…"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="act primary" id="submitBtn">Générer le prompt</button>
+      <button type="button" class="act ghost" id="resetBtn">Réinitialiser</button>
+      <span class="err" id="formErr" hidden></span>
+    </div>
+  </form>
+
+  <div class="output" id="output" hidden>
+    <h2>Prompt de correction <span class="badge" id="charCount"></span></h2>
+    <pre id="result"></pre>
+    <div class="actions">
+      <button type="button" class="act ghost" data-copy="result">Copier le prompt</button>
+      <span class="copied" data-copied="result" hidden>Copié ✓</span>
+    </div>
+
+    <div id="lotsOut" hidden>
+      <h2>Message — lot suivant</h2>
+      <pre class="short" id="relance"></pre>
+      <div class="actions">
+        <button type="button" class="act ghost" data-copy="relance">Copier</button>
+        <span class="copied" data-copied="relance" hidden>Copié ✓</span>
+      </div>
+      <h2>Message — fin de la correction</h2>
+      <pre class="short" id="cloture"></pre>
+      <div class="actions">
+        <button type="button" class="act ghost" data-copy="cloture">Copier</button>
+        <span class="copied" data-copied="cloture" hidden>Copié ✓</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var LETTRES = ['A', 'B', 'C', 'D', 'E', 'F'];
+  var LYCEE = ['Seconde', 'Première', 'Terminale'];
+  var COLLEGE = ['6e', '5e', '4e', '3e'];
+
+  // ---------- Groupes de puces (choix unique) ----------
+  var groupsConfig = {
+    matiere:  { options: ['Physique-Chimie', 'SVT', 'Mathématiques', 'Technologie', 'NSI', 'SES', 'Histoire-Géographie', 'Français', 'Philosophie', 'Anglais', 'Espagnol', 'Allemand'], custom: 'matière', def: '' },
+    niveau:   { options: ['6e', '5e', '4e', '3e', 'Seconde', 'Première', 'Terminale'], custom: 'niveau', def: '' },
+    nbSujets: { options: ['1', '2', '3', '4'], custom: '', def: '1' },
+    mode:     { options: ['Note seule', 'Note + compétences', 'Compétences seules'], custom: '', def: 'Note + compétences' },
+    bareme:   { options: ['/20', '/10', '/40'], custom: 'barème', def: '/20' },
+    arrondi:  { options: ['Au 0,25', 'Au 0,5', 'Au point entier'], custom: '', def: 'Au 0,5' },
+    echelle:  { options: ['A / B / C / D', 'TB / S / F / I', '1 / 2 / 3 / 4'], custom: 'échelle', def: 'A / B / C / D' },
+    exigence: { options: ['Bienveillante', 'Standard', 'Exigeante'], custom: '', def: 'Standard' },
+    copies:   { options: ['Scans / photos manuscrites', 'PDF', 'Texte tapé'], custom: 'format', def: 'Scans / photos manuscrites' },
+    ident:    { options: ['Numéro d’ordre', 'Code écrit sur la copie', 'Initiales'], custom: '', def: 'Numéro d’ordre' },
+    appLong:  { options: ['1 phrase', '2 à 3 phrases', 'Détaillée'], custom: '', def: '2 à 3 phrases' },
+    appAdresse: { options: ['À l’élève (tu)', 'À l’élève (vous)', 'Pour l’enseignant'], custom: '', def: 'À l’élève (tu)' }
+  };
+  var picks = {};
+  var onPick = {};  // callbacks après sélection
+
+  function clearActive(container) {
+    var chips = container.querySelectorAll('.chip');
+    for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+  }
+
+  function setPick(group, value) {
+    picks[group] = value;
+    if (onPick[group]) onPick[group](value);
+  }
+
+  function selectChip(container, chip, value, group) {
+    clearActive(container);
+    chip.classList.add('active');
+    var custom = container.querySelector('.chip-custom input');
+    if (custom) custom.value = '';
+    setPick(group, value);
+  }
+
+  function buildGroup(group) {
+    var cfg = groupsConfig[group];
+    var container = $('chips-' + group);
+    container.innerHTML = '';
+    cfg.options.forEach(function (opt) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = opt;
+      b.addEventListener('click', function () { selectChip(container, b, opt, group); });
+      container.appendChild(b);
+    });
+    if (cfg.custom) {
+      var wrap = document.createElement('span');
+      wrap.className = 'chip chip-custom';
+      var span = document.createElement('span');
+      span.textContent = 'Autre :';
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = cfg.custom;
+      inp.addEventListener('input', function () {
+        var v = inp.value.trim();
+        clearActive(container);
+        if (v) wrap.classList.add('active');
+        setPick(group, v);
+      });
+      wrap.appendChild(span);
+      wrap.appendChild(inp);
+      container.appendChild(wrap);
+    }
+  }
+
+  function setChipByValue(group, value) {
+    var container = $('chips-' + group);
+    var chips = container.querySelectorAll('.chip');
+    for (var i = 0; i < chips.length; i++) {
+      if (!chips[i].classList.contains('chip-custom') && chips[i].textContent === value) {
+        selectChip(container, chips[i], value, group);
+        return;
+      }
+    }
+    clearActive(container);
+    var custom = container.querySelector('.chip-custom input');
+    if (custom && value) {
+      container.querySelector('.chip-custom').classList.add('active');
+      custom.value = value;
+    }
+    setPick(group, value || '');
+  }
+
+  // ---------- Cases à cocher ----------
+  var reglesOptions = [
+    { key: 'demarche', label: 'Points partiels pour une démarche correcte', def: true },
+    { key: 'report', label: 'Erreur reportée non re-pénalisée', def: true },
+    { key: 'autreMethode', label: 'Toute méthode correcte acceptée', def: true },
+    { key: 'unites', label: 'Unités exigées', def: true },
+    { key: 'cs', label: 'Chiffres significatifs vérifiés', def: false },
+    { key: 'redaction', label: 'Qualité de la rédaction prise en compte', def: false }
+  ];
+  var retourOptions = [
+    { key: 'detail', label: 'Points par question', def: true },
+    { key: 'commentaires', label: 'Commentaire bref par question', def: true },
+    { key: 'niveaux', label: 'Niveaux de compétences', def: true },
+    { key: 'appreciation', label: 'Appréciation générale', def: true },
+    { key: 'conseils', label: 'Pistes pour progresser', def: true },
+    { key: 'recap', label: 'Tableau récapitulatif de la classe', def: true },
+    { key: 'bilan', label: 'Bilan des erreurs fréquentes', def: true }
+  ];
+  var checkState = {};
+
+  function buildChecks(containerId, options) {
+    var container = $(containerId);
+    container.innerHTML = '';
+    options.forEach(function (opt) {
+      var lab = document.createElement('label');
+      lab.className = 'check';
+      lab.setAttribute('data-key', opt.key);
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      var txt = document.createElement('span');
+      txt.textContent = opt.label;
+      cb.addEventListener('change', function () { setCheck(opt.key, cb.checked); });
+      lab.appendChild(cb);
+      lab.appendChild(txt);
+      container.appendChild(lab);
+      setCheck(opt.key, opt.def);
+    });
+  }
+
+  function setCheck(key, val) {
+    checkState[key] = !!val;
+    var lab = document.querySelector('.check[data-key="' + key + '"]');
+    if (lab) {
+      lab.querySelector('input').checked = !!val;
+      lab.classList.toggle('checked', !!val);
+    }
+    if (key === 'appreciation') $('appBox').hidden = !val;
+  }
+
+  // ---------- Compétences ----------
+  var PRESETS = {
+    pcLycee: {
+      hint: 'Compétences de la démarche scientifique (programmes de lycée).',
+      list: [
+        ['APP', 'S’approprier'],
+        ['ANA', 'Analyser / Raisonner'],
+        ['REA', 'Réaliser'],
+        ['VAL', 'Valider'],
+        ['COM', 'Communiquer']
+      ]
+    },
+    sciCollege: {
+      hint: 'Compétences travaillées du cycle 4 (programmes de sciences).',
+      list: [
+        ['DEM', 'Pratiquer des démarches scientifiques'],
+        ['CON', 'Concevoir, créer, réaliser'],
+        ['OUT', 'S’approprier des outils et des méthodes'],
+        ['LAN', 'Pratiquer des langages'],
+        ['NUM', 'Mobiliser des outils numériques'],
+        ['ETH', 'Adopter un comportement éthique et responsable'],
+        ['ESP', 'Se situer dans l’espace et dans le temps']
+      ]
+    },
+    maths: {
+      hint: 'Les six compétences mathématiques des programmes.',
+      list: [
+        ['CHE', 'Chercher'],
+        ['MOD', 'Modéliser'],
+        ['REP', 'Représenter'],
+        ['RAI', 'Raisonner'],
+        ['CAL', 'Calculer'],
+        ['COM', 'Communiquer']
+      ]
+    }
+  };
+  var comps = []; // {code, label, active, custom}
+
+  function presetKey() {
+    var m = picks.matiere, n = picks.niveau;
+    if (m === 'Mathématiques') return 'maths';
+    if (['Physique-Chimie', 'SVT', 'Technologie'].indexOf(m) >= 0 && COLLEGE.indexOf(n) >= 0) return 'sciCollege';
+    if (['Physique-Chimie', 'SVT'].indexOf(m) >= 0 && LYCEE.indexOf(n) >= 0) return 'pcLycee';
+    return null;
+  }
+
+  var currentPreset = undefined;
+  function refreshPresets(force) {
+    var key = presetKey();
+    if (!force && key === currentPreset) return;
+    currentPreset = key;
+    var customs = comps.filter(function (c) { return c.custom; });
+    var preset = key ? PRESETS[key].list.map(function (p) {
+      return { code: p[0], label: p[1], active: false, custom: false };
+    }) : [];
+    comps = preset.concat(customs);
+    $('compHint').textContent = key ? PRESETS[key].hint
+      : 'Aucune liste prédéfinie pour cette matière / ce niveau : ajoutez vos compétences ci-dessous.';
+    renderComps();
+  }
+
+  function renderComps() {
+    var box = $('compChips');
+    box.innerHTML = '';
+    comps.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (c.active ? ' active' : '');
+      if (c.code) {
+        var s = document.createElement('span');
+        s.className = 'code';
+        s.textContent = c.code;
+        b.appendChild(s);
+      }
+      b.appendChild(document.createTextNode(c.label));
+      if (c.custom) b.title = 'Compétence ajoutée — cliquer pour la désélectionner';
+      b.addEventListener('click', function () { comps[i].active = !comps[i].active; renderComps(); });
+      box.appendChild(b);
+    });
+    if (!comps.length) {
+      var p = document.createElement('span');
+      p.className = 'hint';
+      p.textContent = '—';
+      box.appendChild(p);
+    }
+  }
+
+  function addComp(code, label, active) {
+    code = (code || '').trim().toUpperCase();
+    label = (label || '').trim();
+    if (!label) return;
+    for (var i = 0; i < comps.length; i++) {
+      if (comps[i].label.toLowerCase() === label.toLowerCase()) { comps[i].active = true; renderComps(); return; }
+    }
+    comps.push({ code: code, label: label, active: active !== false, custom: true });
+    renderComps();
+  }
+
+  $('compAdd').addEventListener('click', function () {
+    addComp($('compCode').value, $('compLabel').value);
+    $('compCode').value = '';
+    $('compLabel').value = '';
+    $('compLabel').focus();
+  });
+  $('compLabel').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); $('compAdd').click(); }
+  });
+
+  // ---------- Sujets ----------
+  var sujets = []; // {enonce, corrige}
+  function renderSujets() {
+    var n = parseInt(picks.nbSujets, 10) || 1;
+    while (sujets.length < n) sujets.push({ enonce: '', corrige: '' });
+    var box = $('sujets');
+    box.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      (function (i) {
+        var d = document.createElement('div');
+        d.className = 'sujet';
+        var h = document.createElement('h3');
+        h.textContent = n > 1 ? 'Sujet ' + LETTRES[i] : 'Sujet';
+        d.appendChild(h);
+
+        [['enonce', 'Énoncé (optionnel)', 'Collez l’énoncé, ou laissez vide s’il est joint…'],
+         ['corrige', 'Corrigé / réponses attendues', 'Collez le corrigé : réponses, résultats numériques, éléments attendus…']].forEach(function (f) {
+          var fld = document.createElement('div');
+          fld.className = 'field';
+          var lab = document.createElement('label');
+          lab.textContent = f[1];
+          var ta = document.createElement('textarea');
+          ta.placeholder = f[2];
+          ta.value = sujets[i][f[0]];
+          ta.id = 'sujet-' + f[0] + '-' + i;
+          lab.htmlFor = ta.id;
+          ta.addEventListener('input', function () { sujets[i][f[0]] = ta.value; });
+          fld.appendChild(lab);
+          fld.appendChild(ta);
+          d.appendChild(fld);
+        });
+        box.appendChild(d);
+      })(i);
+    }
+  }
+
+  // ---------- Barème détaillé ----------
+  var rows = []; // {q, pts, comp}
+  function defaultRows() {
+    return [{ q: '', pts: '', comp: '' }, { q: '', pts: '', comp: '' }, { q: '', pts: '', comp: '' }];
+  }
+  function num(s) {
+    var v = parseFloat(String(s).replace(',', '.'));
+    return isNaN(v) ? 0 : v;
+  }
+  function fmt(v) { return String(Math.round(v * 100) / 100).replace('.', ','); }
+
+  function renderRows() {
+    var tb = $('baremeRows');
+    tb.innerHTML = '';
+    rows.forEach(function (r, i) {
+      var tr = document.createElement('tr');
+      function cell(cls, key, ph, type) {
+        var td = document.createElement('td');
+        if (cls) td.className = cls;
+        var inp = document.createElement('input');
+        inp.type = type || 'text';
+        inp.placeholder = ph;
+        inp.value = r[key];
+        inp.addEventListener('input', function () { rows[i][key] = inp.value; updateSum(); });
+        td.appendChild(inp);
+        return td;
+      }
+      tr.appendChild(cell('', 'q', i === 0 ? 'Ex. 1.a — Calculer la vitesse' : 'Exercice ' + (i + 1)));
+      tr.appendChild(cell('c-pts', 'pts', 'pts', 'text'));
+      tr.appendChild(cell('c-comp', 'comp', 'Ex. APP, REA'));
+      var td = document.createElement('td');
+      td.className = 'c-del';
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'del';
+      del.textContent = '×';
+      del.title = 'Supprimer la ligne';
+      del.addEventListener('click', function () { rows.splice(i, 1); renderRows(); });
+      td.appendChild(del);
+      tr.appendChild(td);
+      tb.appendChild(tr);
+    });
+    updateSum();
+  }
+
+  function filledRows() {
+    return rows.filter(function (r) { return r.q.trim() || String(r.pts).trim() || r.comp.trim(); });
+  }
+
+  function baremeMax() {
+    var m = String(picks.bareme || '').match(/(\d+(?:[.,]\d+)?)/);
+    return m ? num(m[1]) : null;
+  }
+
+  function updateSum() {
+    var el = $('sum');
+    if (picks.mode === 'Compétences seules') { el.textContent = ''; return; }
+    var withPts = rows.filter(function (r) { return String(r.pts).trim(); });
+    if (!withPts.length) { el.textContent = ''; el.classList.remove('bad'); return; }
+    var total = withPts.reduce(function (s, r) { return s + num(r.pts); }, 0);
+    var max = baremeMax();
+    var txt = 'Total : ' + fmt(total) + (max !== null ? ' / ' + fmt(max) : '');
+    var bad = max !== null && Math.abs(total - max) > 1e-9;
+    el.textContent = txt + (bad ? ' — ne correspond pas au barème total' : ' ✓');
+    el.classList.toggle('bad', bad);
+  }
+
+  $('addRow').addEventListener('click', function () {
+    rows.push({ q: '', pts: '', comp: '' });
+    renderRows();
+    var inputs = $('baremeRows').querySelectorAll('tr:last-child input');
+    if (inputs[0]) inputs[0].focus();
+  });
+
+  // ---------- Affichage selon le mode ----------
+  function applyMode() {
+    var mode = picks.mode;
+    var noNote = (mode === 'Compétences seules');
+    var noComp = (mode === 'Note seule');
+    $('compBox').hidden = noComp;
+    $('baremeTotalField').hidden = noNote;
+    $('arrondiField').hidden = noNote;
+    $('baremeTable').classList.toggle('no-points', noNote);
+    $('baremeLegend').textContent = noNote ? 'Questions et compétences' : 'Barème';
+    $('detailLbl').textContent = noNote ? 'Compétence(s) évaluée(s) par question (optionnel)' : 'Barème détaillé (optionnel)';
+    var niv = document.querySelector('.check[data-key="niveaux"]');
+    if (niv) niv.hidden = noComp;
+    updateSum();
+  }
+
+  // ---------- Callbacks ----------
+  onPick.matiere = function () { refreshPresets(false); };
+  onPick.niveau = function () { refreshPresets(false); };
+  onPick.nbSujets = function () { renderSujets(); };
+  onPick.mode = function () { applyMode(); };
+  onPick.bareme = function () { updateSum(); };
+
+  $('lotsToggle').addEventListener('change', function () { $('lotBox').hidden = !this.checked; });
+
+  // ---------- Construction du prompt ----------
+  var echelleDesc = {
+    'A / B / C / D': 'A = très bonne maîtrise, B = maîtrise satisfaisante, C = maîtrise fragile, D = maîtrise insuffisante',
+    'TB / S / F / I': 'TB = très bonne maîtrise, S = maîtrise satisfaisante, F = maîtrise fragile, I = maîtrise insuffisante',
+    '1 / 2 / 3 / 4': '1 = maîtrise insuffisante, 2 = maîtrise fragile, 3 = maîtrise satisfaisante, 4 = très bonne maîtrise'
+  };
+  var exigenceDesc = {
+    'Bienveillante': 'Correction bienveillante : valorise les démarches amorcées et les idées justes même incomplètes ; en cas d’hésitation entre deux notations, retiens la plus favorable.',
+    'Standard': 'Correction standard : applique le barème tel quel, avec des points partiels proportionnés à ce qui est effectivement correct.',
+    'Exigeante': 'Correction exigeante : n’accorde la totalité des points qu’aux réponses complètes et justifiées ; un résultat juste sans justification n’obtient qu’une partie des points.'
+  };
+  var copiesDesc = {
+    'Scans / photos manuscrites': 'scans ou photos de copies manuscrites',
+    'PDF': 'fichiers PDF',
+    'Texte tapé': 'texte tapé'
+  };
+  var identDesc = {
+    'Numéro d’ordre': 'par son numéro d’ordre de transmission (Copie 1, Copie 2…)',
+    'Code écrit sur la copie': 'par le code ou numéro écrit sur la copie (si absent, par son numéro d’ordre)',
+    'Initiales': 'par les initiales indiquées sur la copie'
+  };
+  var appLongDesc = { '1 phrase': 'une phrase', '2 à 3 phrases': '2 à 3 phrases', 'Détaillée': 'un paragraphe détaillé (5 à 6 phrases)' };
+  var appAdrDesc = {
+    'À l’élève (tu)': 'adressée directement à l’élève en le tutoyant, sur un ton encourageant, précis et honnête',
+    'À l’élève (vous)': 'adressée directement à l’élève en le vouvoyant, sur un ton encourageant, précis et honnête',
+    'Pour l’enseignant': 'rédigée à la troisième personne à l’intention de l’enseignant (constat factuel sur la copie)'
+  };
+
+  function lines(txt) {
+    return txt.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  }
+
+  function buildPrompt() {
+    var matiere = picks.matiere, niveau = picks.niveau, mode = picks.mode;
+    var n = parseInt(picks.nbSujets, 10) || 1;
+    var withNote = mode !== 'Compétences seules';
+    var withComp = mode !== 'Note seule';
+    var activeComps = comps.filter(function (c) { return c.active; });
+    var bareme = picks.bareme;
+    var intitule = $('intitule').value.trim();
+    var consignes = $('consignes').value.trim();
+    var lots = $('lotsToggle').checked;
+    var lotTaille = $('lotTaille').value.trim();
+    var fr = filledRows();
+
+    var manquants = [];
+    if (!matiere) manquants.push('matière');
+    if (!niveau) manquants.push('niveau');
+    if (withNote && !bareme) manquants.push('barème total');
+    if (withComp && !activeComps.length) manquants.push('au moins une compétence');
+    if (manquants.length) return { error: manquants };
+
+    var copiesFmt = copiesDesc[picks.copies] || picks.copies || 'copies';
+    var L = [];
+
+    L.push('Tu es un enseignant expérimenté de ' + matiere + ' (niveau ' + niveau + '), rigoureux et bienveillant. Tu m’aides à corriger des copies d’élèves' + (intitule ? ' pour l’évaluation « ' + intitule + ' »' : '') + '.');
+    L.push('Les copies sont jointes à ce message (' + copiesFmt + '). Corrige chaque copie en appliquant strictement le corrigé et ' + (withNote ? 'le barème' : 'la grille de compétences') + ' ci-dessous.');
+    L.push('');
+
+    // --- Sujets
+    L.push(n > 1 ? '## SUJETS ET CORRIGÉS (' + n + ' sujets)' : '## SUJET ET CORRIGÉ');
+    if (n > 1) {
+      L.push('Il existe ' + n + ' sujets (' + LETTRES.slice(0, n).join(', ') + '). Pour chaque copie, identifie d’abord le sujet traité (mention sur la copie, ou à défaut valeurs numériques et contexte des réponses), puis applique le corrigé correspondant. Si le sujet ne peut pas être identifié avec certitude, signale-le au lieu de corriger à l’aveugle.');
+      L.push('Les sujets sont parallèles : même structure, même barème.');
+    }
+    for (var i = 0; i < n; i++) {
+      var s = sujets[i] || { enonce: '', corrige: '' };
+      var nom = n > 1 ? 'SUJET ' + LETTRES[i] : 'SUJET';
+      L.push('');
+      if (s.enonce.trim()) {
+        L.push('--- ' + nom + ' — ÉNONCÉ ---');
+        L.push(s.enonce.trim());
+      } else {
+        L.push('--- ' + nom + ' — ÉNONCÉ --- (fourni en pièce jointe)');
+      }
+      if (s.corrige.trim()) {
+        L.push('--- ' + nom + ' — CORRIGÉ ---');
+        L.push(s.corrige.trim());
+      } else {
+        L.push('--- ' + nom + ' — CORRIGÉ --- (fourni en pièce jointe)');
+      }
+    }
+    L.push('');
+
+    // --- Barème
+    if (withNote) {
+      L.push('## BARÈME (total ' + bareme + ')');
+      if (fr.length) {
+        fr.forEach(function (r) {
+          var t = '- ' + (r.q.trim() || '(question)');
+          if (String(r.pts).trim()) t += ' : ' + String(r.pts).trim() + ' pt' + (num(r.pts) > 1 ? 's' : '');
+          if (withComp && r.comp.trim()) t += ' — compétence(s) : ' + r.comp.trim();
+          L.push(t);
+        });
+      } else {
+        L.push('- Le barème détaillé par question figure dans le corrigé.');
+      }
+      var arr = { 'Au 0,25': 'au quart de point', 'Au 0,5': 'au demi-point', 'Au point entier': 'au point entier' }[picks.arrondi];
+      if (arr) L.push('- Arrondis la note finale ' + arr + ' le plus proche.');
+      L.push('');
+    } else if (fr.length) {
+      L.push('## QUESTIONS ET COMPÉTENCES ASSOCIÉES');
+      fr.forEach(function (r) {
+        L.push('- ' + (r.q.trim() || '(question)') + (r.comp.trim() ? ' : ' + r.comp.trim() : ''));
+      });
+      L.push('');
+    }
+
+    // --- Compétences
+    if (withComp) {
+      L.push('## COMPÉTENCES ÉVALUÉES');
+      activeComps.forEach(function (c) { L.push('- ' + (c.code ? c.code + ' — ' : '') + c.label); });
+      var ech = picks.echelle;
+      L.push('Échelle de maîtrise : ' + (echelleDesc[ech] || ech) + '.');
+      L.push('Attribue un niveau par compétence en t’appuyant sur l’ensemble des questions qui la mobilisent' + (fr.some(function (r) { return r.comp.trim(); }) ? ' (voir la correspondance question → compétence ci-dessus)' : '') + '. Si une compétence n’a pas pu être évaluée sur une copie (questions non traitées), indique « non évaluée » plutôt que le niveau le plus bas, sauf si l’élève a répondu de façon erronée.');
+      if (!withNote) L.push('Il n’y a pas de note chiffrée : l’évaluation porte uniquement sur les niveaux de maîtrise.');
+      L.push('');
+    }
+
+    // --- Règles
+    L.push('## RÈGLES DE CORRECTION');
+    L.push('- ' + (exigenceDesc[picks.exigence] || exigenceDesc.Standard));
+    if (checkState.demarche) L.push(withNote ? '- Accorde des points partiels pour une démarche correcte même si le résultat final est faux.' : '- Valorise une démarche correcte même si le résultat final est faux.');
+    if (checkState.report) L.push('- Erreur reportée : une erreur commise dans une question n’est pénalisée qu’une fois ; si l’élève la réutilise ensuite avec un raisonnement juste, les questions suivantes sont considérées comme justes.');
+    if (checkState.autreMethode) L.push('- Accepte toute méthode correcte, même différente de celle du corrigé.');
+    if (checkState.unites) L.push(withNote ? '- Un résultat numérique sans unité ou avec une unité fausse perd une partie des points de la question.' : '- Un résultat numérique sans unité ou avec une unité fausse est considéré comme incomplet.');
+    if (checkState.cs) L.push('- Vérifie le nombre de chiffres significatifs des résultats numériques (tolérance de ±1 chiffre).');
+    if (checkState.redaction) L.push('- Prends en compte la qualité de la rédaction (phrases, justification, vocabulaire) dans l’évaluation.');
+    L.push('- Base-toi uniquement sur ce qui est réellement écrit sur la copie : n’invente jamais une réponse, ne complète pas un raisonnement inachevé.');
+    L.push('- Si un passage est illisible ou ambigu, ne devine pas : marque-le [À VÉRIFIER], explique pourquoi et indique ' + (withNote ? 'la fourchette de points possible.' : 'les niveaux possibles.'));
+    L.push('- Confidentialité : si un nom d’élève apparaît, ne le recopie pas. Désigne chaque copie ' + (identDesc[picks.ident] || identDesc['Numéro d’ordre']) + '.');
+    if (consignes) lines(consignes).forEach(function (l) { L.push('- ' + l); });
+    L.push('');
+
+    // --- Restitution
+    L.push('## RESTITUTION POUR CHAQUE COPIE');
+    var k = 1;
+    L.push(k++ + '. En-tête : identifiant de la copie' + (n > 1 ? ' et sujet identifié (' + LETTRES.slice(0, n).join('/') + ')' : '') + '.');
+    if (checkState.detail) {
+      var cols = ['question'];
+      if (withNote) cols.push('points obtenus / points max');
+      if (checkState.commentaires) cols.push('commentaire bref (ce qui est juste, ce qui manque)');
+      L.push(k++ + '. Tableau : ' + cols.join(' | ') + '.');
+    } else if (checkState.commentaires) {
+      L.push(k++ + '. Un commentaire bref par question (ce qui est juste, ce qui manque).');
+    }
+    if (withNote) L.push(k++ + '. Note finale sur ' + bareme.replace('/', '') + '.');
+    if (withComp && checkState.niveaux) L.push(k++ + '. Niveau de maîtrise pour chaque compétence (code + niveau).');
+    if (checkState.appreciation) L.push(k++ + '. Appréciation générale : ' + (appLongDesc[picks.appLong] || '2 à 3 phrases') + ', ' + (appAdrDesc[picks.appAdresse] || appAdrDesc['À l’élève (tu)']) + '.');
+    if (checkState.conseils) L.push(k++ + '. Deux pistes concrètes pour progresser, liées aux erreurs relevées.');
+    L.push(k++ + '. Points à vérifier par l’enseignant (passages [À VÉRIFIER], cas limites), ou « aucun ».');
+    L.push('');
+
+    var finItems = [];
+    if (checkState.recap) {
+      var rc = ['identifiant'];
+      if (n > 1) rc.push('sujet');
+      if (withNote) rc.push('note');
+      if (withComp) rc.push('un niveau par compétence');
+      rc.push('nombre de points à vérifier');
+      finItems.push('Un tableau récapitulatif, une ligne par copie : ' + rc.join(' | ') + '.');
+    }
+    if (checkState.bilan) {
+      finItems.push('Un bilan de classe : erreurs les plus fréquentes, questions les moins réussies' + (withNote ? ' (avec le taux de réussite approximatif)' : '') + ', notions à retravailler en classe.');
+      if (withNote) finItems.push('Moyenne, note minimale et note maximale.');
+    }
+    if (finItems.length) {
+      L.push(lots ? '## APRÈS LA DERNIÈRE COPIE (quand j’écrirai FIN)' : '## APRÈS TOUTES LES COPIES');
+      finItems.forEach(function (t) { L.push('- ' + t); });
+      L.push('');
+    }
+
+    // --- Déroulement
+    L.push('## DÉROULEMENT');
+    if (lots) {
+      L.push('- Les copies arrivent en plusieurs lots' + (lotTaille ? ' d’environ ' + lotTaille + ' copies' : '') + '. Corrige le lot joint à ce message, puis attends le lot suivant.');
+      L.push('- Continue la numérotation des copies d’un lot à l’autre et applique exactement les mêmes critères à tous les lots.');
+      if (finItems.length) L.push('- Quand j’écrirai FIN, produis le récapitulatif et le bilan portant sur toutes les copies.');
+    } else {
+      L.push('- Corrige toutes les copies jointes, dans l’ordre, sans t’arrêter entre elles.');
+    }
+    L.push('- Sois constant : deux réponses équivalentes sur deux copies différentes doivent recevoir la même évaluation.');
+    L.push('- Ne me pose pas de question préalable : commence directement la correction. Si un élément indispensable manque (corrigé absent, copie illisible), signale-le en tête de réponse.');
+
+    var res = { prompt: L.join('\n') };
+
+    if (lots) {
+      res.relance = 'Voici le lot suivant de copies. Applique exactement les mêmes consignes, le même corrigé et ' + (withNote ? 'le même barème' : 'la même grille de compétences') + ' que précédemment. Continue la numérotation à partir de la dernière copie corrigée.';
+      res.cloture = finItems.length
+        ? 'FIN — toutes les copies ont été transmises. Produis maintenant, pour l’ensemble des copies de tous les lots :\n' + finItems.map(function (t) { return '- ' + t; }).join('\n') + '\n- La liste de toutes les copies comportant des points à vérifier.'
+        : 'FIN — toutes les copies ont été transmises. Donne la liste de toutes les copies comportant des points à vérifier.';
+    }
+    return res;
+  }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var res = buildPrompt();
+    var err = $('formErr');
+    if (res.error) {
+      err.textContent = 'À compléter : ' + res.error.join(', ') + '.';
+      err.hidden = false;
+      return;
+    }
+    err.hidden = true;
+    $('result').textContent = res.prompt;
+    $('charCount').textContent = res.prompt.length + ' caractères';
+    $('lotsOut').hidden = !res.relance;
+    if (res.relance) {
+      $('relance').textContent = res.relance;
+      $('cloture').textContent = res.cloture;
+    }
+    var cs = document.querySelectorAll('[data-copied]');
+    for (var i = 0; i < cs.length; i++) cs[i].hidden = true;
+    $('output').hidden = false;
+    $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ---------- Copie ----------
+  function copyFrom(id) {
+    var el = $(id);
+    var flag = document.querySelector('[data-copied="' + id + '"]');
+    function done() { if (flag) flag.hidden = false; }
+    function fallback() {
+      var r = document.createRange();
+      r.selectNode(el);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(r);
+      try { document.execCommand('copy'); } catch (e) {}
+      window.getSelection().removeAllRanges();
+      done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(el.textContent).then(done).catch(fallback);
+    } else fallback();
+  }
+  var copyBtns = document.querySelectorAll('[data-copy]');
+  for (var c = 0; c < copyBtns.length; c++) {
+    copyBtns[c].addEventListener('click', function () { copyFrom(this.getAttribute('data-copy')); });
+  }
+
+  // ---------- Initialisation / réinitialisation ----------
+  function init() {
+    comps = [];
+    currentPreset = undefined;
+    sujets = [];
+    rows = defaultRows();
+    Object.keys(groupsConfig).forEach(function (g) { picks[g] = ''; buildGroup(g); });
+    buildChecks('reglesChecks', reglesOptions);
+    buildChecks('retourChecks', retourOptions);
+    Object.keys(groupsConfig).forEach(function (g) {
+      if (groupsConfig[g].def) setChipByValue(g, groupsConfig[g].def);
+    });
+    refreshPresets(true);
+    renderSujets();
+    renderRows();
+    applyMode();
+    $('intitule').value = '';
+    $('consignes').value = '';
+    $('lotsToggle').checked = false;
+    $('lotBox').hidden = true;
+    $('lotTaille').value = '';
+    $('compCode').value = '';
+    $('compLabel').value = '';
+    $('output').hidden = true;
+    $('formErr').hidden = true;
+  }
+
+  $('resetBtn').addEventListener('click', function () {
+    init();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ---------- Démos ----------
+  var demos = {
+    pc1: {
+      matiere: 'Physique-Chimie', niveau: 'Première', intitule: 'DS n°2 — Mouvement d’un système',
+      nbSujets: '2', mode: 'Note + compétences', bareme: '/20', arrondi: 'Au 0,5', exigence: 'Standard',
+      comps: ['APP', 'ANA', 'REA', 'VAL'],
+      sujets: [
+        { enonce: '', corrige: 'Ex. 1 — 1. v = d/Δt = 3,0 m/s. 2. Vecteur vitesse tangent à la trajectoire, dans le sens du mouvement, 1 cm ↔ 1 m/s. 3. Mouvement rectiligne uniformément accéléré (points de plus en plus espacés).\nEx. 2 — 1. ΣF = m·Δv/Δt. 2. F = 2,4 N. 3. Cohérent avec la valeur mesurée au dynamomètre (écart relatif 4 %).' },
+        { enonce: '', corrige: 'Ex. 1 — 1. v = d/Δt = 2,5 m/s. 2. Vecteur vitesse tangent à la trajectoire, dans le sens du mouvement, 1 cm ↔ 1 m/s. 3. Mouvement rectiligne uniformément ralenti (points de plus en plus rapprochés).\nEx. 2 — 1. ΣF = m·Δv/Δt. 2. F = 1,8 N. 3. Cohérent avec la valeur mesurée au dynamomètre (écart relatif 5 %).' }
+      ],
+      rows: [
+        { q: 'Ex. 1.1 — Calcul de la vitesse', pts: '3', comp: 'REA' },
+        { q: 'Ex. 1.2 — Tracé du vecteur vitesse', pts: '3', comp: 'REA' },
+        { q: 'Ex. 1.3 — Nature du mouvement', pts: '4', comp: 'APP, ANA' },
+        { q: 'Ex. 2.1 — Relation approchée 2e loi de Newton', pts: '3', comp: 'APP' },
+        { q: 'Ex. 2.2 — Calcul de la force', pts: '4', comp: 'REA' },
+        { q: 'Ex. 2.3 — Comparaison à la mesure', pts: '3', comp: 'VAL' }
+      ],
+      regles: { demarche: true, report: true, autreMethode: true, unites: true, cs: true, redaction: false },
+      copies: 'Scans / photos manuscrites', ident: 'Code écrit sur la copie', lots: true, lotTaille: '8',
+      appLong: '2 à 3 phrases', appAdresse: 'À l’élève (tu)',
+      consignes: 'Accepter g = 9,8 ou 9,81 N/kg'
+    },
+    pc5: {
+      matiere: 'Physique-Chimie', niveau: '5e', intitule: 'Évaluation — Les changements d’état',
+      nbSujets: '1', mode: 'Compétences seules', exigence: 'Bienveillante', echelle: 'A / B / C / D',
+      comps: ['DEM', 'LAN'], customComps: [['GRA', 'Lire et exploiter un graphique']],
+      sujets: [{ enonce: '', corrige: '1. Solide, liquide, gaz : description à l’échelle macroscopique.\n2. Palier de température à 0 °C pendant la fusion de la glace.\n3. La masse se conserve lors d’un changement d’état.' }],
+      rows: [
+        { q: 'Q1 — États de la matière', pts: '', comp: 'LAN' },
+        { q: 'Q2 — Lecture de la courbe de température', pts: '', comp: 'GRA' },
+        { q: 'Q3 — Conservation de la masse', pts: '', comp: 'DEM' }
+      ],
+      regles: { demarche: true, report: true, autreMethode: true, unites: true, cs: false, redaction: false },
+      copies: 'Scans / photos manuscrites', ident: 'Numéro d’ordre', lots: false,
+      appLong: '1 phrase', appAdresse: 'À l’élève (tu)', consignes: ''
+    },
+    ma2: {
+      matiere: 'Mathématiques', niveau: 'Seconde', intitule: 'Contrôle — Fonctions affines',
+      nbSujets: '1', mode: 'Note seule', bareme: '/20', arrondi: 'Au 0,25', exigence: 'Standard',
+      comps: [],
+      sujets: [{ enonce: '', corrige: '' }],
+      rows: [],
+      regles: { demarche: true, report: true, autreMethode: true, unites: false, cs: false, redaction: true },
+      copies: 'PDF', ident: 'Numéro d’ordre', lots: false,
+      appLong: '2 à 3 phrases', appAdresse: 'Pour l’enseignant', consignes: 'Le sujet et le corrigé avec barème sont joints en PDF'
+    }
+  };
+
+  function applyDemo(key) {
+    var d = demos[key];
+    if (!d) return;
+    init();
+    setChipByValue('matiere', d.matiere);
+    setChipByValue('niveau', d.niveau);
+    $('intitule').value = d.intitule || '';
+    sujets = d.sujets.map(function (s) { return { enonce: s.enonce, corrige: s.corrige }; });
+    setChipByValue('nbSujets', d.nbSujets);
+    setChipByValue('mode', d.mode);
+    if (d.bareme) setChipByValue('bareme', d.bareme);
+    if (d.arrondi) setChipByValue('arrondi', d.arrondi);
+    if (d.echelle) setChipByValue('echelle', d.echelle);
+    setChipByValue('exigence', d.exigence);
+    comps.forEach(function (c) { c.active = d.comps.indexOf(c.code) >= 0; });
+    (d.customComps || []).forEach(function (cc) { addComp(cc[0], cc[1], true); });
+    renderComps();
+    rows = d.rows.length ? d.rows.map(function (r) { return { q: r.q, pts: r.pts, comp: r.comp }; }) : defaultRows();
+    renderRows();
+    Object.keys(d.regles).forEach(function (k) { setCheck(k, d.regles[k]); });
+    setChipByValue('copies', d.copies);
+    setChipByValue('ident', d.ident);
+    $('lotsToggle').checked = !!d.lots;
+    $('lotBox').hidden = !d.lots;
+    $('lotTaille').value = d.lotTaille || '';
+    setChipByValue('appLong', d.appLong);
+    setChipByValue('appAdresse', d.appAdresse);
+    $('consignes').value = d.consignes || '';
+    $('demoMenu').classList.remove('open');
+  }
+
+  (function initDemo() {
+    var btn = $('demoBtn'), menu = $('demoMenu');
+    btn.addEventListener('click', function (e) { e.stopPropagation(); menu.classList.toggle('open'); });
+    document.addEventListener('click', function () { menu.classList.remove('open'); });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); });
+    var items = menu.querySelectorAll('button[data-demo]');
+    for (var i = 0; i < items.length; i++) {
+      items[i].addEventListener('click', function () { applyDemo(this.getAttribute('data-demo')); });
+    }
+  })();
+
+  init();
+})();
+</script>
+</body>
+</html>
