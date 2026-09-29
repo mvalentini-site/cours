@@ -113,6 +113,11 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-rad
 .carte .consigne{font-size:14px;margin-bottom:10px;}
 .carte details.aide{margin:14px 0 0;}
 .carte .param-row{margin-bottom:10px;}
+.nav-video{padding:12px 16px 14px;}
+.nav-video #scrubber{margin:0 0 8px;}
+.nav-video #nav-bar{gap:6px;flex-wrap:nowrap;}
+.nav-video #nav-bar button{padding:7px 12px;}
+.nav-video .info-pill{padding:5px 8px;font-size:12px;white-space:nowrap;}
 .compteur{margin-left:auto;font-size:13px;color:var(--faded);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .liste-pts{list-style:none;margin:12px 0;max-height:190px;overflow:auto;border:1px solid var(--rule);background:var(--paper);
   font-size:13px;font-variant-numeric:tabular-nums;}
@@ -260,13 +265,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
                   <canvas id="overlay-canvas"></canvas>
                   <canvas id="click-canvas"></canvas>
                 </div>
-                <input type="range" id="scrubber" min="0" value="0" step="1">
-                <div id="nav-bar">
-                  <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
-                  <button id="btn-next" disabled aria-label="Image suivante">▶</button>
-                  <span class="info-pill" id="pill-frame">Image — / —</span>
-                  <span class="info-pill" id="pill-time">t = — s</span>
-                </div>
               </div>
           </div>
 
@@ -287,16 +285,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
               </div>
               <div id="pill-calib" class="info-pill warn" style="margin-top:12px;">Vidéo non chargée</div>
               <div class="log-line" id="log-calib"></div>
-              <details class="aide">
-                <summary>Conseils d'étalonnage</summary>
-                <ul>
-                  <li>étalonne sur un objet situé dans le plan du mouvement, pas devant ni derrière</li>
-                  <li>plus la longueur de référence est grande, plus l'échelle est précise</li>
-                  <li>filme caméra fixe et bien horizontale : l'axe y suit celui de l'image</li>
-                  <li>la masse est facultative : elle active les colonnes d'énergie</li>
-                  <li>la fréquence d'images est celle de la vidéo (souvent 25, 30 ou 60 img/s), à vérifier dans les propriétés du fichier</li>
-                </ul>
-              </details>
             </section>
 
             <!-- 3. POINTAGE -->
@@ -330,6 +318,17 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
                 </ul>
               </details>
             </section>
+
+            <!-- navigation dans la vidéo -->
+            <div class="bloc nav-video hidden" id="nav-video">
+                  <input type="range" id="scrubber" min="0" value="0" step="1">
+                  <div id="nav-bar">
+                    <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
+                    <button id="btn-next" disabled aria-label="Image suivante">▶</button>
+                    <span class="info-pill" id="pill-frame">Image — / —</span>
+                    <span class="info-pill" id="pill-time">t = — s</span>
+                  </div>
+            </div>
           </div>
         </div>
       </li>
@@ -518,7 +517,7 @@ function initVideoSrc(src, label){
     totalFrames=Math.floor(duration*fps);videoLoaded=true;currentFrame=0;
     const sc=$('scrubber');sc.max=totalFrames-1;sc.value=0;
     seekToFrame(0);resizeCanvases();
-    $('video-container').classList.remove('hidden');$('video-placeholder').classList.add('hidden');
+    $('video-container').classList.remove('hidden');$('nav-video').classList.remove('hidden');$('video-placeholder').classList.add('hidden');
     $('pill-video').textContent=(label||'Vidéo chargée')+' · '+fmtTime(duration);$('pill-video').className='info-pill ok';
     $('btn-calib-start').disabled=false;$('btn-prev').disabled=false;$('btn-next').disabled=false;
     updatePillFrame();$('pill-calib').textContent='Clique "Étalonner" puis sélectionne 2 points.';$('pill-calib').className='info-pill warn';
@@ -558,7 +557,7 @@ function updatePillFrame(){
   $('pill-frame').textContent='Image '+(currentFrame+1)+' / '+(totalFrames||'?');
   const t0=points.length?points[0].t_raw:null;
   const tRel=t0!==null?currentFrame/fps-t0:currentFrame/fps;
-  $('pill-time').textContent='t = '+fmtN4(tRel)+' s';
+  $('pill-time').textContent='t = '+fmtT(tRel)+' s';
 }
 function resizeCanvases(){
   const vid=$('vid');
@@ -687,7 +686,7 @@ function refreshListePts(){
   if(!n){ul.innerHTML='<li class="vide">Aucun point enregistré.</li>';_nbPtsPrec=0;return;}
   ul.innerHTML=points.map((p,i)=>{
     const t=derived[i]?derived[i].t:null;
-    return`<li><span class="n">${i+1}</span><span>img ${p.frame+1}</span><span class="t">t = ${t!=null?fmtN4(t):'—'} s</span><button class="danger" onclick="deletePoint(${i})" title="Supprimer ce point" aria-label="Supprimer le point ${i+1}">✕</button></li>`;
+    return`<li><span class="n">${i+1}</span><span>img ${p.frame+1}</span><span class="t">t = ${fmtT(t)} s</span><button class="danger" onclick="deletePoint(${i})" title="Supprimer ce point" aria-label="Supprimer le point ${i+1}">✕</button></li>`;
   }).join('');
   if(n>_nbPtsPrec)ul.scrollTop=ul.scrollHeight;
   _nbPtsPrec=n;
@@ -702,7 +701,7 @@ function refreshTable(){
       const v=getColVal(d,c.id);
       return`<td${(c.id==='V'||c.id==='A')?' style="font-weight:500"':''}>${v!=null&&isFinite(v)?fmtN4(v):'—'}</td>`;
     }).join('');
-    return`<tr><td>${i+1}</td><td>${points[i].frame+1}</td><td>${fmtN4(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
+    return`<tr><td>${i+1}</td><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
   }).join('');
 }
 function getColVal(d,id){return{V:d.V,A:d.A,d:d.d,alpha:d.alpha,Ec:d.Ec,Ep:d.Ep,Em:d.Em,Vx:d.Vx,Vy:d.Vy,Ax:d.Ax,Ay:d.Ay}[id];}
@@ -1327,7 +1326,7 @@ function refreshChronoTable(){
         onchange="toggleVec(${i},this.checked)"></td>
       <td>${i+1}</td>
       <td>${points[i].frame+1}</td>
-      <td>${fmtN4(d.t)}</td>
+      <td>${fmtT(d.t)}</td>
       <td style="color:var(--accent)">${fmt2(d.x)}</td>
       <td style="color:var(--blue)">${fmt2(d.y)}</td>
       <td>${d.V!=null&&isFinite(d.V)?fmtN4(d.V):'—'}</td>
@@ -1531,6 +1530,8 @@ function applySession(s, silent){
 function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
 function r2(v){return Math.round(v*100)/100;}
 function fmt2(v){return(v==null||!isFinite(v))?'—':v.toFixed(2);}
+// t : autant de décimales que la résolution temporelle 1/fps (25 img/s → 0,04 s → 2 décimales)
+function fmtT(v){if(v==null||!isFinite(v))return'—';const d=Math.max(1,Math.ceil(Math.log10(fps||25)));return v.toFixed(d);}
 function fmtN4(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.0001&&a>0))return v.toExponential(3);if(a>=100)return v.toFixed(2);return v.toFixed(4);}
 function fmtN(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(2);if(a>=1000)return v.toFixed(0);if(a>=100)return v.toFixed(1);if(a>=10)return v.toFixed(2);return v.toFixed(3);}
 function fc(v){if(!isFinite(v))return'?';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(3);return v.toPrecision(4);}
