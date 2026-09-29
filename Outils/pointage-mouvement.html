@@ -102,6 +102,7 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-rad
 #video-wrap{position:relative;display:block;width:100%;user-select:none;background:#000;}
 #video-wrap video{display:block;width:100%;}
 /* poste de travail : vidéo à gauche, étalonnage + pointage à droite */
+.choix-video{margin-bottom:14px;}
 .poste{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start;}
 .poste-cote{display:flex;flex-direction:column;gap:14px;}
 .carte{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c,var(--ink));padding:14px 16px 16px;scroll-margin-top:24px;}
@@ -228,31 +229,32 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
             <li><span class="kbd">Espace</span> enregistrer le point</li>
           </ul>
         </details>
+        <div class="bloc choix-video">
+          <div class="row">
+            <div class="field">
+              <label>Choisir une vidéo intégrée</label>
+              <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
+                <option value="">— Choisir —</option>
+                <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
+                <option value="chute-balle-verticale.mp4" data-fps="25">Chute verticale d'une balle</option>
+                <option value="chute-petanque-verticale.mp4" data-fps="25">Chute verticale d'une boule de pétanque</option>
+                <option value="vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,2 N</option>
+                <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
+              </select>
+            </div>
+            <span style="align-self:flex-end;padding-bottom:8px;font-weight:600;color:var(--faded);">ou</span>
+            <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
+            <input type="file" id="input-video" accept="video/*" style="display:none;">
+            <span class="sep" style="align-self:flex-end;margin-bottom:5px;"></span>
+            <div class="field"><label>Fréquence (img/s)</label>
+              <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
+            <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
+          </div>
+        </div>
         <div class="poste">
-          <div class="bloc poste-video">
-              <div class="row">
-                <div class="field">
-                  <label>Choisir une vidéo intégrée</label>
-                  <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
-                    <option value="">— Choisir —</option>
-                    <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
-                    <option value="chute-balle-verticale.mp4" data-fps="25">Chute verticale d'une balle</option>
-                    <option value="chute-petanque-verticale.mp4" data-fps="25">Chute verticale d'une boule de pétanque</option>
-                    <option value="vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,2 N</option>
-                    <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
-                  </select>
-                </div>
-                <span style="align-self:flex-end;padding-bottom:8px;font-weight:600;color:var(--faded);">ou</span>
-                <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
-                <input type="file" id="input-video" accept="video/*" style="display:none;">
-              </div>
-              <div class="row">
-                <div class="field"><label>Fréquence (img/s)</label>
-                  <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
-                <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
-              </div>
+          <div class="poste-video">
               <div id="video-placeholder">Choisir une vidéo</div>
-              <div id="video-container" class="hidden" style="margin-top:14px;">
+              <div id="video-container" class="hidden">
                 <div id="video-wrap">
                   <video id="vid" preload="auto" playsinline></video>
                   <canvas id="overlay-canvas"></canvas>
