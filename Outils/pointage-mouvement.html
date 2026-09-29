@@ -32,19 +32,10 @@ a{color:inherit}
 .topbar nav a{text-decoration:none;padding:6px 12px;border-radius:999px;opacity:.7}
 .topbar nav a:hover,.topbar nav a[aria-current]{opacity:1;background:rgba(255,255,255,.12)}
 
-.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:clamp(20px,4vw,60px);
-  max-width:1280px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 96px;}
-aside{position:sticky;top:32px;align-self:start;}
+.layout{max-width:1320px;margin:0 auto;padding:36px clamp(16px,4vw,48px) 96px;}
 .kicker{font-size:14px;color:var(--faded);margin-bottom:6px;}
 h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing:-.02em;margin-bottom:18px;font-variation-settings:'opsz' 96;}
 .meta{font-size:14px;color:var(--faded);line-height:1.6;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px;max-width:38ch;}
-.sommaire{display:flex;flex-direction:column;}
-.sommaire a{display:flex;align-items:center;gap:10px;padding:9px 10px 9px 8px;text-decoration:none;font-size:15px;color:var(--faded);
-  border-left:2px solid transparent;transition:background .12s,color .12s;}
-.sommaire a .num{width:22px;height:22px;border-radius:50%;background:var(--c,var(--ink));color:var(--paper);font-size:12px;font-weight:800;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sommaire a:hover{color:var(--ink);background:var(--surface);}
-.sommaire a.active{color:var(--ink);font-weight:600;border-left-color:var(--c,var(--ink));background:var(--surface);}
 .etape{scroll-margin-top:24px;}
 details.aide{margin:0 0 12px;border:1px solid var(--rule);background:var(--surface);}
 details.aide summary{cursor:pointer;padding:8px 14px;font-size:14px;font-weight:500;color:var(--faded);list-style:none;display:flex;align-items:center;gap:10px;user-select:none;}
@@ -110,7 +101,28 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-rad
 /* vidéo */
 #video-wrap{position:relative;display:block;width:100%;user-select:none;background:#000;}
 #video-wrap video{display:block;width:100%;}
-#video-placeholder{margin-top:14px;width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+/* poste de travail : vidéo à gauche, étalonnage + pointage à droite */
+.poste{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start;}
+.poste-cote{display:flex;flex-direction:column;gap:14px;}
+.carte{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c,var(--ink));padding:14px 16px 16px;scroll-margin-top:24px;}
+.carte-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.carte-head .num{width:30px;height:30px;border-radius:50%;background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:15px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.carte .titre{font-size:18px;}
+.carte .consigne{font-size:14px;margin-bottom:10px;}
+.carte details.aide{margin:14px 0 0;}
+.carte .param-row{margin-bottom:10px;}
+.compteur{margin-left:auto;font-size:13px;color:var(--faded);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.liste-pts{list-style:none;margin:12px 0;max-height:190px;overflow:auto;border:1px solid var(--rule);background:var(--paper);
+  font-size:13px;font-variant-numeric:tabular-nums;}
+.liste-pts li{display:flex;align-items:center;gap:10px;padding:3px 6px 3px 10px;border-bottom:1px dashed var(--rule);}
+.liste-pts li:last-child{border-bottom:none;}
+.liste-pts li .n{font-weight:600;min-width:1.8em;}
+.liste-pts li .t{margin-left:auto;color:var(--faded);}
+.liste-pts li.vide{color:var(--faded2);font-style:italic;padding:8px 10px;}
+.liste-pts button{padding:0 8px;min-height:26px;font-size:12px;}
+
+#video-placeholder{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
   background:#fff;border:1px solid var(--rule);color:var(--blue);font-weight:700;font-size:clamp(22px,5vw,44px);text-align:center;}
 #overlay-canvas{position:absolute;top:0;left:0;pointer-events:none;}
 #click-canvas{position:absolute;top:0;left:0;cursor:crosshair;touch-action:none;}
@@ -162,8 +174,8 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
 #canvas-chrono{width:100%;display:block;border:1px solid var(--rule);background:#000;}
 
 @media (max-width:1000px){
-  .layout{grid-template-columns:220px minmax(0,1fr);gap:24px;padding:24px 16px 80px;}
-  aside{top:16px;}
+  .layout{padding:24px 16px 80px;}
+  .poste{grid-template-columns:1fr;}
   .topbar nav{display:none;}
   .etape{padding-left:52px;}
   .repere{margin-left:52px;}
@@ -173,11 +185,7 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
   .table-wrap{max-height:240px;}
 }
 @media (max-width:640px){
-  .layout{grid-template-columns:1fr;gap:20px;}
-  aside{position:static;}
-  .sommaire{flex-direction:row;flex-wrap:wrap;gap:4px;}
-  .sommaire a{border-left:none;padding:6px 10px 6px 6px;border-radius:999px;}
-  .sommaire a.active{background:var(--paper2);}
+  .carte{padding:12px;}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -196,19 +204,6 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
 </header>
 
 <div class="layout">
-  <aside>
-    <div class="kicker">Mécanique · Outil</div>
-    <h1>Pointage vidéo</h1>
-    <p class="meta">Cet outil permet d'étudier le mouvement d'un objet filmé : on repère sa position image par image sur la vidéo, et il en déduit la vitesse, l'accélération, les énergies, les graphiques et la chronophotographie.</p>
-    <nav class="sommaire" aria-label="Sommaire">
-      <a href="#etape-1" data-target="etape-1" style="--c:var(--video)"><span class="num">1</span>Vidéo</a>
-      <a href="#etape-2" data-target="etape-2" style="--c:var(--blue)"><span class="num">2</span>Étalonnage et paramètres</a>
-      <a href="#etape-3" data-target="etape-3" style="--c:var(--green)"><span class="num">3</span>Pointage</a>
-      <a href="#etape-4" data-target="etape-4" style="--c:var(--red)"><span class="num">4</span>Graphiques et modélisation</a>
-      <a href="#etape-5" data-target="etape-5" style="--c:var(--purple)"><span class="num">5</span>Chronophotographie</a>
-    </nav>
-  </aside>
-
   <main>
     <ol class="etapes">
 
@@ -220,11 +215,11 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
         </div>
       </li>
 
-      <!-- 1. VIDÉO -->
+      <!-- 1. VIDÉO (avec 2. ÉTALONNAGE et 3. POINTAGE à droite) -->
       <li class="etape" id="etape-1" style="--c:var(--video)">
         <div class="marker" aria-hidden="true"><span>1</span></div>
         <div class="head"><h2 class="titre">Vidéo</h2><span class="type">Source</span><span class="duree">vidéo intégrée ou fichier MP4</span></div>
-        <p class="consigne">Choisis une vidéo intégrée ou charge la tienne, puis vérifie la fréquence d'images. Charger une vidéo remet le pointage et l'étalonnage à zéro.</p>
+        <p class="consigne">Choisis une vidéo intégrée ou charge la tienne et vérifie la fréquence d'images, puis étalonne <b>(2)</b> et pointe <b>(3)</b> dans les encadrés à droite de la vidéo. Charger une vidéo remet le pointage et l'étalonnage à zéro.</p>
         <details class="aide">
           <summary>Raccourcis clavier</summary>
           <ul>
@@ -233,102 +228,125 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
             <li><span class="kbd">Espace</span> enregistrer le point</li>
           </ul>
         </details>
-        <div class="bloc">
-          <div class="row">
-            <div class="field">
-              <label>Choisir une vidéo intégrée</label>
-              <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
-                <option value="">— Choisir —</option>
-                <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
-                <option value="chute-balle-verticale.mp4" data-fps="25">Chute verticale d'une balle</option>
-                <option value="chute-petanque-verticale.mp4" data-fps="25">Chute verticale d'une boule de pétanque</option>
-                <option value="vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,2 N</option>
-                <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
-              </select>
-            </div>
-            <span style="align-self:flex-end;padding-bottom:8px;font-weight:600;color:var(--faded);">ou</span>
-            <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
-            <input type="file" id="input-video" accept="video/*" style="display:none;">
+        <div class="poste">
+          <div class="bloc poste-video">
+              <div class="row">
+                <div class="field">
+                  <label>Choisir une vidéo intégrée</label>
+                  <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
+                    <option value="">— Choisir —</option>
+                    <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
+                    <option value="chute-balle-verticale.mp4" data-fps="25">Chute verticale d'une balle</option>
+                    <option value="chute-petanque-verticale.mp4" data-fps="25">Chute verticale d'une boule de pétanque</option>
+                    <option value="vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,2 N</option>
+                    <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
+                  </select>
+                </div>
+                <span style="align-self:flex-end;padding-bottom:8px;font-weight:600;color:var(--faded);">ou</span>
+                <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
+                <input type="file" id="input-video" accept="video/*" style="display:none;">
+              </div>
+              <div class="row">
+                <div class="field"><label>Fréquence (img/s)</label>
+                  <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
+                <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
+              </div>
+              <div id="video-placeholder">Choisir une vidéo</div>
+              <div id="video-container" class="hidden" style="margin-top:14px;">
+                <div id="video-wrap">
+                  <video id="vid" preload="auto" playsinline></video>
+                  <canvas id="overlay-canvas"></canvas>
+                  <canvas id="click-canvas"></canvas>
+                </div>
+                <input type="range" id="scrubber" min="0" value="0" step="1">
+                <div id="nav-bar">
+                  <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
+                  <button id="btn-next" disabled aria-label="Image suivante">▶</button>
+                  <span class="info-pill" id="pill-frame">Image — / —</span>
+                  <span class="info-pill" id="pill-time">t = — s</span>
+                </div>
+              </div>
           </div>
-          <div class="row">
-            <div class="field"><label>Fréquence (img/s)</label>
-              <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
-            <span id="pill-video" class="info-pill warn" style="align-self:center">Aucune vidéo chargée</span>
-          </div>
-          <div id="video-placeholder">Choisir une vidéo</div>
-          <div id="video-container" class="hidden" style="margin-top:14px;">
-            <div id="video-wrap">
-              <video id="vid" preload="auto" playsinline></video>
-              <canvas id="overlay-canvas"></canvas>
-              <canvas id="click-canvas"></canvas>
-            </div>
-            <input type="range" id="scrubber" min="0" value="0" step="1">
-            <div id="nav-bar">
-              <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
-              <button id="btn-next" disabled aria-label="Image suivante">▶</button>
-              <span class="info-pill" id="pill-frame">Image — / —</span>
-              <span class="info-pill" id="pill-time">t = — s</span>
-            </div>
+
+          <div class="poste-cote">
+            <!-- 2. ÉTALONNAGE -->
+            <section class="carte" id="etape-2" style="--c:var(--blue)">
+              <div class="carte-head"><span class="num" aria-hidden="true">2</span><h2 class="titre">Étalonnage et paramètres</h2></div>
+              <p class="consigne">Clique <b>Étalonner</b>, puis sur deux points de la vidéo dont tu connais la distance réelle. Le premier devient l'origine O du repère (axe y vers le haut).</p>
+              <div class="param-row">
+                <div class="field"><label>Distance réelle</label><input type="number" id="calib-dist" value="1" min="0.001" step="any" style="width:100px;"></div>
+                <div class="field"><label>Unité</label><input type="text" id="calib-unite" value="m" style="width:64px;min-width:0;"></div>
+                <div class="field"><label>Masse (kg)</label><input type="number" id="masse" value="" min="0" step="any" placeholder="optionnel" style="width:104px;"></div>
+              </div>
+              <div class="row">
+                <button id="btn-calib-start" disabled>Étalonner</button>
+                <button id="btn-calib-ok" class="ok-btn hidden" disabled>✓ Valider</button>
+                <button id="btn-calib-reset" class="danger" disabled>Réinitialiser</button>
+              </div>
+              <div id="pill-calib" class="info-pill warn" style="margin-top:12px;">Vidéo non chargée</div>
+              <div class="log-line" id="log-calib"></div>
+              <details class="aide">
+                <summary>Conseils d'étalonnage</summary>
+                <ul>
+                  <li>étalonne sur un objet situé dans le plan du mouvement, pas devant ni derrière</li>
+                  <li>plus la longueur de référence est grande, plus l'échelle est précise</li>
+                  <li>filme caméra fixe et bien horizontale : l'axe y suit celui de l'image</li>
+                  <li>la masse est facultative : elle active les colonnes d'énergie</li>
+                  <li>la fréquence d'images est celle de la vidéo (souvent 25, 30 ou 60 img/s), à vérifier dans les propriétés du fichier</li>
+                </ul>
+              </details>
+            </section>
+
+            <!-- 3. POINTAGE -->
+            <section class="carte" id="etape-3" style="--c:var(--green)">
+              <div class="carte-head"><span class="num" aria-hidden="true">3</span><h2 class="titre">Pointage</h2><span class="compteur" id="nb-pts">0 point</span></div>
+              <p class="consigne">Place la croix sur le mobile puis clique <b>Pointer</b> (ou <span class="kbd">Espace</span>) : la vidéo avance automatiquement.</p>
+              <div class="row">
+                <button id="btn-point" class="primary" disabled>● Pointer</button>
+                <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+                  <label for="auto-step">Avance auto</label>
+                  <input type="number" id="auto-step" value="1" min="1" max="50" step="1" style="width:64px;min-width:0;">
+                  <label>img</label>
+                </div>
+              </div>
+              <ul class="liste-pts" id="liste-pts" aria-label="Points enregistrés"><li class="vide">Aucun point enregistré.</li></ul>
+              <div class="row">
+                <button id="btn-undo" class="danger" disabled>Supprimer dernier</button>
+                <button id="btn-clear-pts" class="danger" disabled>Effacer les points</button>
+              </div>
+              <div class="row">
+                <button id="btn-reset-all" class="danger" title="Efface les points, l'étalonnage, les graphiques et la chronophotographie">Tout réinitialiser</button>
+              </div>
+              <details class="aide">
+                <summary>Conseils de pointage</summary>
+                <ul>
+                  <li>le premier point pointé fixe t = 0</li>
+                  <li>vise toujours le même endroit du mobile (son centre)</li>
+                  <li>avec une vidéo à 60 img/s, une avance auto de 2 ou 3 lisse les vitesses</li>
+                  <li>✕ supprime un point précis, que tu peux ensuite repointer</li>
+                  <li>le travail est sauvegardé automatiquement ; « Sauvegarder la session » (étape 4) permet de le reprendre sur un autre appareil</li>
+                </ul>
+              </details>
+            </section>
           </div>
         </div>
       </li>
 
-      <!-- 2. ÉTALONNAGE -->
-      <li class="etape" id="etape-2" style="--c:var(--blue)">
-        <div class="marker" aria-hidden="true"><span>2</span></div>
-        <div class="head"><h2 class="titre">Étalonnage et paramètres</h2><span class="type">Repère</span><span class="duree">2 clics</span></div>
-        <p class="consigne">Clique <b>Étalonner</b>, puis deux points de la vidéo dont tu connais la distance réelle. Le premier devient l'origine O du repère (axe y vers le haut). La masse est facultative : elle active les colonnes d'énergie.</p>
-        <details class="aide">
-          <summary>Conseils d'étalonnage</summary>
-          <ul>
-            <li>étalonne sur un objet situé dans le plan du mouvement, pas devant ni derrière</li>
-            <li>plus la longueur de référence est grande, plus l'échelle est précise</li>
-            <li>filme caméra fixe et bien horizontale : l'axe y suit celui de l'image</li>
-            <li>la fréquence d'images est celle de la vidéo (souvent 25, 30 ou 60 img/s), à vérifier dans les propriétés du fichier</li>
-          </ul>
-        </details>
+      <!-- 4. RÉSULTATS -->
+      <li class="etape" id="etape-4" style="--c:var(--brown)">
+        <div class="marker" aria-hidden="true"><span>4</span></div>
+        <div class="head"><h2 class="titre">Résultats</h2><span class="type">Tableau</span><span class="duree">positions, vitesses, accélérations, énergies</span></div>
+        <p class="consigne">Le tableau se remplit à chaque point pointé. Les vitesses et accélérations sont calculées par dérivée centrée : elles n'existent pas pour les points extrêmes.</p>
         <div class="bloc">
-          <div class="param-row" style="margin-bottom:12px;">
-            <div class="field"><label>Distance réelle</label><input type="number" id="calib-dist" value="1" min="0.001" step="any" style="width:100px;"></div>
-            <div class="field"><label>Unité</label><input type="text" id="calib-unite" value="m" style="width:70px;min-width:0;"></div>
-            <div class="field"><label>Masse (kg)</label><input type="number" id="masse" value="" min="0" step="any" placeholder="optionnel" style="width:110px;"></div>
-            <button id="btn-calib-start" disabled>Étalonner</button>
-            <button id="btn-calib-ok" class="ok-btn hidden" disabled>✓ Valider</button>
-            <button id="btn-calib-reset" class="danger" disabled>Réinitialiser</button>
+          <div class="hint" style="margin:0 0 6px;">Colonnes affichées (5 max) <span class="max-warn hidden" id="max-warn">maximum atteint</span> — Vx, Vy, Ax, Ay sont toujours dans l'export CSV.</div>
+          <div class="col-toggle-bar" id="col-toggle-bar"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr id="tr-head"></tr></thead>
+              <tbody id="tbody-pts"><tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr></tbody>
+            </table>
           </div>
-          <div id="pill-calib" class="info-pill warn">Vidéo non chargée</div>
-          <div class="log-line" id="log-calib"></div>
-        </div>
-      </li>
-
-      <!-- 3. POINTAGE -->
-      <li class="etape" id="etape-3" style="--c:var(--green)">
-        <div class="marker" aria-hidden="true"><span>3</span></div>
-        <div class="head"><h2 class="titre">Pointage</h2><span class="type">Mesures</span><span class="duree">une croix par image</span></div>
-        <p class="consigne">Place la croix sur le mobile, enregistre le point, la vidéo avance automatiquement. Les vitesses et accélérations sont calculées par dérivée centrée : elles n'existent pas pour les points extrêmes.</p>
-        <details class="aide">
-          <summary>Conseils de pointage</summary>
-          <ul>
-            <li>le premier point pointé fixe t = 0</li>
-            <li>vise toujours le même endroit du mobile (son centre)</li>
-            <li>avec une vidéo à 60 img/s, une avance auto de 2 ou 3 lisse les vitesses</li>
-            <li>le travail est sauvegardé automatiquement ; exporte la session pour la reprendre sur un autre appareil</li>
-          </ul>
-        </details>
-        <div class="bloc">
-          <div class="row">
-            <button id="btn-point" class="primary" disabled>● Pointer</button>
-            <button id="btn-undo" class="danger" disabled>Supprimer dernier</button>
-            <button id="btn-clear-pts" class="danger" disabled>Effacer les points</button>
-            <button id="btn-reset-all" class="danger" title="Efface les points, l'étalonnage, les graphiques et la chronophotographie">Tout réinitialiser</button>
-            <span class="sep"></span>
-            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
-              <label>Avance auto</label>
-              <input type="number" id="auto-step" value="1" min="1" max="50" step="1" style="width:70px;min-width:0;">
-              <label>image(s)</label>
-            </div>
-          </div>
-          <div class="row">
+          <div class="row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);">
             <button id="btn-export-csv" disabled>⬇ CSV</button>
             <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
               <label>format</label>
@@ -342,20 +360,12 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
             <button id="btn-import-session" title="Charger une session sauvegardée">Charger une session</button>
             <input type="file" id="input-session" accept=".json" style="display:none;">
           </div>
-          <div class="hint" style="margin:14px 0 6px;">Colonnes affichées (5 max) <span class="max-warn hidden" id="max-warn">maximum atteint</span> — Vx, Vy, Ax, Ay sont toujours dans l'export CSV.</div>
-          <div class="col-toggle-bar" id="col-toggle-bar"></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr id="tr-head"></tr></thead>
-              <tbody id="tbody-pts"><tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr></tbody>
-            </table>
-          </div>
         </div>
       </li>
 
-      <!-- 4. GRAPHIQUES -->
-      <li class="etape" id="etape-4" style="--c:var(--red)">
-        <div class="marker" aria-hidden="true"><span>4</span></div>
+      <!-- 5. GRAPHIQUES -->
+      <li class="etape" id="etape-5" style="--c:var(--red)">
+        <div class="marker" aria-hidden="true"><span>5</span></div>
         <div class="head"><h2 class="titre">Graphiques et modélisation</h2><span class="type">Exploitation</span><span class="duree">Y = f(X)</span></div>
         <p class="consigne">Chaque graphique accepte plusieurs courbes et sa propre modélisation. Les boutons − / + règlent les échelles, <b>Auto</b> recadre sur les données.</p>
         <div class="bloc">
@@ -364,9 +374,9 @@ canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
         </div>
       </li>
 
-      <!-- 5. CHRONOPHOTOGRAPHIE -->
-      <li class="etape" id="etape-5" style="--c:var(--purple)">
-        <div class="marker" aria-hidden="true"><span>5</span></div>
+      <!-- 6. CHRONOPHOTOGRAPHIE -->
+      <li class="etape" id="etape-6" style="--c:var(--purple)">
+        <div class="marker" aria-hidden="true"><span>6</span></div>
         <div class="head"><h2 class="titre">Chronophotographie</h2><span class="type">Image</span><span class="duree">export PNG</span></div>
         <p class="consigne">Une seule image de fond, les positions redessinées par-dessus. Décoche les points dont tu ne veux pas afficher les vecteurs.</p>
         <div class="bloc">
@@ -667,7 +677,21 @@ function refreshTableHeader(){
     +cols.map(c=>`<th>${c.label}${c.unit?' ('+c.unit.replace(/u/g,calibUnit)+')':''}</th>`).join('')+'<th></th>';
 }
 function getActiveCols(){return ALL_COLS.filter(c=>activeCols.has(c.id)&&!(c.energy&&!hasMasse()));}
+// liste compacte des points (encadré 3, à droite de la vidéo)
+let _nbPtsPrec=0;
+function refreshListePts(){
+  const ul=$('liste-pts'),n=points.length;
+  $('nb-pts').textContent=n+(n>1?' points':' point');
+  if(!n){ul.innerHTML='<li class="vide">Aucun point enregistré.</li>';_nbPtsPrec=0;return;}
+  ul.innerHTML=points.map((p,i)=>{
+    const t=derived[i]?derived[i].t:null;
+    return`<li><span class="n">${i+1}</span><span>img ${p.frame+1}</span><span class="t">t = ${t!=null?fmtN4(t):'—'} s</span><button class="danger" onclick="deletePoint(${i})" title="Supprimer ce point" aria-label="Supprimer le point ${i+1}">✕</button></li>`;
+  }).join('');
+  if(n>_nbPtsPrec)ul.scrollTop=ul.scrollHeight;
+  _nbPtsPrec=n;
+}
 function refreshTable(){
+  refreshListePts();
   const tb=$('tbody-pts');
   if(!derived.length){tb.innerHTML='<tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr>';return;}
   const cols=getActiveCols();
@@ -1542,29 +1566,6 @@ $('btn-reset-all').addEventListener('click',()=>{
 function updateSteps(){} // marqueurs statiques (plus de progression à cocher)
 
 
-// ══ SOMMAIRE DYNAMIQUE ══
-(function(){
-  const links=[...document.querySelectorAll('.sommaire a')];
-  const secs=links.map(a=>document.getElementById(a.dataset.target)).filter(Boolean);
-  let ticking=false;
-  function setActive(){
-    ticking=false;
-    const y=window.scrollY+Math.min(200,window.innerHeight*0.3);
-    let best=secs[0];
-    secs.forEach(sec=>{if(sec.getBoundingClientRect().top+window.scrollY<=y)best=sec;});
-    if(window.innerHeight+window.scrollY>=document.body.scrollHeight-2)best=secs[secs.length-1];
-    links.forEach(a=>a.classList.toggle('active',a.dataset.target===best.id));
-  }
-  links.forEach(a=>a.addEventListener('click',e=>{
-    e.preventDefault();
-    const sec=document.getElementById(a.dataset.target);if(!sec)return;
-    sec.scrollIntoView({behavior:'smooth',block:'start'});
-    history.replaceState(null,'','#'+a.dataset.target);
-  }));
-  window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(setActive);}},{passive:true});
-  window.addEventListener('resize',setActive);
-  setActive();
-})();
 </script>
 </body>
 </html>
