@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incertitudes – type A, type B, composée</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css?v=3">
+<style>
+body{--accent:#3a3a1c;--crumb:#d8d29c;}
+main{min-width:0}
+.sec{margin-bottom:56px;scroll-margin-top:20px;}
+.sec>h2{font-size:clamp(23px,2.6vw,29px);font-weight:800;letter-spacing:-.015em;line-height:1.15;margin-bottom:10px;display:flex;align-items:baseline;gap:12px;}
+.sec>h2 .n{font-size:14px;font-weight:600;color:var(--paper);background:var(--accent);border-radius:999px;padding:2px 10px;position:relative;top:-3px;white-space:nowrap;}
+.sec p,.sec li{font-size:16px;}
+.sec p{max-width:68ch;margin-bottom:12px;}
+.sec h3{font-size:18px;font-weight:600;margin:22px 0 8px;}
+.quand{font-size:15px;color:var(--faded);margin-bottom:14px;max-width:68ch;}
+.quand b{color:var(--ink);font-weight:600}
+
+/* écriture mathématique */
+var,.v{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:1.06em;}
+.formule{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:16px 20px;margin:14px 0 16px;
+  font-size:20px;display:flex;flex-wrap:wrap;gap:14px 40px;align-items:center;}
+.formule .f{display:flex;flex-direction:column;gap:4px;}
+.formule .lg{font-size:13px;color:var(--faded);font-family:var(--font);}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25;}
+.frac>span:first-child{padding:0 4px 2px;}
+.frac>span:last-child{border-top:1.5px solid currentColor;padding:2px 4px 0;}
+.rac{display:inline-flex;align-items:stretch;vertical-align:middle;white-space:nowrap;}
+.rac::before{content:'√';font-size:1.25em;line-height:1;align-self:center;margin-right:1px;font-family:Georgia,serif;font-style:normal;}
+.rac>span{border-top:1.5px solid currentColor;padding:3px 3px 0 2px;display:inline-block;}
+
+/* réglages */
+.reglages{margin-top:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--rule);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:center;}
+.reglages .grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.reglages .lab{color:var(--faded);}
+.sommaire{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.sommaire a{font-size:14px;text-decoration:none;padding:5px 12px;border:1px solid var(--rule);border-radius:999px;background:var(--surface);}
+.sommaire a:hover{border-color:var(--ink);}
+
+/* segments (choix exclusif) */
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:999px;overflow:hidden;background:var(--surface);}
+.seg button{font:inherit;font-size:14px;border:none;background:none;padding:5px 13px;cursor:pointer;color:var(--faded);}
+.seg button+button{border-left:1px solid var(--rule);}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+.seg button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
+
+/* choisir la méthode */
+.choix{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0;}
+.choix a{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--rule);padding:16px 18px;transition:border-color .12s,background .12s;}
+.choix a:hover,.choix a:focus-visible{border-color:var(--ink);background:#fff;outline:none;}
+.choix .si{font-size:13px;color:var(--faded);}
+.choix .cas{font-size:17px;font-weight:600;line-height:1.25;margin:4px 0 10px;}
+.choix .alors{font-size:15px;font-weight:600;color:var(--accent);}
+.choix .alors::before{content:'→ ';}
+.vocab{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 28px;margin-top:8px;}
+.vocab div{font-size:15px;padding:8px 0;border-bottom:1px dashed var(--rule);}
+.vocab b{font-weight:600;}
+
+/* calculateurs */
+.calc{background:#fffdf6;border:1px solid var(--rule);padding:18px 20px 20px;margin:18px 0 8px;}
+.calc>h3{margin:0 0 4px;font-size:18px;}
+.calc .sous{font-size:14px;color:var(--faded);margin-bottom:14px;}
+.exemples{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;font-size:13px;color:var(--faded);}
+.btn{font:inherit;font-size:13px;padding:4px 11px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:999px;}
+.btn:hover,.btn:focus-visible{border-color:var(--ink);outline:none;}
+.champs{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 14px;margin-bottom:6px;}
+.champs .large{grid-column:1/-1;}
+.ch{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);}
+.ch input,.ch select,.ch textarea,.lignes input,.lignes select{font:inherit;font-size:16px;color:var(--ink);padding:7px 10px;border:1px solid rgba(28,18,8,.22);background:#fff;border-radius:3px;width:100%;min-width:0;}
+.ch textarea{min-height:92px;resize:vertical;line-height:1.4;}
+.ch input:focus,.ch select:focus,.ch textarea:focus,.lignes input:focus,.lignes select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(58,58,28,.15);}
+.mode-zone{margin:4px 0 14px;}
+
+/* lignes (incertitude composée) */
+.lignes{display:grid;gap:8px;margin:10px 0;}
+.ligne{display:grid;gap:8px;align-items:end;}
+.ligne.somme{grid-template-columns:70px minmax(60px,.8fr) 1fr 1fr 36px;}
+.ligne.produit{grid-template-columns:minmax(60px,.8fr) 1fr 80px 1fr 36px;}
+.ligne label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--faded);}
+.ligne .suppr{height:38px;width:36px;border:1px solid var(--rule);background:var(--surface);cursor:pointer;font-size:18px;color:var(--faded);border-radius:3px;}
+.ligne .suppr:hover{color:var(--red);border-color:var(--red);}
+.produit-k{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:6px;}
+.produit-k .ch{width:160px;}
+
+/* déroulé du calcul */
+.deroule{list-style:none;counter-reset:st;margin-top:16px;border-top:1px dashed var(--rule);padding-top:10px;}
+.deroule>li{counter-increment:st;padding:8px 0 8px 36px;position:relative;font-size:16px;line-height:1.6;}
+.deroule>li::before{content:counter(st);position:absolute;left:0;top:9px;width:25px;height:25px;border-radius:50%;background:var(--paper2);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.deroule .expl{display:block;font-size:14px;color:var(--faded);line-height:1.45;}
+.deroule .calcul{display:inline;}
+.resultat{margin-top:10px;padding:14px 18px;background:var(--ink);color:var(--paper);font-size:clamp(17px,2.2vw,21px);font-weight:600;line-height:1.35;}
+.resultat small{display:block;font-size:14px;font-weight:400;opacity:.78;margin-top:4px;}
+.msg{color:var(--red);font-size:15px;margin-top:12px;}
+.attention{font-size:14px;color:#7a3a10;background:rgba(166,48,32,.07);padding:6px 10px;margin-top:6px;border-radius:3px;}
+details.detail{margin-top:6px;font-size:14px;}
+details.detail summary{cursor:pointer;color:var(--faded);}
+.tab-wrap{overflow-x:auto;margin-top:8px;}
+table.tab{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;}
+table.tab th,table.tab td{border:1px solid var(--rule);padding:4px 10px;text-align:right;}
+table.tab th{background:var(--paper2);font-weight:600;}
+table.tab tfoot td{font-weight:600;}
+.parts{margin-top:8px;display:grid;gap:6px;max-width:520px;}
+.part{display:grid;grid-template-columns:80px 1fr 52px;gap:10px;align-items:center;font-size:14px;}
+.part .barre{height:12px;background:var(--paper2);border:1px solid var(--rule);}
+.part .barre i{display:block;height:100%;background:var(--accent);}
+.part .pc{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* encadrés */
+.astuce{margin:12px 0;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;max-width:72ch;}
+.astuce b{font-weight:600;}
+.pieges{list-style:none;display:grid;gap:10px;margin-top:8px;}
+.pieges li{background:var(--surface);border:1px solid var(--rule);padding:12px 16px;font-size:15px;}
+.pieges li b{display:block;font-weight:600;font-size:16px;margin-bottom:2px;}
+.methode{counter-reset:m;list-style:none;display:grid;gap:8px;margin:8px 0;}
+.methode li{counter-increment:m;padding-left:34px;position:relative;}
+.methode li::before{content:counter(m);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--paper);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.verdict-ok{background:var(--green)!important;}
+.verdict-ko{background:var(--red)!important;}
+
+@media (max-width:640px){
+  .ligne.somme{grid-template-columns:62px 1fr 1fr;}
+  .ligne.produit{grid-template-columns:1fr 1fr 70px;}
+  .ligne .suppr{grid-column:-2/-1;}
+  .formule{font-size:18px;}
+  .seg{border-radius:6px;}
+}
+@media print{
+  .topbar,.exemples,.reglages,.sommaire,.suppr,#ajout-somme,#ajout-produit{display:none!important;}
+  .resultat{background:none!important;color:var(--ink);border:2px solid var(--ink);}
+  .calc,.sec{break-inside:avoid;}
+}
+</style>
+</head>
+<body class="une-colonne">
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Incertitudes</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Outil · Mesures et incertitudes · 2de, 1re, Terminale</div>
+    <h1>Calculer une incertitude</h1>
+    <div class="meta">Type A, type B, incertitude composée : la méthode, puis un calculateur qui détaille chaque étape.<br>Fais d'abord le calcul toi-même, et sers-toi de l'outil pour vérifier.</div>
+    <nav class="sommaire" aria-label="Sommaire">
+      <a href="#choisir">Quelle méthode ?</a>
+      <a href="#type-a">Type A</a>
+      <a href="#type-b">Type B</a>
+      <a href="#composee">Composée</a>
+      <a href="#ecrire">Écrire le résultat</a>
+      <a href="#comparer">Comparer</a>
+      <a href="#pieges">Pièges</a>
+    </nav>
+    <div class="reglages">
+      <div class="grp"><span class="lab">Chiffres significatifs de u :</span>
+        <div class="seg" id="reg-cs"><button type="button" data-v="1" aria-pressed="true">1</button><button type="button" data-v="2" aria-pressed="false">2</button></div></div>
+      <div class="grp"><span class="lab">Arrondi de u :</span>
+        <div class="seg" id="reg-arr"><button type="button" data-v="exces" aria-pressed="true">par excès</button><button type="button" data-v="proche" aria-pressed="false">au plus proche</button></div></div>
+    </div>
+  </aside>
+
+<main>
+
+<!-- ============ 0. CHOISIR ============ -->
+<section class="sec" id="choisir">
+  <h2>Quelle méthode choisir ?</h2>
+  <p>Une mesure n'est jamais parfaite : si on la refait, on ne retrouve pas exactement la même valeur. L'<b>incertitude-type</b> <var>u</var>(<var>x</var>) chiffre cette dispersion. Elle s'exprime dans la <b>même unité</b> que <var>x</var>. La méthode de calcul dépend de la façon dont tu as obtenu ta valeur :</p>
+  <div class="choix">
+    <a href="#type-a"><div class="si">J'ai…</div><div class="cas">répété la même mesure plusieurs fois (ou j'ai les mesures de toute la classe)</div><div class="alors">Type A (statistique)</div></a>
+    <a href="#type-b"><div class="si">J'ai…</div><div class="cas">fait une seule mesure avec un instrument (règle, burette, multimètre…)</div><div class="alors">Type B</div></a>
+    <a href="#composee"><div class="si">J'ai…</div><div class="cas">calculé ma grandeur à partir d'autres valeurs mesurées (ρ = m/V, v = d/Δt…)</div><div class="alors">Incertitude composée</div></a>
+  </div>
+  <div class="vocab">
+    <div><b>Mesurande</b> : la grandeur que l'on veut mesurer.</div>
+    <div><b>Valeur mesurée</b> <var>x</var> : la valeur retenue (une mesure ou une moyenne).</div>
+    <div><b>Incertitude-type</b> <var>u</var>(<var>x</var>) : estime l'étendue des valeurs que l'on peut raisonnablement attribuer au mesurande.</div>
+    <div><b>Incertitude relative</b> <var>u</var>(<var>x</var>)/|<var>x</var>| : souvent en %, elle permet de comparer la qualité de deux mesures.</div>
+  </div>
+</section>
+
+<!-- ============ 1. TYPE A ============ -->
+<section class="sec" id="type-a">
+  <h2><span class="n">Type A</span> Plusieurs mesures répétées</h2>
+  <p class="quand"><b>Quand ?</b> On a <var>n</var> valeurs <var>x</var><sub>1</sub>, <var>x</var><sub>2</sub>, …, <var>x<sub>n</sub></var> de la même grandeur, obtenues dans les mêmes conditions. On exploite leur dispersion avec des outils statistiques.</p>
+  <div class="formule">
+    <div class="f"><span class="lg">① Valeur retenue : la moyenne</span><span><span class="v">x̄</span> = <span class="frac"><span>Σ <var>x<sub>i</sub></var></span><span><var>n</var></span></span></span></div>
+    <div class="f"><span class="lg">② Écart-type expérimental</span><span><var>s</var> = <span class="rac"><span><span class="frac"><span>Σ (<var>x<sub>i</sub></var> − <span class="v">x̄</span>)²</span><span><var>n</var> − 1</span></span></span></span></span></div>
+    <div class="f"><span class="lg">③ Incertitude-type sur la moyenne</span><span><var>u</var>(<span class="v">x̄</span>) = <span class="frac"><span><var>s</var></span><span><span class="rac"><span><var>n</var></span></span></span></span></span></div>
+  </div>
+  <div class="astuce"><b>À la calculatrice</b> : entre les valeurs dans une liste, puis lance les statistiques à une variable. L'écart-type à prendre est celui noté <b>s</b>, <b>Sx</b> ou <b>σ<sub>n−1</sub></b> (division par <var>n</var> − 1), <b>pas σ<sub>x</sub></b> (division par <var>n</var>). Au tableur : <code>=ECARTYPE.STANDARD(…)</code>.</div>
+
+  <div class="calc" id="calc-a">
+    <h3>Calculateur type A</h3>
+    <p class="sous">Colle tes valeurs : une par ligne, ou séparées par des espaces ou des points-virgules. La virgule décimale est acceptée.</p>
+    <div class="exemples">Exemples :
+      <button class="btn" type="button" data-ex="pendule">Période d'un pendule</button>
+      <button class="btn" type="button" data-ex="classe">Volume équivalent (classe)</button>
+    </div>
+    <div class="champs">
+      <label class="ch">Grandeur (symbole)<input id="a-sym" value="x" autocomplete="off"></label>
+      <label class="ch">Unité<input id="a-unit" value="" placeholder="ex : s" autocomplete="off"></label>
+      <label class="ch large">Valeurs mesurées<textarea id="a-val" spellcheck="false" placeholder="1,42 ; 1,45 ; 1,40 ; …"></textarea></label>
+    </div>
+    <div id="a-out"></div>
+  </div>
+</section>
+
+<!-- ============ 2. TYPE B ============ -->
+<section class="sec" id="type-b">
+  <h2><span class="n">Type B</span> Une seule mesure</h2>
+  <p class="quand"><b>Quand ?</b> On n'a qu'une valeur. On estime l'incertitude à partir de ce que l'on sait de l'instrument : graduation, résolution de l'affichage, tolérance ou notice du fabricant. Dans tous les cas, on considère que la valeur vraie peut se trouver n'importe où dans un intervalle ± <var>a</var> autour de la lecture.</p>
+  <div class="formule">
+    <div class="f"><span class="lg">Lecture sur une graduation (règle, éprouvette, burette…)</span><span><var>u</var> = <span class="frac"><span>1 graduation</span><span><span class="rac"><span>12</span></span></span></span></span></div>
+    <div class="f"><span class="lg">Tolérance ou précision ± <var>a</var> donnée (verrerie, notice)</span><span><var>u</var> = <span class="frac"><span><var>a</var></span><span><span class="rac"><span>3</span></span></span></span></span></div>
+  </div>
+  <p>Ces deux formules disent la même chose : une graduation, c'est un intervalle ± ½ graduation, et <span class="frac"><span>½ grad.</span><span>√3</span></span> = <span class="frac"><span>1 grad.</span><span>√12</span></span>. Si la mesure demande <b>deux lectures</b> (position de départ et d'arrivée sur une règle, volume initial et final sur une burette), chaque lecture apporte son incertitude : <var>u</var> = √2 × <span class="frac"><span>1 grad.</span><span>√12</span></span>.</p>
+
+  <div class="calc" id="calc-b">
+    <h3>Calculateur type B</h3>
+    <p class="sous">Choisis la situation qui correspond à ton instrument.</p>
+    <div class="mode-zone"><div class="seg" id="b-mode" role="group" aria-label="Situation">
+      <button type="button" data-v="grad" aria-pressed="true">Graduation</button>
+      <button type="button" data-v="tol" aria-pressed="false">Tolérance ± a</button>
+      <button type="button" data-v="notice" aria-pressed="false">Notice ±(p % + n digits)</button>
+      <button type="button" data-v="num" aria-pressed="false">Affichage numérique seul</button>
+    </div></div>
+    <div class="exemples" id="b-exemples"></div>
+    <div class="champs">
+      <label class="ch">Grandeur (symbole)<input id="b-sym" value="x" autocomplete="off"></label>
+      <label class="ch">Unité<input id="b-unit" value="" autocomplete="off"></label>
+      <label class="ch">Valeur lue<input id="b-val" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch" data-m="grad">Valeur d'une graduation<input id="b-grad" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch" data-m="grad">Nombre de lectures<select id="b-lect"><option value="1">1 lecture</option><option value="2">2 lectures (début et fin)</option></select></label>
+      <label class="ch" data-m="tol">Tolérance a (le « ± »)<input id="b-tol" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch" data-m="notice">p (en %)<input id="b-p" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch" data-m="notice">n (digits)<input id="b-n" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch" data-m="notice num">Résolution (1 digit)<input id="b-res" inputmode="decimal" autocomplete="off" placeholder="ex : 0,01"></label>
+    </div>
+    <div id="b-out"></div>
+  </div>
+</section>
+
+<!-- ============ 3. COMPOSÉE ============ -->
+<section class="sec" id="composee">
+  <h2><span class="n">Composée</span> Une grandeur calculée</h2>
+  <p class="quand"><b>Quand ?</b> La grandeur <var>y</var> est calculée à partir d'autres grandeurs mesurées <var>x</var><sub>1</sub>, <var>x</var><sub>2</sub>… ayant chacune leur incertitude-type (type A ou B). Les incertitudes « se propagent » jusqu'à <var>y</var>. <b>Au bac, la formule de composition est donnée dans l'énoncé</b> : il faut savoir l'appliquer.</p>
+  <div class="formule">
+    <div class="f"><span class="lg">Somme ou différence : <var>y</var> = <var>x</var><sub>1</sub> + <var>x</var><sub>2</sub> ou <var>y</var> = <var>x</var><sub>1</sub> − <var>x</var><sub>2</sub></span><span><var>u</var>(<var>y</var>) = <span class="rac"><span><var>u</var>(<var>x</var><sub>1</sub>)² + <var>u</var>(<var>x</var><sub>2</sub>)²</span></span></span></div>
+    <div class="f"><span class="lg">Produit ou quotient : <var>y</var> = <var>x</var><sub>1</sub> × <var>x</var><sub>2</sub> ou <var>y</var> = <var>x</var><sub>1</sub> / <var>x</var><sub>2</sub></span><span><span class="frac"><span><var>u</var>(<var>y</var>)</span><span>|<var>y</var>|</span></span> = <span class="rac"><span><span>(</span><span class="frac"><span><var>u</var>(<var>x</var><sub>1</sub>)</span><span><var>x</var><sub>1</sub></span></span><span>)²</span>&nbsp;+&nbsp;<span>(</span><span class="frac"><span><var>u</var>(<var>x</var><sub>2</sub>)</span><span><var>x</var><sub>2</sub></span></span><span>)²</span></span></span></span></div>
+  </div>
+  <p>Retiens l'idée : pour une <b>somme ou une différence</b>, on combine les incertitudes <b>absolues</b> ; pour un <b>produit ou un quotient</b>, on combine les incertitudes <b>relatives</b>. On ajoute toujours des <b>carrés</b>, même pour une différence. Si une grandeur est élevée à une puissance <var>k</var> (comme <var>v</var>² dans <var>E</var><sub>c</sub>), son incertitude relative est multipliée par <var>k</var> : le terme devient (<var>k</var> × <var>u</var>(<var>x</var>)/<var>x</var>)². Une constante exacte (½, π, 2…) n'apporte aucune incertitude.</p>
+
+  <div class="calc" id="calc-c">
+    <h3>Calculateur incertitude composée</h3>
+    <div class="mode-zone"><div class="seg" id="c-mode" role="group" aria-label="Type de formule">
+      <button type="button" data-v="somme" aria-pressed="false">Somme / différence</button>
+      <button type="button" data-v="produit" aria-pressed="true">Produit / quotient / puissance</button>
+    </div></div>
+    <div class="exemples" id="c-exemples"></div>
+    <div class="champs">
+      <label class="ch">Grandeur calculée (symbole)<input id="c-sym" value="y" autocomplete="off"></label>
+      <label class="ch">Unité de y<input id="c-unit" value="" autocomplete="off"></label>
+    </div>
+    <div class="produit-k" id="c-k-zone"><label class="ch">Constante exacte k (ex : 1/2, π)<input id="c-k" value="1" autocomplete="off"></label></div>
+    <div class="lignes" id="c-lignes"></div>
+    <button class="btn" type="button" id="c-ajout">+ Ajouter une grandeur</button>
+    <div id="c-out"></div>
+  </div>
+</section>
+
+<!-- ============ 4. ÉCRIRE ============ -->
+<section class="sec" id="ecrire">
+  <h2>Écrire le résultat</h2>
+  <p>Une incertitude-type n'a pas besoin d'être précise : on la garde avec <b>1 ou 2 chiffres significatifs</b> (suis la consigne de ton professeur, réglable en haut de la page). Ensuite, c'est l'incertitude qui fixe le nombre de chiffres de la valeur.</p>
+  <ol class="methode">
+    <li>Fais tous les calculs intermédiaires <b>sans arrondir</b> (garde les valeurs en mémoire de la calculatrice).</li>
+    <li>Arrondis <var>u</var>(<var>x</var>) à 1 ou 2 chiffres significatifs, <b>par excès</b> le plus souvent (on ne veut pas sous-estimer l'incertitude).</li>
+    <li>Arrondis <var>x</var> <b>au même rang décimal</b> que le dernier chiffre de <var>u</var>(<var>x</var>).</li>
+    <li>Écris les deux avec leur unité : <span class="v">m</span> = 12,46 g&nbsp;; <span class="v">u</span>(<span class="v">m</span>) = 0,03 g.</li>
+  </ol>
+  <div class="calc" id="calc-e">
+    <h3>Mettre en forme un résultat</h3>
+    <div class="champs">
+      <label class="ch">Grandeur (symbole)<input id="e-sym" value="g" autocomplete="off"></label>
+      <label class="ch">Valeur calculée<input id="e-val" value="9,8137" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch">Incertitude-type calculée<input id="e-u" value="0,0423" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch">Unité<input id="e-unit" value="m·s⁻²" autocomplete="off"></label>
+    </div>
+    <div id="e-out"></div>
+  </div>
+</section>
+
+<!-- ============ 5. COMPARER ============ -->
+<section class="sec" id="comparer">
+  <h2>Comparer à une valeur de référence</h2>
+  <p>Pour savoir si un résultat est en accord avec une valeur de référence <var>x</var><sub>réf</sub> (valeur tabulée, valeur attendue), on calcule l'<b>écart normalisé</b> (ou <i>z-score</i>) : il compte de combien d'incertitudes-types la mesure s'écarte de la référence.</p>
+  <div class="formule"><div class="f"><span class="lg">Écart normalisé</span><span><var>z</var> = <span class="frac"><span>|<var>x</var> − <var>x</var><sub>réf</sub>|</span><span><var>u</var>(<var>x</var>)</span></span></span></div>
+    <div class="f" style="font-size:16px;font-family:var(--font)"><span><b><var>z</var> ≤ 2</b> : résultat compatible avec la référence</span><span><b><var>z</var> &gt; 2</b> : écart significatif, à analyser</span></div></div>
+  <div class="calc" id="calc-z">
+    <h3>Calculer l'écart normalisé</h3>
+    <div class="champs">
+      <label class="ch">Valeur mesurée x<input id="z-x" value="9,77" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch">Incertitude-type u(x)<input id="z-u" value="0,03" inputmode="decimal" autocomplete="off"></label>
+      <label class="ch">Valeur de référence<input id="z-ref" value="9,81" inputmode="decimal" autocomplete="off"></label>
+    </div>
+    <div id="z-out"></div>
+  </div>
+  <p>Si <var>z</var> &gt; 2, ne « corrige » pas ta mesure : cherche une <b>erreur systématique</b> (appareil mal étalonné, protocole biaisé, lecture toujours faite du même côté) ou une <b>source d'incertitude oubliée</b>.</p>
+</section>
+
+<!-- ============ 6. PIÈGES ============ -->
+<section class="sec" id="pieges">
+  <h2>Les pièges les plus fréquents</h2>
+  <ul class="pieges">
+    <li><b>Prendre σ<sub>x</sub> au lieu de s</b>En type A, l'écart-type se calcule avec <var>n</var> − 1 au dénominateur. Sur la calculatrice : <i>s</i>, <i>Sx</i> ou <i>σ<sub>n−1</sub></i>.</li>
+    <li><b>Oublier de diviser par √n</b>L'écart-type <var>s</var> décrit la dispersion d'une mesure isolée ; l'incertitude sur la <b>moyenne</b> est <var>s</var>/√<var>n</var>, plus petite.</li>
+    <li><b>Additionner les incertitudes directement</b>On additionne les <b>carrés</b> puis on prend la racine : √(0,3² + 0,4²) = 0,5, et non 0,7.</li>
+    <li><b>Mélanger absolu et relatif</b>Pour un produit ou un quotient, on combine <var>u</var>(<var>x</var>)/<var>x</var> (sans unité), pas <var>u</var>(<var>x</var>).</li>
+    <li><b>Oublier l'exposant</b>Dans <var>E</var><sub>c</sub> = ½ <var>m v</var>², l'incertitude relative de <var>v</var> compte <b>deux fois</b> : terme (2 × <var>u</var>(<var>v</var>)/<var>v</var>)².</li>
+    <li><b>Trop de chiffres</b>« <var>v</var> = 2,419354 m/s ; <var>u</var>(<var>v</var>) = 0,0821 m/s » n'a pas de sens : <var>v</var> = 2,42 m/s ; <var>u</var>(<var>v</var>) = 0,09 m/s.</li>
+    <li><b>Oublier l'unité de u</b>L'incertitude-type a la même unité que la grandeur. Seule l'incertitude relative est sans unité.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* ---------- réglages ---------- */
+let CS = 1, ARR = 'exces';
+const recalculs = [];
+function toutRecalculer(){ recalculs.forEach(f => f()); }
+
+function seg(id, onChange){
+  const el = document.getElementById(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    onChange(b.dataset.v);
+  });
+  return v => el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === v ? 'true' : 'false'));
+}
+seg('reg-cs', v => { CS = +v; toutRecalculer(); });
+seg('reg-arr', v => { ARR = v; toutRecalculer(); });
+
+/* ---------- outils numériques ---------- */
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function num(s){
+  if(s == null) return NaN;
+  s = String(s).trim().replace(/\s/g,'').replace(/−/g,'-').replace(',', '.');
+  if(s === '') return NaN;
+  return Number(s);
+}
+function numK(s){
+  s = String(s).trim().replace(/\s/g,'').replace(/−/g,'-').replace(/,/g,'.').toLowerCase();
+  if(s === '') return 1;
+  if(s === 'π' || s === 'pi') return Math.PI;
+  s = s.replace(/π|pi/g, '*' + Math.PI + '*').replace(/^\*|\*$/g,'').replace(/\*\*/g,'*');
+  if(!/^[0-9.eE+\-*/()]+$/.test(s)) return NaN;
+  try { const v = Function('"use strict";return (' + s + ')')(); return typeof v === 'number' ? v : NaN; } catch(e){ return NaN; }
+}
+const MOINS = s => s.replace(/-/g, '−');
+function sup(e){ return '<sup>' + MOINS(String(e)) + '</sup>'; }
+/* format intermédiaire : sig chiffres significatifs */
+function fi(x, sig){
+  sig = sig || 4;
+  if(!isFinite(x)) return '—';
+  if(x === 0) return '0';
+  const a = Math.abs(x);
+  if(a >= 1e-3 && a < 1e5) return MOINS(String(Number(x.toPrecision(sig))).replace('.', ','));
+  const e = Math.floor(Math.log10(a));
+  const m = Number((x / Math.pow(10, e)).toPrecision(sig));
+  return MOINS(String(m).replace('.', ',')) + ' × 10' + sup(e);
+}
+function fixe(x, dec){ return MOINS(x.toFixed(Math.max(0, dec)).replace('.', ',')); }
+
+/* arrondi de u à k chiffres significatifs ; renvoie la valeur et le rang p (dernier chiffre = 10^p) */
+function arrondirU(u, k){
+  let e = Math.floor(Math.log10(u));
+  let p = e - k + 1, f = Math.pow(10, p);
+  let q = u / f;
+  q = ARR === 'exces' ? Math.ceil(q - 1e-9) : Math.round(q);
+  let ur = q * f;
+  const e2 = Math.floor(Math.log10(ur) + 1e-12);
+  if(e2 > e){ p = e2 - k + 1; ur = Math.round(ur / Math.pow(10, p)) * Math.pow(10, p); }
+  return { v: ur, p: p };
+}
+/* écriture finale « x = … ; u(x) = … » */
+function ecrire(sym, x, u, unit){
+  const r = arrondirU(u, CS);
+  let p = r.p, E = 0;
+  const ax = Math.abs(x);
+  if(p > 0 || ax >= 1e5 || (ax > 0 && ax < 1e-3)) E = Math.floor(Math.log10(ax || r.v));
+  if(p > 0 && E < p) E = p;   /* u plus grand que x : on garde un affichage lisible */
+  const dec = E - p;
+  const f = Math.pow(10, p);
+  const xr = Math.round(x / f) * f;
+  const pw = E ? ' × 10' + sup(E) : '';
+  const un = unit ? ' ' + esc(unit) : '';
+  const s = esc(sym || 'x');
+  const xs = fixe(xr / Math.pow(10, E), dec), us = fixe(r.v / Math.pow(10, E), dec);
+  return {
+    html: '<span class="v">' + s + '</span> = ' + xs + pw + un + ' &nbsp;;&nbsp; <span class="v">u</span>(<span class="v">' + s + '</span>) = ' + us + pw + un,
+    us: us + pw + un, xs: xs + pw + un, rang: p, uArr: r.v, xArr: xr
+  };
+}
+function rel(sym, x, u){
+  if(x === 0) return '';
+  return 'Incertitude relative : <span class="v">u</span>(<span class="v">' + esc(sym) + '</span>) / |<span class="v">' + esc(sym) + '</span>| = ' + fi(u / Math.abs(x) * 100, 2) + ' %';
+}
+function etape(contenu, expl){ return '<li><span class="calcul">' + contenu + '</span>' + (expl ? '<span class="expl">' + expl + '</span>' : '') + '</li>'; }
+function texteRang(p){
+  if(p >= 0) return p === 0 ? 'des unités' : 'des ' + ['unités','dizaines','centaines','milliers'][Math.min(p,3)] + (p > 3 ? ' (10' + sup(p) + ')' : '');
+  const noms = ['dixièmes','centièmes','millièmes'];
+  return -p <= 3 ? 'des ' + noms[-p - 1] : 'du 10' + sup(p);
+}
+function live(ids, f){ ids.forEach(id => { const el = $(id); el.addEventListener('input', f); el.addEventListener('change', f); }); recalculs.push(f); }
+
+/* =========================================================
+   TYPE A
+   ========================================================= */
+const EX_A = {
+  pendule: { sym:'T', unit:'s', val:'1,42\n1,45\n1,40\n1,44\n1,43\n1,41\n1,46\n1,42\n1,44\n1,43' },
+  classe:  { sym:'V_E', unit:'mL', val:'12,3 ; 12,5 ; 12,1 ; 12,4 ; 12,6 ; 12,2 ; 12,4 ; 12,3 ; 12,8 ; 12,4 ; 12,5 ; 12,3' }
+};
+document.querySelectorAll('#calc-a [data-ex]').forEach(b => b.addEventListener('click', () => {
+  const ex = EX_A[b.dataset.ex]; $('a-sym').value = ex.sym; $('a-unit').value = ex.unit; $('a-val').value = ex.val; calcA();
+}));
+function symHTML(s){ s = esc(s || 'x'); const m = s.match(/^([^_]+)_(.+)$/); return m ? m[1] + '<sub>' + m[2] + '</sub>' : s; }
+function calcA(){
+  const out = $('a-out');
+  const brut = $('a-val').value.trim();
+  if(!brut){ out.innerHTML = ''; return; }
+  const morceaux = brut.split(/[\s;\t]+/).filter(Boolean);
+  const vals = morceaux.map(num);
+  const bad = morceaux.filter((m, i) => !isFinite(vals[i]));
+  if(bad.length){ out.innerHTML = '<p class="msg">Valeur(s) non reconnue(s) : ' + bad.map(esc).join(', ') + '. Sépare les valeurs par des espaces, des points-virgules ou des retours à la ligne.</p>'; return; }
+  const n = vals.length;
+  if(n < 2){ out.innerHTML = '<p class="msg">Il faut au moins 2 valeurs pour une évaluation de type A.</p>'; return; }
+  const sym = $('a-sym').value.trim() || 'x', S = '<span class="v">' + symHTML(sym) + '</span>', unit = $('a-unit').value.trim(), un = unit ? ' ' + esc(unit) : '';
+  const somme = vals.reduce((a, b) => a + b, 0), moy = somme / n;
+  const ecarts = vals.map(v => v - moy), carres = ecarts.map(d => d * d);
+  const sc = carres.reduce((a, b) => a + b, 0);
+  const s = Math.sqrt(sc / (n - 1)), u = s / Math.sqrt(n);
+  let h = '<ol class="deroule">';
+  h += etape('<var>n</var> = ' + n + ' mesures', n < 5 ? '<span class="attention">Avec moins de 5 mesures, l\'estimation de l\'écart-type est peu fiable.</span>' : '');
+  h += etape('<span class="v">' + S + '</span><sub>moy</sub> = <span class="frac"><span>' + fi(somme, 6) + '</span><span>' + n + '</span></span> = ' + fi(moy, 6) + un,
+    'Moyenne des valeurs : c\'est la valeur retenue pour ' + S + '.');
+  let tab = '<details class="detail"><summary>Voir le détail du calcul de s</summary><div class="tab-wrap"><table class="tab"><thead><tr><th>i</th><th>x<sub>i</sub></th><th>x<sub>i</sub> − moyenne</th><th>(x<sub>i</sub> − moyenne)²</th></tr></thead><tbody>';
+  vals.forEach((v, i) => { tab += '<tr><td>' + (i + 1) + '</td><td>' + fi(v, 6) + '</td><td>' + fi(ecarts[i], 4) + '</td><td>' + fi(carres[i], 4) + '</td></tr>'; });
+  tab += '</tbody><tfoot><tr><td colspan="3">Somme</td><td>' + fi(sc, 4) + '</td></tr></tfoot></table></div></details>';
+  h += etape('<var>s</var> = <span class="rac"><span><span class="frac"><span>' + fi(sc, 4) + '</span><span>' + n + ' − 1</span></span></span></span> = ' + fi(s, 4) + un,
+    'Écart-type expérimental (avec <var>n</var> − 1). C\'est la valeur <i>s</i> ou <i>Sx</i> de la calculatrice.' + tab);
+  h += etape('<var>u</var>(' + S + ') = <span class="frac"><span>' + fi(s, 4) + '</span><span>√' + n + '</span></span> = ' + fi(u, 4) + un,
+    'Incertitude-type sur la moyenne : on divise l\'écart-type par √<var>n</var>.');
+  const w = ecrire(sym, moy, u, unit);
+  h += etape('Arrondis : <var>u</var>(' + S + ') ≈ ' + w.us + ' &nbsp;→&nbsp; ' + S + ' ≈ ' + w.xs,
+    'u arrondie à ' + CS + ' chiffre' + (CS > 1 ? 's' : '') + ' significatif' + (CS > 1 ? 's' : '') + ' (' + (ARR === 'exces' ? 'par excès' : 'au plus proche') + '), puis valeur arrondie au rang ' + texteRang(w.rang) + '.');
+  h += '</ol>';
+  out.innerHTML = h + resultatHTML(sym, S, moy, u, unit);
+}
+live(['a-sym','a-unit','a-val'], calcA);
+
+/* =========================================================
+   TYPE B
+   ========================================================= */
+let modeB = 'grad';
+const EX_B = {
+  grad: [
+    { t:'Règle graduée au mm', sym:'L', unit:'cm', val:'12,4', grad:'0,1', lect:'2' },
+    { t:'Éprouvette de 100 mL', sym:'V', unit:'mL', val:'64', grad:'1', lect:'1' },
+    { t:'Burette (V final − V initial)', sym:'V_E', unit:'mL', val:'12,4', grad:'0,1', lect:'2' }
+  ],
+  tol: [
+    { t:'Pipette jaugée 20 mL ± 0,03', sym:'V', unit:'mL', val:'20,00', tol:'0,03' },
+    { t:'Fiole jaugée 100 mL ± 0,10', sym:'V', unit:'mL', val:'100,00', tol:'0,10' }
+  ],
+  notice: [
+    { t:'Voltmètre ±(0,5 % + 2 digits)', sym:'U', unit:'V', val:'4,52', p:'0,5', n:'2', res:'0,01' },
+    { t:'Thermomètre ±(1 % + 1 digit)', sym:'θ', unit:'°C', val:'23,7', p:'1', n:'1', res:'0,1' }
+  ],
+  num: [
+    { t:'Balance au centigramme', sym:'m', unit:'g', val:'12,46', res:'0,01' },
+    { t:'Chronomètre au centième', sym:'Δt', unit:'s', val:'0,62', res:'0,01' }
+  ]
+};
+function majModeB(){
+  document.querySelectorAll('#calc-b [data-m]').forEach(el => { el.style.display = el.dataset.m.split(' ').includes(modeB) ? '' : 'none'; });
+  const z = $('b-exemples');
+  z.innerHTML = 'Exemples : ' + EX_B[modeB].map((ex, i) => '<button class="btn" type="button" data-i="' + i + '">' + esc(ex.t) + '</button>').join(' ');
+}
+$('b-exemples').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  const ex = EX_B[modeB][+b.dataset.i];
+  $('b-sym').value = ex.sym; $('b-unit').value = ex.unit; $('b-val').value = ex.val;
+  if(ex.grad) $('b-grad').value = ex.grad;
+  if(ex.lect) $('b-lect').value = ex.lect;
+  if(ex.tol) $('b-tol').value = ex.tol;
+  if(ex.p) $('b-p').value = ex.p;
+  if(ex.n) $('b-n').value = ex.n;
+  if(ex.res) $('b-res').value = ex.res;
+  calcB();
+});
+seg('b-mode', v => { modeB = v; majModeB(); calcB(); });
+function calcB(){
+  const out = $('b-out');
+  const sym = $('b-sym').value.trim() || 'x', S = '<span class="v">' + symHTML(sym) + '</span>', unit = $('b-unit').value.trim(), un = unit ? ' ' + esc(unit) : '';
+  const x = num($('b-val').value);
+  let u, h = '<ol class="deroule">', manque = '';
+  if(modeB === 'grad'){
+    const g = num($('b-grad').value), nl = +$('b-lect').value;
+    if(!(g > 0)){ manque = 'la valeur d\'une graduation'; }
+    else if(nl === 1){
+      u = g / Math.sqrt(12);
+      h += etape('<var>u</var>(' + S + ') = <span class="frac"><span>' + fi(g) + '</span><span>√12</span></span> = ' + fi(u) + un, 'Une lecture sur une graduation : la valeur vraie est quelque part dans ± ½ graduation.');
+    } else {
+      const u1 = g / Math.sqrt(12); u = Math.SQRT2 * u1;
+      h += etape('<var>u</var><sub>lecture</sub> = <span class="frac"><span>' + fi(g) + '</span><span>√12</span></span> = ' + fi(u1) + un, 'Incertitude-type d\'une seule lecture.');
+      h += etape('<var>u</var>(' + S + ') = <span class="rac"><span><var>u</var><sub>lecture</sub>² + <var>u</var><sub>lecture</sub>²</span></span> = √2 × ' + fi(u1) + ' = ' + fi(u) + un, 'Deux lectures indépendantes (début et fin) : on compose comme pour une différence.');
+    }
+  } else if(modeB === 'tol'){
+    const a = num($('b-tol').value);
+    if(!(a > 0)) manque = 'la tolérance a';
+    else { u = a / Math.sqrt(3); h += etape('<var>u</var>(' + S + ') = <span class="frac"><span>' + fi(a) + '</span><span>√3</span></span> = ' + fi(u) + un, 'La tolérance ± a est indiquée sur la verrerie ou dans la notice.'); }
+  } else if(modeB === 'notice'){
+    const p = num($('b-p').value), nd = num($('b-n').value), r = num($('b-res').value);
+    if(!isFinite(x)) manque = 'la valeur lue';
+    else if(!(p >= 0) || !(nd >= 0) || !(r > 0)) manque = 'p, n et la résolution (valeur d\'un digit)';
+    else {
+      const a = p / 100 * Math.abs(x) + nd * r; u = a / Math.sqrt(3);
+      h += etape('<var>a</var> = ' + fi(p) + ' % × ' + fi(Math.abs(x), 6) + ' + ' + fi(nd) + ' × ' + fi(r) + ' = ' + fi(p / 100 * Math.abs(x)) + ' + ' + fi(nd * r) + ' = ' + fi(a) + un,
+        'Le pourcentage s\'applique à la valeur lue ; un « digit » vaut une unité du dernier chiffre affiché (' + fi(r) + un + ').');
+      h += etape('<var>u</var>(' + S + ') = <span class="frac"><span>' + fi(a) + '</span><span>√3</span></span> = ' + fi(u) + un, 'La notice donne la précision ± a de l\'appareil.');
+    }
+  } else {
+    const r = num($('b-res').value);
+    if(!(r > 0)) manque = 'la résolution (valeur du dernier digit affiché)';
+    else { u = r / Math.sqrt(12); h += etape('<var>u</var>(' + S + ') = <span class="frac"><span>' + fi(r) + '</span><span>√12</span></span> = ' + fi(u) + un, 'Sans notice, on ne connaît que la résolution de l\'affichage : on la traite comme une graduation. C\'est une estimation minimale ; si la notice est disponible, utilise-la.'); }
+  }
+  if(manque){ out.innerHTML = '<p class="msg">Indique ' + manque + '.</p>'; return; }
+  if(!isFinite(x)){ h += '</ol>'; out.innerHTML = h + '<p class="msg">Indique la valeur lue pour obtenir l\'écriture du résultat.</p>'; return; }
+  const w = ecrire(sym, x, u, unit);
+  h += etape('Arrondis : <var>u</var>(' + S + ') ≈ ' + w.us + ' &nbsp;→&nbsp; ' + S + ' = ' + w.xs,
+    'u arrondie à ' + CS + ' chiffre' + (CS > 1 ? 's' : '') + ' significatif' + (CS > 1 ? 's' : '') + ', valeur écrite jusqu\'au rang ' + texteRang(w.rang) + '.');
+  h += '</ol>';
+  out.innerHTML = h + resultatHTML(sym, S, x, u, unit);
+}
+function resultatHTML(sym, S, x, u, unit){
+  S = symHTML(sym);
+  const w = ecrire(sym, x, u, unit);
+  const re = new RegExp('>' + esc(sym).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '<', 'g');
+  return '<div class="resultat">' + w.html.replace(re, '>' + S + '<') + '<small>' + rel(sym, x, u).replace(re, '>' + S + '<') + '</small></div>';
+}
+majModeB();
+live(['b-sym','b-unit','b-val','b-grad','b-lect','b-tol','b-p','b-n','b-res'], calcB);
+
+/* =========================================================
+   COMPOSÉE
+   ========================================================= */
+let modeC = 'produit';
+let lignes = [];
+const EX_C = {
+  produit: [
+    { t:'Masse volumique ρ = m / V', sym:'ρ', unit:'g/mL', k:'1', l:[['m','12,46','1','0,01'],['V','10,0','-1','0,08']] },
+    { t:'Vitesse v = d / Δt', sym:'v', unit:'m/s', k:'1', l:[['d','1,50','1','0,003'],['Δt','0,62','-1','0,02']] },
+    { t:'Énergie cinétique Ec = ½ m v²', sym:'E_c', unit:'J', k:'1/2', l:[['m','0,250','1','0,001'],['v','3,2','2','0,1']] },
+    { t:'Concentration c = n / V', sym:'c', unit:'mol/L', k:'1', l:[['n','2,50e-3','1','0,02e-3'],['V','0,1000','-1','0,0002']] }
+  ],
+  somme: [
+    { t:'Δθ = θ₂ − θ₁', sym:'Δθ', unit:'°C', l:[['+','θ₂','45,0','0,3'],['−','θ₁','20,0','0,3']] },
+    { t:'Longueur totale L = L₁ + L₂', sym:'L', unit:'cm', l:[['+','L₁','12,4','0,04'],['+','L₂','8,7','0,04']] },
+    { t:'Masse de solide m = m₂ − m₁', sym:'m', unit:'g', l:[['+','m₂','58,32','0,03'],['−','m₁','45,17','0,03']] }
+  ]
+};
+function videLigne(){ return modeC === 'somme' ? ['+', '', '', ''] : ['', '', '1', '']; }
+function rendreLignes(){
+  const z = $('c-lignes');
+  z.innerHTML = lignes.map((l, i) => {
+    if(modeC === 'somme') return '<div class="ligne somme" data-i="' + i + '">' +
+      '<label>Signe<select data-c="0"><option' + (l[0] === '+' ? ' selected' : '') + '>+</option><option' + (l[0] !== '+' ? ' selected' : '') + '>−</option></select></label>' +
+      '<label>Symbole<input data-c="1" value="' + esc(l[1]) + '" placeholder="x' + (i + 1) + '"></label>' +
+      '<label>Valeur<input data-c="2" value="' + esc(l[2]) + '" inputmode="decimal"></label>' +
+      '<label>Incertitude-type u<input data-c="3" value="' + esc(l[3]) + '" inputmode="decimal"></label>' +
+      '<button class="suppr" type="button" aria-label="Retirer cette grandeur" title="Retirer">×</button></div>';
+    return '<div class="ligne produit" data-i="' + i + '">' +
+      '<label>Symbole<input data-c="0" value="' + esc(l[0]) + '" placeholder="x' + (i + 1) + '"></label>' +
+      '<label>Valeur<input data-c="1" value="' + esc(l[1]) + '" inputmode="decimal"></label>' +
+      '<label>Exposant<input data-c="2" value="' + esc(l[2]) + '" inputmode="decimal" title="1 si au numérateur, −1 si au dénominateur, 2 pour un carré…"></label>' +
+      '<label>Incertitude-type u<input data-c="3" value="' + esc(l[3]) + '" inputmode="decimal"></label>' +
+      '<button class="suppr" type="button" aria-label="Retirer cette grandeur" title="Retirer">×</button></div>';
+  }).join('');
+}
+$('c-lignes').addEventListener('input', e => {
+  const r = e.target.closest('.ligne'); if(!r || e.target.dataset.c == null) return;
+  lignes[+r.dataset.i][+e.target.dataset.c] = e.target.value; calcC();
+});
+$('c-lignes').addEventListener('change', e => {
+  const r = e.target.closest('.ligne'); if(!r || e.target.dataset.c == null) return;
+  lignes[+r.dataset.i][+e.target.dataset.c] = e.target.value; calcC();
+});
+$('c-lignes').addEventListener('click', e => {
+  const b = e.target.closest('.suppr'); if(!b) return;
+  const i = +b.closest('.ligne').dataset.i;
+  lignes.splice(i, 1); if(!lignes.length) lignes.push(videLigne());
+  rendreLignes(); calcC();
+});
+$('c-ajout').addEventListener('click', () => { lignes.push(videLigne()); rendreLignes(); calcC(); const ins = $('c-lignes').querySelectorAll('.ligne:last-child input'); if(ins[0]) ins[0].focus(); });
+function majModeC(){
+  $('c-k-zone').style.display = modeC === 'produit' ? '' : 'none';
+  $('c-exemples').innerHTML = 'Exemples : ' + EX_C[modeC].map((ex, i) => '<button class="btn" type="button" data-i="' + i + '">' + esc(ex.t) + '</button>').join(' ');
+}
+function chargerExC(i){
+  const ex = EX_C[modeC][i];
+  $('c-sym').value = ex.sym; $('c-unit').value = ex.unit;
+  if(ex.k) $('c-k').value = ex.k;
+  lignes = ex.l.map(l => l.slice());
+  rendreLignes(); calcC();
+}
+$('c-exemples').addEventListener('click', e => { const b = e.target.closest('button'); if(b) chargerExC(+b.dataset.i); });
+seg('c-mode', v => { modeC = v; majModeC(); lignes = [videLigne(), videLigne()]; rendreLignes(); $('c-out').innerHTML = ''; });
+
+function expo(a){ return a === 1 ? '' : sup(fi(a)); }
+function calcC(){
+  const out = $('c-out');
+  const sym = $('c-sym').value.trim() || 'y', S = '<span class="v">' + symHTML(sym) + '</span>', unit = $('c-unit').value.trim(), un = unit ? ' ' + esc(unit) : '';
+  const L = [];
+  for(let i = 0; i < lignes.length; i++){
+    const l = lignes[i];
+    if(modeC === 'somme'){
+      const v = num(l[2]), u = num(l[3]);
+      if(l[2] === '' && l[3] === '') continue;
+      if(!isFinite(v) || !(u >= 0)){ out.innerHTML = '<p class="msg">Ligne ' + (i + 1) + ' : indique une valeur et une incertitude-type positive.</p>'; return; }
+      L.push({ s: l[0] === '+' ? 1 : -1, sym: symHTML(l[1] || 'x' + (i + 1)), v: v, u: u });
+    } else {
+      const v = num(l[1]), a = num(l[2]), u = num(l[3]);
+      if(l[1] === '' && l[3] === '') continue;
+      if(!isFinite(v) || v === 0 || !isFinite(a) || !(u >= 0)){ out.innerHTML = '<p class="msg">Ligne ' + (i + 1) + ' : indique une valeur non nulle, un exposant et une incertitude-type positive.</p>'; return; }
+      L.push({ sym: symHTML(l[0] || 'x' + (i + 1)), v: v, a: a, u: u });
+    }
+  }
+  if(!L.length){ out.innerHTML = ''; return; }
+  let h = '<ol class="deroule">', y, uy, parts;
+  if(modeC === 'somme'){
+    y = L.reduce((t, l) => t + l.s * l.v, 0);
+    const expr = L.map((l, i) => (i === 0 ? (l.s < 0 ? '−' : '') : (l.s < 0 ? ' − ' : ' + ')) + '<span class="v">' + l.sym + '</span>').join('');
+    const exprN = L.map((l, i) => (i === 0 ? (l.s < 0 ? '−' : '') : (l.s < 0 ? ' − ' : ' + ')) + fi(l.v, 6)).join('');
+    h += etape('<span class="v">' + S + '</span> = ' + expr + ' = ' + exprN + ' = ' + fi(y, 6) + un, 'Valeur de la grandeur calculée (calcul sans arrondi).');
+    const sq = L.reduce((t, l) => t + l.u * l.u, 0); uy = Math.sqrt(sq);
+    h += etape('<var>u</var>(' + S + ') = <span class="rac"><span>' + L.map(l => '<var>u</var>(<span class="v">' + l.sym + '</span>)²').join(' + ') + '</span></span> = <span class="rac"><span>' + L.map(l => fi(l.u) + '²').join(' + ') + '</span></span> = ' + fi(uy) + un,
+      'Somme ou différence : on additionne les <b>carrés des incertitudes-types absolues</b> (même pour un signe −).');
+    parts = L.map(l => ({ sym: l.sym, w: sq ? l.u * l.u / sq : 0 }));
+  } else {
+    const k = numK($('c-k').value);
+    if(!isFinite(k) || k === 0){ out.innerHTML = '<p class="msg">La constante k n\'est pas reconnue (exemples : 1, 1/2, 2, π, 4/3*π).</p>'; return; }
+    y = k * L.reduce((t, l) => t * Math.pow(l.v, l.a), 1);
+    if(!isFinite(y)){ out.innerHTML = '<p class="msg">Calcul impossible (puissance d\'un nombre négatif ?).</p>'; return; }
+    const kTxt = Math.abs(k - 1) < 1e-15 ? '' : esc($('c-k').value.trim()) + ' × ';
+    const expr = kTxt + L.map(l => '<span class="v">' + l.sym + '</span>' + expo(l.a)).join(' × ');
+    const exprN = kTxt + L.map(l => (l.a === 1 ? fi(l.v, 6) : '(' + fi(l.v, 6) + ')' + sup(fi(l.a)))).join(' × ');
+    h += etape('<span class="v">' + S + '</span> = ' + expr + ' = ' + exprN + ' = ' + fi(y, 6) + un, 'Valeur de la grandeur calculée (calcul sans arrondi).');
+    const termes = L.map(l => l.a * l.u / l.v);
+    h += etape('Incertitudes relatives : ' + L.map((l, i) => '<span style="white-space:nowrap">' + (Math.abs(l.a) !== 1 ? fi(Math.abs(l.a)) + ' × ' : '') + '<span class="frac"><span>' + fi(l.u) + '</span><span>' + fi(Math.abs(l.v), 6) + '</span></span> = ' + fi(Math.abs(termes[i]), 3) + '</span>').join(' ; '),
+      'Pour chaque grandeur : (exposant) × <var>u</var>(<var>x</var>)/<var>x</var>. Ces nombres sont sans unité.');
+    const sq = termes.reduce((t, r) => t + r * r, 0), R = Math.sqrt(sq);
+    h += etape('<span class="frac"><span><var>u</var>(' + S + ')</span><span>|' + S + '|</span></span> = <span class="rac"><span>' + termes.map(r => fi(Math.abs(r), 3) + '²').join(' + ') + '</span></span> = ' + fi(R, 3) + ' &nbsp;(soit ' + fi(R * 100, 2) + ' %)',
+      'Produit, quotient, puissance : on additionne les <b>carrés des incertitudes relatives</b>.');
+    uy = Math.abs(y) * R;
+    h += etape('<var>u</var>(' + S + ') = ' + fi(Math.abs(y), 6) + ' × ' + fi(R, 3) + ' = ' + fi(uy) + un, 'On revient à l\'incertitude-type absolue en multipliant par |' + S + '|.');
+    parts = L.map((l, i) => ({ sym: l.sym, w: sq ? termes[i] * termes[i] / sq : 0 }));
+  }
+  if(L.length > 1){
+    const maxi = parts.reduce((m, p) => p.w > m.w ? p : m, parts[0]);
+    let b = '<div class="parts">' + parts.map(p => '<div class="part"><span class="v">' + p.sym + '</span><span class="barre"><i style="width:' + (p.w * 100).toFixed(1) + '%"></i></span><span class="pc">' + Math.round(p.w * 100) + ' %</span></div>').join('') + '</div>';
+    h += etape('Quelle source pèse le plus ?', 'Part de chaque grandeur dans <var>u</var>(' + S + ')². ' + (maxi.w > 0.6 ? 'C\'est <span class="v">' + maxi.sym + '</span> qui domine : pour améliorer le résultat, c\'est cette mesure qu\'il faut rendre plus précise.' : 'Les sources sont du même ordre de grandeur.') + b);
+  }
+  if(!(uy > 0)){ h += '</ol>'; out.innerHTML = h + '<p class="msg">Incertitude nulle : vérifie les incertitudes-types saisies.</p>'; return; }
+  const w = ecrire(sym, y, uy, unit);
+  h += etape('Arrondis : <var>u</var>(' + S + ') ≈ ' + w.us + ' &nbsp;→&nbsp; ' + S + ' ≈ ' + w.xs, 'u arrondie à ' + CS + ' chiffre' + (CS > 1 ? 's' : '') + ' significatif' + (CS > 1 ? 's' : '') + ', valeur arrondie au rang ' + texteRang(w.rang) + '.');
+  h += '</ol>';
+  out.innerHTML = h + resultatHTML(sym, S, y, uy, unit);
+}
+live(['c-sym','c-unit','c-k'], calcC);
+majModeC();
+chargerExC(0);
+
+/* =========================================================
+   ÉCRIRE
+   ========================================================= */
+function calcE(){
+  const out = $('e-out');
+  const sym = $('e-sym').value.trim() || 'x', S = '<span class="v">' + symHTML(sym) + '</span>', unit = $('e-unit').value.trim(), un = unit ? ' ' + esc(unit) : '';
+  const x = num($('e-val').value), u = num($('e-u').value);
+  if(!isFinite(x) || !(u > 0)){ out.innerHTML = '<p class="msg">Indique une valeur et une incertitude-type strictement positive.</p>'; return; }
+  const w = ecrire(sym, x, u, unit);
+  let h = '<ol class="deroule">';
+  h += etape('<var>u</var>(' + S + ') = ' + fi(u, 6) + un + ' &nbsp;→&nbsp; ' + w.us,
+    'Arrondi à ' + CS + ' chiffre' + (CS > 1 ? 's' : '') + ' significatif' + (CS > 1 ? 's' : '') + ' ' + (ARR === 'exces' ? '<b>par excès</b>' : 'au plus proche') + ' : le dernier chiffre gardé est celui ' + texteRang(w.rang) + '.');
+  h += etape(S + ' = ' + fi(x, 8) + un + ' &nbsp;→&nbsp; ' + w.xs, 'La valeur est arrondie (au plus proche) au même rang, celui ' + texteRang(w.rang) + '.');
+  h += '</ol>';
+  out.innerHTML = h + resultatHTML(sym, S, x, u, unit);
+}
+live(['e-sym','e-val','e-u','e-unit'], calcE);
+
+/* =========================================================
+   ÉCART NORMALISÉ
+   ========================================================= */
+function calcZ(){
+  const out = $('z-out');
+  const x = num($('z-x').value), u = num($('z-u').value), r = num($('z-ref').value);
+  if(!isFinite(x) || !isFinite(r) || !(u > 0)){ out.innerHTML = '<p class="msg">Indique x, u(x) > 0 et la valeur de référence.</p>'; return; }
+  const z = Math.abs(x - r) / u;
+  const ok = z <= 2;
+  out.innerHTML = '<ol class="deroule">' + etape('<var>z</var> = <span class="frac"><span>|' + fi(x, 6) + ' − ' + fi(r, 6) + '|</span><span>' + fi(u) + '</span></span> = <span class="frac"><span>' + fi(Math.abs(x - r)) + '</span><span>' + fi(u) + '</span></span> = ' + fi(z, 2),
+    'La mesure s\'écarte de la référence de ' + fi(z, 2) + ' incertitude' + (z >= 2 ? 's' : '') + '-type' + (z >= 2 ? 's' : '') + '.') + '</ol>' +
+    '<div class="resultat ' + (ok ? 'verdict-ok' : 'verdict-ko') + '">z = ' + fi(z, 2) + (ok ? ' ≤ 2 : résultat compatible avec la valeur de référence' : ' > 2 : écart significatif, résultat non compatible') +
+    '<small>' + (ok ? 'L\'écart observé s\'explique par la dispersion des mesures.' : 'Cherche une erreur systématique ou une source d\'incertitude oubliée.') + '</small></div>';
+}
+live(['z-x','z-u','z-ref'], calcZ);
+
+/* premier affichage */
+(function(){ const ex = EX_A.pendule; $('a-sym').value = ex.sym; $('a-unit').value = ex.unit; $('a-val').value = ex.val; })();
+(function(){ const ex = EX_B.grad[0]; $('b-sym').value = ex.sym; $('b-unit').value = ex.unit; $('b-val').value = ex.val; $('b-grad').value = ex.grad; $('b-lect').value = ex.lect; })();
+toutRecalculer();
+})();
+</script>
+</body>
+</html>
