@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableur-grapheur – Graphiques et modélisation</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--surface:#fdfaf0;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#5f4e33;--faded2:#87704c;
+  --rule:rgba(28,18,8,.16);
+  --blue:#1c3d6e;--green:#2a5c3a;--brown:#6b3a1c;--red:#a63020;--purple:#3a1c6b;--amber:#7a4e00;
+  --blue-bg:rgba(28,61,110,.08);--green-bg:rgba(42,92,58,.09);--amber-bg:rgba(122,78,0,.10);--red-bg:rgba(166,48,32,.08);
+  --accent:var(--blue);
+  --font:'Bricolage Grotesque',system-ui,sans-serif;
+}
+html{font-size:17px;}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);line-height:1.5;min-height:100vh;}
+a{color:inherit}
+
+.topbar{background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,4vw,48px);height:52px;font-size:14px;}
+.topbar .crumb{display:flex;gap:10px;align-items:center;}
+.topbar .crumb a{text-decoration:none;opacity:.7}
+.topbar .crumb a:hover{opacity:1}
+.topbar .crumb b{font-weight:600;color:#a9c4ea}
+.topbar nav{display:flex;gap:4px;}
+.topbar nav a{text-decoration:none;padding:6px 12px;border-radius:999px;opacity:.7}
+.topbar nav a:hover,.topbar nav a[aria-current]{opacity:1;background:rgba(255,255,255,.12)}
+
+.layout{max-width:1320px;margin:0 auto;padding:36px clamp(16px,4vw,48px) 96px;}
+details.aide{margin:12px 0 0;border:1px solid var(--rule);background:var(--surface);}
+details.aide summary{cursor:pointer;padding:8px 14px;font-size:14px;font-weight:500;color:var(--faded);list-style:none;display:flex;align-items:center;gap:10px;user-select:none;}
+details.aide summary::-webkit-details-marker{display:none}
+details.aide summary::before{content:'';width:7px;height:7px;border-right:1.5px solid var(--faded2);border-bottom:1.5px solid var(--faded2);transform:rotate(-45deg);transition:transform .15s;flex-shrink:0;}
+details.aide[open] summary::before{transform:rotate(45deg);}
+details.aide ul{list-style:none;padding:0 14px 10px 14px;font-size:14px;color:var(--ink2);}
+details.aide li{padding:6px 0 6px 18px;position:relative;border-top:1px dashed var(--rule);}
+details.aide li::before{content:'';position:absolute;left:0;top:13px;width:7px;height:7px;border:1.5px solid var(--faded2);transform:rotate(45deg);}
+.kbd,code{display:inline-block;font-family:var(--font);font-size:12.5px;font-weight:500;background:var(--paper2);border:1px solid var(--rule);border-radius:3px;padding:0 6px;color:var(--ink2);line-height:1.6;}
+.etapes{list-style:none;position:relative;}
+.etapes::before{content:'';position:absolute;left:19px;top:20px;bottom:20px;width:2px;background:var(--rule);}
+.etape{position:relative;padding:0 0 34px 62px;scroll-margin-top:24px;}
+.etape:last-child{padding-bottom:0}
+.marker{position:absolute;left:0;top:2px;width:40px;height:40px;border-radius:50%;
+  background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:17px;
+  display:flex;align-items:center;justify-content:center;border:4px solid var(--paper);font-family:inherit;}
+.etape .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px;}
+.titre{font-size:21px;font-weight:600;line-height:1.2;letter-spacing:-.01em;}
+.type{font-size:13px;font-weight:500;color:var(--c,var(--ink));white-space:nowrap;}
+.type::after{content:' · ';color:var(--faded2)}
+.duree{font-size:13px;color:var(--faded);}
+.consigne{font-size:15px;color:var(--faded);max-width:72ch;margin-bottom:12px;}
+.consigne b{font-weight:600;color:var(--ink2)}
+.bloc{background:var(--surface);border:1px solid var(--rule);padding:16px 18px;}
+
+/* contrôles */
+.row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;}
+.sep{width:1px;height:26px;background:var(--rule);align-self:center;margin:0 4px;}
+button{font:inherit;font-size:14px;padding:7px 14px;background:var(--surface);border:1px solid var(--rule);border-radius:4px;
+  color:var(--ink);cursor:pointer;min-height:36px;touch-action:manipulation;transition:border-color .12s,background .12s;}
+button:hover:not(:disabled){background:#fff;border-color:var(--ink);}
+button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+button:disabled{opacity:.4;cursor:default;}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+button.primary:hover:not(:disabled){background:var(--ink2);border-color:var(--ink2);}
+button.danger{color:var(--red);border-color:rgba(166,48,32,.35);}
+button.danger:hover:not(:disabled){background:var(--red-bg);border-color:var(--red);}
+button.mini{min-height:28px;padding:2px 9px;font-size:13px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:13px;color:var(--faded);}
+input[type=text],select{
+  font:inherit;font-size:14px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink);
+  padding:6px 9px;min-height:36px;min-width:70px;font-variant-numeric:tabular-nums;}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(28,61,110,.2);}
+.vec-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none;min-height:34px;}
+.vec-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);margin:0;}
+.hint{font-size:13px;color:var(--faded2);font-style:italic;}
+.hidden{display:none!important;}
+
+/* tableur */
+.toolbar{margin-bottom:12px;}
+.sheet-wrap{overflow:auto;max-height:460px;border:1px solid var(--rule);background:var(--paper);}
+table.sheet{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sheet th,.sheet td{padding:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.sheet thead th{position:sticky;top:0;z-index:2;background:var(--surface);vertical-align:top;text-align:left;font-weight:400;border-bottom:2px solid var(--ink);}
+.sheet thead th.calc{background:var(--paper2);}
+.sheet .rownum{position:sticky;left:0;z-index:1;background:var(--paper2);color:var(--faded);font-size:12px;text-align:center;min-width:40px;width:40px;}
+.sheet thead .rownum{z-index:3;vertical-align:bottom;padding-bottom:8px;}
+.sheet td input[type=text]{display:block;width:100%;min-width:118px;border:none;border-radius:0;background:transparent;
+  padding:6px 10px;min-height:32px;font-size:15px;text-align:right;box-shadow:none;}
+.sheet td input[type=text]:focus{outline:2px solid var(--blue);outline-offset:-2px;background:#fff;box-shadow:none;}
+.sheet td.calc{background:var(--paper2);}
+.sheet td.calc input[type=text]{color:var(--ink2);cursor:default;}
+.sheet td.calc input[type=text]:focus{outline:none;background:transparent;}
+.sheet td input.bad{background:var(--red-bg);color:var(--red);}
+.sheet .rowdel{border-right:none;width:36px;min-width:36px;text-align:center;}
+.sheet td.rowdel button.mini{opacity:0;min-height:24px;padding:0 6px;font-size:12px;}
+.sheet tr:hover td.rowdel button.mini,.sheet tr:focus-within td.rowdel button.mini{opacity:.8;}
+@media (hover:none){.sheet td.rowdel button.mini{opacity:.6;}}
+.col-head{padding:8px 8px 7px;display:flex;flex-direction:column;gap:5px;min-width:160px;}
+.col-line{display:flex;align-items:center;gap:3px;}
+.sheet .col-head input[type=text]{min-height:30px;padding:3px 6px;font-size:14px;min-width:0;}
+.sheet .col-head input.col-nom{width:78px;font-weight:600;}
+.sheet .col-head input.col-unite{width:62px;}
+.sheet .col-head input.col-formule{flex:1;width:128px;}
+.sheet .col-head input.warn{border-color:var(--amber);background:var(--amber-bg);}
+.par,.eq{color:var(--faded2);font-size:14px;}
+.eq{font-weight:600;padding:0 2px;}
+.col-tools{display:flex;align-items:center;gap:3px;}
+.col-tag{font-size:11.5px;color:var(--faded);margin-right:auto;text-transform:uppercase;letter-spacing:.06em;}
+.sheet .col-tools button.mini{min-height:24px;padding:0 7px;font-size:12px;}
+.col-err{font-size:12px;color:var(--red);white-space:normal;max-width:220px;line-height:1.3;}
+.col-err.w{color:var(--amber);}
+.col-err:empty{display:none}
+.bottom-row{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);}
+
+/* graphiques */
+.graph-card{border:1px solid var(--rule);padding:12px 14px;background:var(--paper);margin-bottom:14px;}
+.graph-header{display:flex;align-items:flex-end;gap:8px 14px;margin-bottom:10px;flex-wrap:wrap;}
+.graph-actions{margin-left:auto;display:flex;gap:6px;align-items:center;}
+.graph-sel,.model-sel{font-size:14px;padding:4px 8px;min-height:32px;min-width:130px;}
+.model-sel{min-width:220px;}
+.serie{border:1px solid var(--rule);background:var(--surface);padding:8px 10px;margin-bottom:8px;}
+.serie-line{display:flex;align-items:flex-end;gap:8px 12px;flex-wrap:wrap;}
+.serie-line .leg-dot{align-self:center;margin-top:18px;}
+.serie-del{margin-left:auto;}
+.model-params{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;align-self:center;margin-top:18px;}
+.model-param{display:inline-flex;align-items:center;gap:5px;font-size:14px;}
+.model-param .pn{color:var(--faded);font-weight:500;}
+.model-param input[type=text]{min-height:30px;padding:3px 6px;width:96px;min-width:0;font-size:13.5px;}
+.model-param input[readonly]{background:var(--paper2);color:var(--faded);}
+.model-param.fixed input[type=text]{background:var(--amber-bg);border-color:rgba(122,78,0,.45);}
+.model-param .fix{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--faded2);cursor:pointer;}
+.model-param .fix input{width:13px;height:13px;accent-color:var(--amber);margin:0;cursor:pointer;}
+.model-box{border:1px solid var(--rule);border-left-width:3px;padding:8px 12px;font-size:14px;margin-top:8px;background:var(--paper);}
+.model-box.ok{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.model-box.warn{border-color:var(--amber);background:var(--amber-bg);color:var(--amber);}
+.model-box.bad{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.model-eqn{font-size:16px;font-weight:600;margin:.1rem 0;}
+.model-eqn sup{font-size:.7em;}
+.model-r2{font-size:13.5px;opacity:.95;}
+.model-out{margin-top:4px;font-size:13px;color:var(--red);}
+.chart-wrap{position:relative;}
+canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
+canvas.chart-cv.ov{position:absolute;top:0;left:0;pointer-events:none;}
+.scales{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--faded);margin-top:6px;}
+.scale-grp{display:inline-flex;align-items:center;gap:3px;}
+.scale-grp b{font-weight:600;margin-right:3px;}
+.sc-btn{font:inherit;font-size:14px;font-weight:500;padding:0 8px;border-radius:3px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;line-height:1;min-height:26px;}
+.sc-btn:hover{background:#fff;border-color:var(--ink);}
+.sc-val{font-size:12px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:2px 5px;display:inline-block;min-width:52px;text-align:center;font-variant-numeric:tabular-nums;}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--faded);margin-top:8px;align-items:center;}
+.leg-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.leg-line{width:18px;height:0;border-top:2px solid;display:inline-block;vertical-align:middle;margin:0 4px 0 2px;}
+.cursor-read{display:none;font-size:12.5px;color:var(--blue);background:var(--blue-bg);border:1px solid rgba(28,61,110,.25);border-radius:3px;padding:3px 8px;margin-top:6px;font-weight:500;font-variant-numeric:tabular-nums;width:max-content;}
+
+@media (max-width:1000px){
+  .layout{padding:24px 16px 80px;}
+  .topbar nav{display:none;}
+  .etape{padding-left:52px;}
+  .bloc{padding:12px;}
+  button{min-height:44px;}
+  input[type=text],select{min-height:44px;}
+  .graph-actions{margin-left:0;}
+}
+@media (max-width:640px){
+  .etapes::before{display:none;}
+  .etape{padding-left:0;}
+  .marker{position:static;margin-bottom:6px;}
+  .graph-card{padding:10px;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Tableur-grapheur</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <main>
+    <ol class="etapes">
+
+      <!-- 1. TABLEAU -->
+      <li class="etape" id="etape-1" style="--c:var(--blue)">
+        <div class="marker" aria-hidden="true"><span>1</span></div>
+        <div class="head"><h2 class="titre">Tableau de mesures</h2><span class="type">Tableur</span><span class="duree">saisie, collage depuis un tableur, grandeurs calculées</span></div>
+        <p class="consigne">Donne un <b>nom</b> et une <b>unité</b> à chaque grandeur puis saisis les valeurs (virgule ou point). Tu peux aussi <b>coller</b> directement un tableau copié depuis Excel, LibreOffice ou Google Sheets. Une <b>grandeur calculée</b> se remplit toute seule à partir d'une formule.</p>
+        <div class="bloc">
+          <div class="row toolbar">
+            <button id="btn-add-mes">+ Grandeur mesurée</button>
+            <button id="btn-add-calc">+ Grandeur calculée</button>
+            <span class="sep"></span>
+            <div class="field"><label>Grandeurs calculées</label>
+              <select id="opt-cs" style="min-width:0;">
+                <option value="2">2 chiffres significatifs</option>
+                <option value="3" selected>3 chiffres significatifs</option>
+                <option value="4">4 chiffres significatifs</option>
+                <option value="5">5 chiffres significatifs</option>
+              </select></div>
+            <div class="field"><label>Angles (sin, cos, tan)</label>
+              <select id="opt-angle" style="min-width:0;">
+                <option value="deg" selected>en degrés</option>
+                <option value="rad">en radians</option>
+              </select></div>
+          </div>
+
+          <div class="sheet-wrap">
+            <table class="sheet" id="sheet">
+              <thead id="sheet-head"></thead>
+              <tbody id="sheet-body"></tbody>
+            </table>
+          </div>
+
+          <details class="aide">
+            <summary>Saisie et collage</summary>
+            <ul>
+              <li><span class="kbd">Entrée</span> ou <span class="kbd">↓</span> passe à la ligne suivante, <span class="kbd">Tab</span> à la colonne suivante ; une nouvelle ligne apparaît dès que la dernière est remplie</li>
+              <li>pour coller : copie les cellules dans ton tableur, clique dans une case ici puis <span class="kbd">Ctrl</span> + <span class="kbd">V</span> — le tableau se remplit à partir de cette case</li>
+              <li>si tu colles à partir de la 1re ligne et que le bloc copié commence par des titres comme <code>t (s)</code>, ils deviennent les noms et unités des colonnes</li>
+              <li>une case laissée vide est simplement ignorée sur les graphiques ; une case en rouge contient autre chose qu'un nombre</li>
+              <li>écriture scientifique acceptée : <code>1,5e-3</code> pour 1,5 × 10⁻³</li>
+            </ul>
+          </details>
+          <details class="aide">
+            <summary>Écrire une formule</summary>
+            <ul>
+              <li>une formule utilise les <b>noms</b> des grandeurs placées <b>à sa gauche</b>, écrits exactement (majuscules comprises) : <code>U/I</code>, <code>U*I</code>, <code>1/V</code>, <code>m*9,81</code></li>
+              <li>opérations : <code>+</code> <code>-</code> <code>*</code> <code>/</code> et <code>^</code> pour une puissance (<code>t^2</code> ou <code>t²</code>) ; <code>2*x</code> peut s'écrire <code>2x</code></li>
+              <li>fonctions : <code>sqrt( )</code> racine, <code>ln( )</code>, <code>log( )</code>, <code>exp( )</code>, <code>sin( )</code>, <code>cos( )</code>, <code>tan( )</code>, <code>arcsin( )</code>, <code>arccos( )</code>, <code>arctan( )</code>, <code>abs( )</code> ; constante <code>pi</code></li>
+              <li>exemple Snell-Descartes : grandeurs <code>i</code> et <code>r</code> en degrés, puis deux grandeurs calculées <code>sin(i)</code> et <code>sin(r)</code></li>
+              <li>un nom de grandeur ne doit contenir que des lettres, des chiffres ou <code>_</code> pour être utilisable dans une formule</li>
+            </ul>
+          </details>
+
+          <div class="row bottom-row">
+            <button id="btn-export-csv">⬇ CSV</button>
+            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+              <label>format</label>
+              <select id="csv-sep" style="min-width:0;">
+                <option value="fr">Excel FR (; et virgule)</option>
+                <option value="en">standard (, et point)</option>
+              </select>
+            </div>
+            <button id="btn-import-csv" title="Ouvrir un fichier CSV ou texte (remplace le tableau)">Ouvrir un CSV</button>
+            <input type="file" id="input-csv" accept=".csv,.txt,.tsv,text/csv,text/plain" style="display:none;">
+            <span class="sep"></span>
+            <button id="btn-export-session" title="Enregistrer le tableau, les formules et les graphiques dans un fichier">Sauvegarder la session</button>
+            <button id="btn-import-session">Charger une session</button>
+            <input type="file" id="input-session" accept=".json" style="display:none;">
+            <span class="sep"></span>
+            <button id="btn-exemple" title="Remplace le tableau par un exemple (loi d'Ohm)">Exemple</button>
+            <button id="btn-clear" class="danger">Tout effacer</button>
+          </div>
+        </div>
+      </li>
+
+      <!-- 2. GRAPHIQUES -->
+      <li class="etape" id="etape-2" style="--c:var(--red)">
+        <div class="marker" aria-hidden="true"><span>2</span></div>
+        <div class="head"><h2 class="titre">Graphiques et modélisation</h2><span class="type">Exploitation</span><span class="duree">Y = f(X)</span></div>
+        <p class="consigne">Choisis la grandeur en <b>abscisse</b> et celle(s) en <b>ordonnée</b>, puis un modèle : la courbe et ses paramètres s'affichent aussitôt et suivent les modifications du tableau. Coche <b>fixé</b> pour imposer la valeur d'un paramètre.</p>
+        <div class="bloc">
+          <div id="graphs-container"></div>
+          <button id="btn-add-graph">+ Ajouter un graphique</button>
+          <details class="aide">
+            <summary>Conseils de modélisation</summary>
+            <ul>
+              <li>une droite qui passe par l'origine se modélise par <code>y = a·x</code> (proportionnalité), pas par une fonction affine</li>
+              <li>R² proche de 1 indique que les points sont bien alignés sur le modèle, mais ne dit rien sur le choix du modèle : regarde aussi si les points sont répartis de part et d'autre de la courbe</li>
+              <li>un point entouré en rouge dégrade fortement la modélisation : vérifie la mesure de cette ligne</li>
+              <li>pour vérifier une loi non linéaire, crée une grandeur calculée (par exemple <code>1/V</code> ou <code>t^2</code>) et trace une droite</li>
+              <li>les boutons − / + règlent les échelles, <b>Auto</b> recadre sur les données ; passe la souris sur le graphique pour lire des coordonnées</li>
+            </ul>
+          </details>
+        </div>
+      </li>
+
+    </ol>
+  </main>
+</div>
+
+<script>
+'use strict';
+const COLORS=['#1c3d6e','#a63020','#2a5c3a','#7a4e00','#3a1c6b','#1c5e6b','#6b3a1c','#5c2a2a'];
+const CHART_AXIS='#87704c',CHART_GRID='rgba(28,18,8,0.10)',CHART_ZERO='rgba(28,18,8,0.45)';
+const GH=320;
+const SAVE_KEY='tableur_graphes_v1';
+const $=id=>document.getElementById(id);
+const NAME_RE=/^[\p{L}_][\p{L}\p{N}_]*$/u;
+
+// ══ ÉTAT ══
+let cols=[],nRows=10,colCount=0;
+let vals={};          // id colonne -> tableau de nombres (ou null)
+let GRANDEURS=[],lignes=[];
+let graphs=[],graphCount=0;
+let optCS=3,optAngle='deg';
+
+function newCol(type,nom,unite,formule,raw){return{id:'c'+(++colCount),type,nom:nom||'',unite:unite||'',formule:formule||'',raw:raw||[],err:'',warn:''};}
+function G(id){return GRANDEURS.find(g=>g.id===id);}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══ NOMBRES ══
+function parseNum(s){
+  if(s==null)return null;
+  s=String(s).trim().replace(/[\s  ]/g,'').replace(',','.').replace(/[−–]/g,'-');
+  if(s==='')return null;
+  if(!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s))return NaN;
+  return parseFloat(s);
+}
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function supNum(n){return String(n).split('').map(c=>SUP[c]||c).join('');}
+function fmtSig(v,n){
+  if(v==null||!isFinite(v))return'';
+  if(v===0)return'0';
+  const a=Math.abs(v);
+  let s=v.toPrecision(n);
+  if(/e/.test(s)||a<1e-3){const [m,e]=v.toExponential(n-1).split('e');return m.replace('.',',')+'×10'+supNum(parseInt(e));}
+  return s.replace('.',',');
+}
+function fc(v){return(v==null||!isFinite(v))?'?':fmtSig(v,4);}
+function sg(v){return v<0?'− '+fc(-v):'+ '+fc(v);}
+function numStr(v){if(v==null||!isFinite(v))return'';return String(parseFloat(v.toPrecision(5))).replace('.',',');}
+function fmtRead(v){if(!isFinite(v))return'—';return fmtSig(v,3);}
+
+// ══ FORMULES (analyseur maison, sans eval) ══
+const toRad=v=>optAngle==='deg'?v*Math.PI/180:v, fromRad=v=>optAngle==='deg'?v*180/Math.PI:v;
+const FONCTIONS={
+  sqrt:Math.sqrt,racine:Math.sqrt,ln:Math.log,log:Math.log10,exp:Math.exp,abs:Math.abs,
+  sin:v=>Math.sin(toRad(v)),cos:v=>Math.cos(toRad(v)),tan:v=>Math.tan(toRad(v)),
+  arcsin:v=>fromRad(Math.asin(v)),asin:v=>fromRad(Math.asin(v)),
+  arccos:v=>fromRad(Math.acos(v)),acos:v=>fromRad(Math.acos(v)),
+  arctan:v=>fromRad(Math.atan(v)),atan:v=>fromRad(Math.atan(v)),
+};
+function compileFormula(src,known){
+  const s=src.trim().replace(/^=/,'').replace(/(\d),(\d)/g,'$1.$2').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3');
+  const toks=[];let i=0;
+  const reNum=/^(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/,reId=/^[\p{L}_][\p{L}\p{N}_]*/u;
+  while(i<s.length){
+    const ch=s[i];
+    if(/\s/.test(ch)){i++;continue;}
+    const rest=s.slice(i);let m;
+    if((m=rest.match(reNum))){toks.push({t:'num',v:parseFloat(m[0])});i+=m[0].length;continue;}
+    if((m=rest.match(reId))){toks.push({t:'id',v:m[0]});i+=m[0].length;continue;}
+    if('+-*/^()'.includes(ch)){toks.push({t:ch});i++;continue;}
+    throw new Error(`caractère « ${ch} » non reconnu`);
+  }
+  if(!toks.length)throw new Error('formule vide');
+  let p=0;const refs=new Set();
+  const peek=()=>toks[p],next=()=>toks[p++];
+  function expect(t){if(!toks[p]||toks[p].t!==t)throw new Error(t===')'?'parenthèse fermante manquante':`« ${t} » attendu`);p++;}
+  function parseExpr(){let a=parseTerm();while(peek()&&(peek().t==='+'||peek().t==='-')){const op=next().t,b=parseTerm(),l=a;a=op==='+'?(e=>l(e)+b(e)):(e=>l(e)-b(e));}return a;}
+  function parseTerm(){
+    let a=parseUnary();
+    while(peek()){
+      const t=peek().t;
+      if(t==='*'||t==='/'){next();const b=parseUnary(),l=a;a=t==='*'?(e=>l(e)*b(e)):(e=>l(e)/b(e));}
+      else if(t==='num'||t==='id'||t==='('){const b=parsePow(),l=a;a=e=>l(e)*b(e);}
+      else break;
+    }
+    return a;
+  }
+  function parseUnary(){const t=peek();if(t&&(t.t==='-'||t.t==='+')){next();const a=parseUnary();return t.t==='-'?(e=>-a(e)):a;}return parsePow();}
+  function parsePow(){const b=parsePrimary();if(peek()&&peek().t==='^'){next();const ex=parseUnary();return e=>Math.pow(b(e),ex(e));}return b;}
+  function parsePrimary(){
+    const t=next();
+    if(!t)throw new Error('formule incomplète');
+    if(t.t==='num'){const v=t.v;return()=>v;}
+    if(t.t==='('){const a=parseExpr();expect(')');return a;}
+    if(t.t==='id'){
+      const fk=t.v.toLowerCase();
+      if(peek()&&peek().t==='('&&FONCTIONS[fk]&&!(t.v in known)){next();const a=parseExpr();expect(')');const f=FONCTIONS[fk];return e=>f(a(e));}
+      if(t.v in known){refs.add(t.v);const nm=t.v;return e=>e[nm];}
+      if(t.v==='pi'||t.v==='π')return()=>Math.PI;
+      if(FONCTIONS[fk])throw new Error(`${t.v} s'écrit avec des parenthèses : ${t.v}( … )`);
+      throw new Error(`« ${t.v} » : grandeur inconnue (elle doit exister dans une colonne à gauche)`);
+    }
+    throw new Error(`« ${t.t} » mal placé`);
+  }
+  const fn=parseExpr();
+  if(p<toks.length){const t=toks[p];throw new Error(`« ${t.t==='num'||t.t==='id'?t.v:t.t} » en trop`);}
+  return{fn,refs:[...refs]};
+}
+
+// ══ CALCUL ══
+function compute(){
+  vals={};const known={};const seen={};
+  cols.forEach(c=>{
+    c.err='';c.warn='';
+    let arr;
+    if(c.type==='saisie'){
+      arr=[];for(let r=0;r<nRows;r++)arr.push(parseNum(c.raw[r]));
+    }else{
+      arr=new Array(nRows).fill(null);
+      if(!c.formule.trim())c.err='écris une formule, par ex. U/I';
+      else{
+        try{
+          const f=compileFormula(c.formule,known);
+          for(let r=0;r<nRows;r++){
+            const env={};let ok=true;
+            for(const nm of f.refs){const v=vals[known[nm]][r];if(v==null||!isFinite(v)){ok=false;break;}env[nm]=v;}
+            if(!ok)continue;
+            const y=f.fn(env);arr[r]=isFinite(y)?y:null;
+          }
+        }catch(e){c.err=e.message;}
+      }
+    }
+    vals[c.id]=arr;
+    const nm=c.nom.trim();
+    if(nm){
+      if(seen[nm])c.warn='ce nom est déjà utilisé';
+      else if(!NAME_RE.test(nm))c.warn='nom non utilisable dans une formule (lettres, chiffres, _)';
+      seen[nm]=true;
+      if(!c.warn)known[nm]=c.id;
+    }
+  });
+  GRANDEURS=cols.map((c,i)=>({id:c.id,nom:c.nom.trim()||('colonne '+(i+1)),unite:c.unite.trim()}));
+  lignes=[];
+  for(let r=0;r<nRows;r++){const l={};cols.forEach(c=>{const v=vals[c.id][r];l[c.id]=(v!=null&&isFinite(v))?v:null;});lignes.push(l);}
+}
+
+// ══ RENDU DU TABLEUR ══
+function headCell(c){
+  const calc=c.type==='calc';
+  return`<th class="${calc?'calc':''}"><div class="col-head">
+    <div class="col-line"><input type="text" class="col-nom" value="${esc(c.nom)}" placeholder="nom" data-c="${c.id}" data-k="nom" aria-label="Nom de la grandeur" spellcheck="false"><span class="par">(</span><input type="text" class="col-unite" value="${esc(c.unite)}" placeholder="unité" data-c="${c.id}" data-k="unite" aria-label="Unité" spellcheck="false"><span class="par">)</span></div>
+    ${calc?`<div class="col-line"><span class="eq">=</span><input type="text" class="col-formule" value="${esc(c.formule)}" placeholder="ex. U/I" data-c="${c.id}" data-k="formule" aria-label="Formule" spellcheck="false"></div>`:''}
+    <div class="col-tools"><span class="col-tag">${calc?'calculée':'mesurée'}</span>
+      <button class="mini" data-act="left" data-c="${c.id}" title="Déplacer à gauche" aria-label="Déplacer à gauche">◀</button><button class="mini" data-act="right" data-c="${c.id}" title="Déplacer à droite" aria-label="Déplacer à droite">▶</button><button class="mini danger" data-act="del" data-c="${c.id}" title="Supprimer cette grandeur" aria-label="Supprimer cette grandeur">✕</button></div>
+    <div class="col-err" id="err-${c.id}"></div>
+  </div></th>`;
+}
+function rowHtml(r){
+  return`<tr><td class="rownum">${r+1}</td>`+cols.map(c=>c.type==='calc'
+    ?`<td class="calc"><input type="text" readonly tabindex="-1" data-r="${r}" data-c="${c.id}" aria-label="ligne ${r+1}"></td>`
+    :`<td><input type="text" data-r="${r}" data-c="${c.id}" value="${esc(c.raw[r]??'')}" aria-label="ligne ${r+1}" autocomplete="off" spellcheck="false"></td>`).join('')
+    +`<td class="rowdel"><button class="mini" data-delrow="${r}" tabindex="-1" title="Supprimer la ligne ${r+1}" aria-label="Supprimer la ligne ${r+1}">✕</button></td></tr>`;
+}
+function renderSheet(){
+  $('sheet-head').innerHTML='<tr><th class="rownum">#</th>'+cols.map(headCell).join('')+'<th class="rowdel"></th></tr>';
+  let h='';for(let r=0;r<nRows;r++)h+=rowHtml(r);
+  $('sheet-body').innerHTML=h;
+  updateCells();
+}
+function updateCells(){
+  const byId={};cols.forEach(c=>byId[c.id]=c);
+  $('sheet-body').querySelectorAll('input').forEach(inp=>{
+    const c=byId[inp.dataset.c],r=+inp.dataset.r;if(!c)return;
+    if(c.type==='calc')inp.value=fmtSig(vals[c.id][r],optCS);
+    else inp.classList.toggle('bad',Number.isNaN(vals[c.id][r]));
+  });
+  cols.forEach(c=>{
+    const e=$('err-'+c.id);if(!e)return;
+    e.textContent=c.err||c.warn;e.classList.toggle('w',!c.err&&!!c.warn);
+    const nomInp=document.querySelector(`.col-nom[data-c="${c.id}"]`);if(nomInp)nomInp.classList.toggle('warn',!!c.warn);
+  });
+}
+function addRow(){
+  nRows++;
+  $('sheet-body').insertAdjacentHTML('beforeend',rowHtml(nRows-1));
+}
+function focusCell(r,cid){
+  const el=$('sheet-body').querySelector(`input[data-r="${r}"][data-c="${cid}"]`);
+  if(el){el.focus();el.select();}
+}
+function onDataChange(){
+  compute();updateCells();refreshGraphSelects();scheduleGraphs();scheduleSave();
+}
+
+// événements du tableau
+const sheet=$('sheet');
+sheet.addEventListener('input',e=>{
+  const t=e.target;if(t.tagName!=='INPUT')return;
+  const c=cols.find(c=>c.id===t.dataset.c);if(!c)return;
+  if(t.dataset.k){c[t.dataset.k]=t.value;onDataChange();return;}
+  const r=+t.dataset.r;c.raw[r]=t.value;
+  if(r===nRows-1&&t.value.trim()!=='')addRow();
+  onDataChange();
+});
+sheet.addEventListener('keydown',e=>{
+  const t=e.target;if(t.tagName!=='INPUT'||t.dataset.r===undefined)return;
+  const r=+t.dataset.r,cid=t.dataset.c;
+  if(e.key==='Enter'||e.key==='ArrowDown'){
+    e.preventDefault();
+    if(e.key==='Enter'&&e.shiftKey){if(r>0)focusCell(r-1,cid);return;}
+    if(r+1>=nRows){addRow();}
+    focusCell(r+1,cid);
+  }else if(e.key==='ArrowUp'){e.preventDefault();if(r>0)focusCell(r-1,cid);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+    const atStart=t.selectionStart===0&&t.selectionEnd===0, atEnd=t.selectionStart===t.value.length&&t.selectionEnd===t.value.length;
+    const all=t.selectionStart===0&&t.selectionEnd===t.value.length&&t.value.length>0;
+    const saisies=cols.filter(c=>c.type==='saisie'),k=saisies.findIndex(c=>c.id===cid);
+    if(e.key==='ArrowLeft'&&(atStart||all)&&k>0){e.preventDefault();focusCell(r,saisies[k-1].id);}
+    if(e.key==='ArrowRight'&&(atEnd||all)&&k<saisies.length-1){e.preventDefault();focusCell(r,saisies[k+1].id);}
+  }
+});
+sheet.addEventListener('paste',e=>{
+  const t=e.target;if(t.tagName!=='INPUT'||t.dataset.r===undefined||t.readOnly)return;
+  const txt=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n;]/.test(txt.replace(/\s+$/,'')))return; // collage simple : comportement normal
+  e.preventDefault();
+  pasteGrid(parseGrid(txt,false),+t.dataset.r,t.dataset.c);
+});
+sheet.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.delrow!==undefined){deleteRow(+b.dataset.delrow);return;}
+  const i=cols.findIndex(c=>c.id===b.dataset.c);if(i<0)return;
+  if(b.dataset.act==='left'&&i>0){[cols[i-1],cols[i]]=[cols[i],cols[i-1]];structChange();}
+  else if(b.dataset.act==='right'&&i<cols.length-1){[cols[i+1],cols[i]]=[cols[i],cols[i+1]];structChange();}
+  else if(b.dataset.act==='del'){
+    const c=cols[i];
+    if(cols.length<=1){alert('Le tableau doit garder au moins une grandeur.');return;}
+    const plein=c.type==='calc'?c.formule.trim():c.raw.some(v=>v!=null&&String(v).trim()!=='');
+    if(plein&&!confirm(`Supprimer la grandeur « ${c.nom||'sans nom'} » et ses valeurs ?`))return;
+    cols.splice(i,1);structChange();
+  }
+});
+function structChange(){compute();renderSheet();refreshGraphSelects();scheduleGraphs();scheduleSave();}
+function deleteRow(r){
+  cols.forEach(c=>{if(c.raw.length>r)c.raw.splice(r,1);});
+  nRows=Math.max(1,nRows-1);
+  structChange();
+}
+
+$('btn-add-mes').addEventListener('click',()=>{
+  const c=newCol('saisie',nomLibre());cols.push(c);structChange();
+  const inp=document.querySelector(`.col-nom[data-c="${c.id}"]`);if(inp){inp.focus();inp.select();}
+});
+$('btn-add-calc').addEventListener('click',()=>{
+  const c=newCol('calc',nomLibre());cols.push(c);structChange();
+  const inp=document.querySelector(`.col-formule[data-c="${c.id}"]`);if(inp)inp.focus();
+});
+function nomLibre(){const pris=new Set(cols.map(c=>c.nom.trim()));for(const n of['x','y','z','u','v','w','p','q']){if(!pris.has(n))return n;}let k=1;while(pris.has('g'+k))k++;return'g'+k;}
+$('opt-cs').addEventListener('change',e=>{optCS=+e.target.value;updateCells();scheduleSave();});
+$('opt-angle').addEventListener('change',e=>{optAngle=e.target.value;onDataChange();});
+
+// ══ COLLAGE / IMPORT ══
+function parseGrid(txt,isFile){
+  const lines=txt.replace(/^﻿/,'').replace(/\r\n?/g,'\n').split('\n');
+  while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+  let sep=null;
+  if(lines.some(l=>l.includes('\t')))sep='\t';
+  else if(lines.some(l=>l.includes(';')))sep=';';
+  else if(isFile&&lines.some(l=>l.includes(',')))sep=',';
+  return lines.map(l=>(sep?l.split(sep):[l]).map(s=>s.trim().replace(/^"(.*)"$/,'$1').trim()));
+}
+function splitHeader(s){
+  const m=s.match(/^(.*?)\s*[\(\[]\s*(.*?)\s*[\)\]]\s*$/);
+  const nom=(m?m[1]:s).trim().replace(/\s+/g,'_');
+  return{nom,unite:m?m[2]:''};
+}
+function isHeaderRow(row){return row.some(s=>s!==''&&Number.isNaN(parseNum(s)));}
+function pasteGrid(grid,r0,cid0){
+  if(!grid.length)return;
+  let header=null,rows=grid;
+  if(isHeaderRow(grid[0])){header=grid[0];rows=grid.slice(1);}
+  const width=Math.max(...grid.map(r=>r.length));
+  const start=Math.max(0,cols.findIndex(c=>c.id===cid0));
+  const targets=cols.slice(start).filter(c=>c.type==='saisie');
+  while(targets.length<width){const c=newCol('saisie',nomLibre());cols.push(c);targets.push(c);}
+  if(header&&r0===0)header.forEach((h,j)=>{if(h){const s=splitHeader(h);targets[j].nom=s.nom;targets[j].unite=s.unite;}});
+  rows.forEach((row,i)=>row.forEach((s,j)=>{targets[j].raw[r0+i]=s;}));
+  nRows=Math.max(nRows,r0+rows.length+1);
+  structChange();
+}
+function tableFromGrid(grid){
+  let header=null,rows=grid;
+  if(grid.length&&isHeaderRow(grid[0])){header=grid[0];rows=grid.slice(1);}
+  const width=Math.max(1,...grid.map(r=>r.length));
+  cols=[];
+  for(let j=0;j<width;j++){
+    const h=header&&header[j]?splitHeader(header[j]):{nom:'',unite:''};
+    const c=newCol('saisie',h.nom,h.unite);cols.push(c);
+    if(!c.nom)c.nom=nomLibre();
+    c.raw=rows.map(r=>r[j]??'');
+  }
+  nRows=Math.max(rows.length+1,5);
+}
+$('btn-import-csv').addEventListener('click',()=>$('input-csv').click());
+$('input-csv').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;e.target.value='';
+  if(tableNonVide()&&!confirm('Le fichier va remplacer le tableau actuel. Continuer ?'))return;
+  const rd=new FileReader();
+  rd.onload=()=>{tableFromGrid(parseGrid(String(rd.result),true));resetGraphs();structChange();};
+  rd.readAsText(f);
+});
+function tableNonVide(){return cols.some(c=>c.type==='saisie'?c.raw.some(v=>v!=null&&String(v).trim()!==''):c.formule.trim());}
+
+// ══ EXPORT CSV ══
+$('btn-export-csv').addEventListener('click',()=>{
+  const fr=$('csv-sep').value==='fr',sep=fr?';':',';
+  const f=v=>(v==null||!isFinite(v))?'':(fr?String(v).replace('.',','):String(v));
+  const q=s=>/[;,"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  const head=cols.map(c=>q((c.nom||'?')+(c.unite?' ('+c.unite+')':'')));
+  const out=[head.join(sep)];
+  for(let r=0;r<nRows;r++){
+    const row=cols.map(c=>f(vals[c.id][r]));
+    if(row.every(v=>v===''))continue;
+    out.push(row.join(sep));
+  }
+  download('﻿'+out.join('\n')+'\n','mesures_'+stamp()+'.csv','text/csv;charset=utf-8');
+});
+function download(content,name,type){
+  const a=document.createElement('a');
+  a.href=content instanceof Blob?URL.createObjectURL(content):URL.createObjectURL(new Blob([content],{type}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+function stamp(){return new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');}
+
+// ══ GRAPHIQUES ══
+const uDiv=(a,b)=>{const w=u=>/[\/·*\s]/.test(u)?'('+u+')':u;if(!b)return a;if(!a)return'1/'+w(b);if(a===b)return'';return a+'/'+w(b);};
+const uMul=(a,b)=>a&&b?(a===b?a+'²':a+'·'+b):(a||b);
+const uSq=b=>b?(/[\/·*\s]/.test(b)?'('+b+')²':b+'²'):'';
+function basisFit(basis,filter){
+  return(pts,fixed)=>{
+    const v=filter?pts.filter(filter):pts;
+    if(v.length<2)return null;
+    const p=lsq(v,basis,fixed);if(!p)return null;
+    return{p,fn:x=>basis.reduce((s,b)=>s+p[b.n]*b.f(x),0),used:v};
+  };
+}
+const MODELES={
+  none:{label:'— Aucune —'},
+  lineaire:{label:'y = a·x',desc:'proportionnalité',params:['a'],
+    fit:basisFit([{n:'a',f:x=>x}]),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ${X}`,units:{a:(x,y)=>uDiv(y,x)}},
+  affine:{label:'y = a·x + b',desc:'affine',params:['a','b'],
+    fit:basisFit([{n:'a',f:x=>x},{n:'b',f:()=>1}]),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ${X} ${sg(p.b)}`,units:{a:(x,y)=>uDiv(y,x),b:(x,y)=>y}},
+  constante:{label:'y = a',desc:'constante',params:['a'],
+    fit:basisFit([{n:'a',f:()=>1}]),eq:(p,X,Y)=>`${Y} = ${fc(p.a)}`,units:{a:(x,y)=>y}},
+  parabole:{label:'y = a·x² + b·x + c',desc:'parabole',params:['a','b','c'],
+    fit:basisFit([{n:'a',f:x=>x*x},{n:'b',f:x=>x},{n:'c',f:()=>1}]),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ${X}² ${sg(p.b)} × ${X} ${sg(p.c)}`,
+    units:{a:(x,y)=>uDiv(y,uSq(x)),b:(x,y)=>uDiv(y,x),c:(x,y)=>y}},
+  parabole2:{label:'y = a·x²',desc:'parabole de sommet O',params:['a'],
+    fit:basisFit([{n:'a',f:x=>x*x}]),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ${X}²`,units:{a:(x,y)=>uDiv(y,uSq(x))}},
+  reciproque:{label:'y = a/x',desc:'inverse',params:['a'],req:'Ce modèle demande des valeurs de x non nulles.',
+    fit:basisFit([{n:'a',f:x=>1/x}],p=>p.x!==0),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} / ${X}`,units:{a:(x,y)=>uMul(y,x)}},
+  puissance:{label:'y = a·xⁿ',desc:'puissance',params:['a','n'],req:'Ce modèle demande des x strictement positifs et des y de même signe.',
+    fit:fitPuissance,eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ${X}<sup>${fc(p.n)}</sup>`},
+  exponentiel:{label:'y = a·eᵏˣ',desc:'exponentielle',params:['a','k'],req:'Ce modèle demande des y non nuls et tous de même signe.',
+    fit:fitExpo,eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × e<sup>${fc(p.k)} × ${X}</sup>`,units:{a:(x,y)=>y,k:(x,y)=>uDiv('',x)}},
+  logarithme:{label:'y = a·ln(x) + b',desc:'logarithme',params:['a','b'],req:'Ce modèle demande des x strictement positifs.',
+    fit:basisFit([{n:'a',f:x=>Math.log(x)},{n:'b',f:()=>1}],p=>p.x>0),eq:(p,X,Y)=>`${Y} = ${fc(p.a)} × ln(${X}) ${sg(p.b)}`,units:{a:(x,y)=>y,b:(x,y)=>y}},
+  sinusoide:{label:'y = A·sin(ωx + φ) + B',desc:'sinusoïde',params:['A','ω','φ','B'],nofix:['A','φ'],
+    fit:fitSinus,eq:(p,X,Y)=>`${Y} = ${fc(p.A)} × sin(${fc(p.ω)} × ${X} ${sg(p.φ)}) ${sg(p.B)}`,
+    units:{A:(x,y)=>y,ω:(x,y)=>x?'rad/'+x:'rad',φ:()=>'rad',B:(x,y)=>y}},
+};
+
+function gauss(M){
+  const k=M.length;
+  for(let c=0;c<k;c++){
+    let mx=c;for(let r=c+1;r<k;r++)if(Math.abs(M[r][c])>Math.abs(M[mx][c]))mx=r;
+    [M[c],M[mx]]=[M[mx],M[c]];
+    if(!(Math.abs(M[c][c])>1e-300))return null;
+    for(let r=0;r<k;r++){if(r===c)continue;const f=M[r][c]/M[c][c];for(let cc=c;cc<=k;cc++)M[r][cc]-=f*M[c][cc];}
+  }
+  return M.map((row,i)=>row[k]/row[i]);
+}
+function lsq(pts,basis,fixed){
+  fixed=fixed||{};
+  const free=basis.filter(b=>fixed[b.n]===undefined),fx=basis.filter(b=>fixed[b.n]!==undefined);
+  const out={};fx.forEach(b=>out[b.n]=fixed[b.n]);
+  if(!free.length)return out;
+  if(pts.length<free.length)return null;
+  const k=free.length,M=Array.from({length:k},()=>new Array(k+1).fill(0));
+  pts.forEach(p=>{
+    const y=p.y-fx.reduce((s,b)=>s+fixed[b.n]*b.f(p.x),0);
+    const fv=free.map(b=>b.f(p.x));
+    for(let r=0;r<k;r++){for(let c=0;c<k;c++)M[r][c]+=fv[r]*fv[c];M[r][k]+=fv[r]*y;}
+  });
+  const sol=gauss(M);if(!sol||sol.some(v=>!isFinite(v)))return null;
+  free.forEach((b,i)=>out[b.n]=sol[i]);
+  return out;
+}
+function fitPuissance(pts,fixed){
+  let v=pts.filter(p=>p.x>0&&p.y!==0);
+  const sgn=v.length&&v.every(p=>p.y<0)?-1:1;
+  v=v.filter(p=>p.y*sgn>0);
+  if(v.length<2||v.length<pts.filter(p=>p.x>0).length)return null;
+  const fx={};if(fixed.a!==undefined){if(fixed.a*sgn<=0)return null;fx.la=Math.log(fixed.a*sgn);}if(fixed.n!==undefined)fx.n=fixed.n;
+  const r=lsq(v.map(p=>({x:Math.log(p.x),y:Math.log(p.y*sgn)})),[{n:'la',f:()=>1},{n:'n',f:x=>x}],fx);if(!r)return null;
+  const a=sgn*Math.exp(r.la),n=r.n;
+  return{p:{a,n},fn:x=>a*Math.pow(x,n),used:v};
+}
+function fitExpo(pts,fixed){
+  const nz=pts.filter(p=>p.y!==0);
+  const sgn=nz.length&&nz.every(p=>p.y<0)?-1:1;
+  const v=nz.filter(p=>p.y*sgn>0);
+  if(v.length<2||v.length<pts.length)return null;
+  const fx={};if(fixed.a!==undefined){if(fixed.a*sgn<=0)return null;fx.la=Math.log(fixed.a*sgn);}if(fixed.k!==undefined)fx.k=fixed.k;
+  const r=lsq(v.map(p=>({x:p.x,y:Math.log(p.y*sgn)})),[{n:'la',f:()=>1},{n:'k',f:x=>x}],fx);if(!r)return null;
+  const a=sgn*Math.exp(r.la),k=r.k;
+  return{p:{a,k},fn:x=>a*Math.exp(k*x),used:v};
+}
+function fitSinus(pts,fixed){
+  if(pts.length<4)return null;
+  const Bf=fixed.B;
+  function solve(w){
+    const basis=[{n:'p',f:x=>Math.sin(w*x)},{n:'q',f:x=>Math.cos(w*x)}];
+    if(Bf===undefined)basis.push({n:'B',f:()=>1});
+    const adj=Bf===undefined?pts:pts.map(p=>({x:p.x,y:p.y-Bf}));
+    const r=lsq(adj,basis,{});if(!r)return null;
+    const B=Bf??r.B;let sse=0;
+    pts.forEach(p=>{const e=p.y-(r.p*Math.sin(w*p.x)+r.q*Math.cos(w*p.x)+B);sse+=e*e;});
+    return{p:r.p,q:r.q,B,sse,w};
+  }
+  let best=null;
+  if(fixed.ω!==undefined)best=solve(fixed.ω);
+  else{
+    const xs=pts.map(p=>p.x).sort((a,b)=>a-b),span=xs[xs.length-1]-xs[0];
+    if(!(span>0))return null;
+    let dmin=Infinity;for(let i=1;i<xs.length;i++){const d=xs[i]-xs[i-1];if(d>0&&d<dmin)dmin=d;}
+    const wMin=Math.PI/(span*2),wMax=Math.PI/(isFinite(dmin)?dmin:span/pts.length),N=800;
+    const ratio=Math.pow(wMax/wMin,1/N);
+    for(let i=0;i<=N;i++){const r=solve(wMin*Math.pow(ratio,i));if(r&&(!best||r.sse<best.sse))best=r;}
+    if(best){ // affinage (section dorée)
+      let a=best.w/ratio,b=best.w*ratio;const g=(Math.sqrt(5)-1)/2;
+      let c=b-g*(b-a),d=a+g*(b-a),fc_=solve(c),fd=solve(d);
+      for(let it=0;it<60&&fc_&&fd;it++){
+        if(fc_.sse<fd.sse){b=d;d=c;fd=fc_;c=b-g*(b-a);fc_=solve(c);}else{a=c;c=d;fc_=fd;d=a+g*(b-a);fd=solve(d);}
+      }
+      [fc_,fd].forEach(r=>{if(r&&r.sse<best.sse)best=r;});
+    }
+  }
+  if(!best)return null;
+  const A=Math.hypot(best.p,best.q),φ=Math.atan2(best.q,best.p),w=best.w,B=best.B;
+  return{p:{A,ω:w,φ,B},fn:x=>A*Math.sin(w*x+φ)+B,used:pts};
+}
+function calcR2(pts,fn){
+  const mY=pts.reduce((s,p)=>s+p.y,0)/pts.length;let res=0,tot=0;
+  pts.forEach(p=>{res+=(p.y-fn(p.x))**2;tot+=(p.y-mY)**2;});
+  return tot>0?1-res/tot:(res<1e-20?1:0);
+}
+
+function getPts(gr,gyId){
+  if(!G(gr.gx)||!G(gyId))return[];
+  const out=[];
+  lignes.forEach((l,r)=>{const x=l[gr.gx],y=l[gyId];if(x!=null&&y!=null)out.push({x,y,r});});
+  return out;
+}
+function mkSerie(s){return{gy:s.gy,modeleType:s.modeleType&&MODELES[s.modeleType]?s.modeleType:'none',fixed:{...(s.fixed||{})},modele:null,eqText:'',el:null};}
+
+function addGraph(cfg){
+  const id='gr'+(++graphCount);
+  const g0=GRANDEURS[0]?.id,g1=(GRANDEURS[1]||GRANDEURS[0])?.id;
+  const gr={id,gx:cfg?.gx||g0,joined:!!cfg?.joined,origine:!!cfg?.origine,manual:false,
+    scaleXmin:null,scaleXmax:null,scaleYmin:null,scaleYmax:null,
+    series:(cfg?.series?.length?cfg.series:[{gy:g1}]).map(mkSerie)};
+  graphs.push(gr);
+  const div=document.createElement('div');div.className='graph-card';div.id='gc-'+id;
+  const sc=ax=>`<button class="sc-btn" data-ax="${ax}" data-d="-1" aria-label="${ax} moins">−</button><span class="sc-val" id="lbl-${id}-${ax}"></span><button class="sc-btn" data-ax="${ax}" data-d="1" aria-label="${ax} plus">+</button>`;
+  div.innerHTML=`
+    <div class="graph-header">
+      <div class="field"><label>Abscisse X</label><select class="graph-sel" id="gsel-x-${id}"></select></div>
+      <label class="vec-check"><input type="checkbox" id="join-${id}"> Relier les points</label>
+      <label class="vec-check"><input type="checkbox" id="orig-${id}"> Inclure l'origine</label>
+      <div class="graph-actions">
+        <button class="mini" id="png-${id}" title="Télécharger l'image du graphique">⬇ PNG</button>
+        <button class="mini danger" id="del-${id}" title="Supprimer ce graphique" aria-label="Supprimer ce graphique">✕</button>
+      </div>
+    </div>
+    <div id="series-list-${id}"></div>
+    <button class="mini" id="adds-${id}" style="margin:0 0 10px;">+ Ajouter une courbe</button>
+    <div class="chart-wrap"><canvas class="chart-cv" id="cv-${id}"></canvas><canvas class="chart-cv ov" id="ov-${id}"></canvas></div>
+    <div class="scales" id="scales-${id}">
+      <span class="scale-grp"><b>X</b>${sc('xmin')}<span>→</span>${sc('xmax')}</span>
+      <span class="scale-grp"><b>Y</b>${sc('ymin')}<span>→</span>${sc('ymax')}</span>
+      <button class="mini" id="auto-${id}">Auto</button>
+    </div>
+    <div class="chart-legend" id="leg-${id}"></div>
+    <div class="cursor-read" id="cur-${id}"></div>`;
+  $('graphs-container').appendChild(div);
+  gr.canvas=$('cv-'+id);gr.overlay=$('ov-'+id);
+  $('join-'+id).checked=gr.joined;$('orig-'+id).checked=gr.origine;
+  $('gsel-x-'+id).addEventListener('change',e=>{gr.gx=e.target.value;gr.manual=false;updateGraph(gr);scheduleSave();});
+  $('join-'+id).addEventListener('change',e=>{gr.joined=e.target.checked;drawGraph(gr);scheduleSave();});
+  $('orig-'+id).addEventListener('change',e=>{gr.origine=e.target.checked;gr.manual=false;autoScale(gr);drawGraph(gr);scheduleSave();});
+  $('png-'+id).addEventListener('click',()=>exportPNG(gr));
+  $('del-'+id).addEventListener('click',()=>{graphs=graphs.filter(g=>g!==gr);div.remove();scheduleSave();});
+  $('adds-'+id).addEventListener('click',()=>{
+    const used=gr.series.map(s=>s.gy);
+    const nx=GRANDEURS.find(g=>!used.includes(g.id)&&g.id!==gr.gx)||GRANDEURS.find(g=>g.id!==gr.gx)||GRANDEURS[0];
+    gr.series.push(mkSerie({gy:nx?.id}));buildSeriesList(gr);gr.manual=false;updateGraph(gr);scheduleSave();
+  });
+  $('auto-'+id).addEventListener('click',()=>{gr.manual=false;autoScale(gr);drawGraph(gr);});
+  $('scales-'+id).addEventListener('click',e=>{const b=e.target.closest('.sc-btn');if(b)scaleStep(gr,b.dataset.ax,+b.dataset.d);});
+  gr.canvas.addEventListener('mousemove',ev=>handleCursor(gr,ev));
+  gr.canvas.addEventListener('mouseleave',()=>{$('cur-'+gr.id).style.display='none';clearOverlay(gr);});
+  fillSelect($('gsel-x-'+id),gr.gx);gr.gx=$('gsel-x-'+id).value;
+  buildSeriesList(gr);
+  updateGraph(gr);
+  return gr;
+}
+function fillSelect(sel,cur){
+  sel.innerHTML=GRANDEURS.map(g=>`<option value="${g.id}">${esc(g.nom)}${g.unite?' ('+esc(g.unite)+')':''}</option>`).join('');
+  if(GRANDEURS.find(g=>g.id===cur))sel.value=cur;
+}
+function buildSeriesList(gr){
+  const box=$('series-list-'+gr.id);box.innerHTML='';
+  const opts=Object.entries(MODELES).map(([k,m])=>`<option value="${k}">${m.label}${m.desc?' — '+m.desc:''}</option>`).join('');
+  gr.series.forEach((s,si)=>{
+    const color=COLORS[si%COLORS.length];
+    const row=document.createElement('div');row.className='serie';
+    row.innerHTML=`<div class="serie-line">
+        <span class="leg-dot" style="background:${color}"></span>
+        <div class="field"><label>Ordonnée Y</label><select class="graph-sel"></select></div>
+        <div class="field"><label>Modélisation</label><select class="model-sel">${opts}</select></div>
+        <div class="model-params"></div>
+        ${gr.series.length>1?'<button class="mini danger serie-del" title="Retirer cette courbe" aria-label="Retirer cette courbe">✕</button>':''}
+      </div><div class="model-box hidden"></div>`;
+    box.appendChild(row);
+    const [selY,selM]=row.querySelectorAll('select');
+    s.el={selY,selM,params:row.querySelector('.model-params'),res:row.querySelector('.model-box'),inputs:{}};
+    fillSelect(selY,s.gy);s.gy=selY.value;
+    selM.value=s.modeleType;
+    selY.addEventListener('change',()=>{s.gy=selY.value;gr.manual=false;updateGraph(gr);scheduleSave();});
+    selM.addEventListener('change',()=>{s.modeleType=selM.value;s.fixed={};buildParams(gr,s);updateGraph(gr);scheduleSave();});
+    row.querySelector('.serie-del')?.addEventListener('click',()=>{gr.series.splice(si,1);buildSeriesList(gr);gr.manual=false;updateGraph(gr);scheduleSave();});
+    buildParams(gr,s);
+  });
+}
+function buildParams(gr,s){
+  const M=MODELES[s.modeleType];s.el.params.innerHTML='';s.el.inputs={};
+  if(!M||!M.params)return;
+  M.params.forEach(pn=>{
+    const fixable=!(M.nofix||[]).includes(pn);
+    const w=document.createElement('span');w.className='model-param';
+    w.innerHTML=`<label class="pn">${pn} =</label><input type="text" ${fixable?'':'readonly tabindex="-1"'} aria-label="paramètre ${pn}" spellcheck="false">${fixable?'<label class="fix" title="Imposer cette valeur"><input type="checkbox"> fixé</label>':''}`;
+    const inp=w.querySelector('input[type=text]'),cb=w.querySelector('input[type=checkbox]');
+    if(fixable&&s.fixed[pn]!==undefined){inp.value=numStr(s.fixed[pn]);cb.checked=true;w.classList.add('fixed');}
+    if(fixable){
+      inp.addEventListener('change',()=>{
+        const v=parseNum(inp.value);
+        if(v==null||Number.isNaN(v)){delete s.fixed[pn];cb.checked=false;w.classList.remove('fixed');}
+        else{s.fixed[pn]=v;cb.checked=true;w.classList.add('fixed');}
+        updateGraph(gr);scheduleSave();
+      });
+      cb.addEventListener('change',()=>{
+        if(cb.checked){const v=parseNum(inp.value);if(v==null||Number.isNaN(v)){cb.checked=false;return;}s.fixed[pn]=v;w.classList.add('fixed');}
+        else{delete s.fixed[pn];w.classList.remove('fixed');}
+        updateGraph(gr);scheduleSave();
+      });
+    }
+    s.el.inputs[pn]=inp;s.el.params.appendChild(w);
+  });
+}
+function fitSerie(gr,s){
+  s.modele=null;s.eqText='';
+  const res=s.el?.res;if(!res)return;
+  if(s.modeleType==='none'){res.classList.add('hidden');return;}
+  const M=MODELES[s.modeleType];
+  const pts=getPts(gr,s.gy);
+  res.classList.remove('hidden');
+  if(pts.length<2){res.className='model-box warn';res.textContent='Il faut au moins deux points pour modéliser.';return;}
+  let m=null;try{m=M.fit(pts,s.fixed);}catch(e){m=null;}
+  if(!m||Object.values(m.p).some(v=>!isFinite(v))){res.className='model-box bad';res.textContent=M.req||'Modélisation impossible avec ces données.';return;}
+  m.r2=calcR2(m.used,m.fn);
+  m.outliers=[];
+  if(m.used.length>=5&&s.modeleType!=='constante'){
+    let bestGain=0,bestP=null;
+    m.used.forEach((p,i)=>{
+      const sans=m.used.filter((_,j)=>j!==i);
+      let m2=null;try{m2=M.fit(sans,s.fixed);}catch(e){}
+      if(!m2)return;
+      const g=calcR2(sans,m2.fn)-m.r2;
+      if(g>bestGain){bestGain=g;bestP=p;}
+    });
+    if(bestP&&bestGain>0.05&&m.r2<0.995)m.outliers=[{r:bestP.r,gain:bestGain}];
+  }
+  s.modele=m;
+  M.params.forEach(pn=>{const inp=s.el.inputs[pn];if(inp&&s.fixed[pn]===undefined)inp.value=numStr(m.p[pn]);});
+  const gx=G(gr.gx),gy=G(s.gy);
+  const X=esc(gx?.nom||'x'),Y=esc(gy?.nom||'y');
+  const eq=M.eq(m.p,X,Y);
+  const uX=gx?.unite||'',uY=gy?.unite||'';
+  let unitsTxt='';
+  if(M.units&&(uX||uY))unitsTxt=M.params.map(pn=>{const u=M.units[pn]?M.units[pn](uX,uY):'';return`${pn} = ${fc(m.p[pn])}${u?' '+esc(u):''}`;}).join(' ; ');
+  let stats,cls;
+  if(s.modeleType==='constante'){
+    const n=m.used.length,mean=m.p.a,sig=Math.sqrt(m.used.reduce((t,p)=>t+(p.y-mean)**2,0)/Math.max(1,n-1));
+    cls='ok';stats=`moyenne = ${fc(mean)}${uY?' '+esc(uY):''} ; écart-type = ${fc(sig)}${uY?' '+esc(uY):''} (${n} valeurs)`;
+  }else{
+    const r2=m.r2;
+    const q=r2>=0.99?'✓ excellente':r2>=0.95?'✓ bonne':r2>=0.85?'△ approximative':'✗ insuffisante';
+    cls=r2>=0.99?'ok':r2>=0.95?'':r2>=0.85?'warn':'bad';
+    stats=`R² = ${r2.toFixed(5).replace('.',',')} — modélisation ${q}`;
+  }
+  const exclus=pts.length-m.used.length;
+  res.className='model-box '+cls;
+  res.innerHTML=`<div class="model-eqn">${eq}</div>`
+    +(unitsTxt?`<div class="model-r2">${unitsTxt}</div>`:'')
+    +`<div class="model-r2">${stats}${exclus>0?` — ${exclus} point${exclus>1?'s':''} ignoré${exclus>1?'s':''} (hors domaine du modèle)`:''}</div>`
+    +(m.outliers.length?`<div class="model-out">⚠ Le point de la ligne ${m.outliers[0].r+1} dégrade fortement la modélisation : vérifie cette mesure.</div>`:'');
+  const tmp=document.createElement('div');tmp.innerHTML=eq.replace(/<sup>(.*?)<\/sup>/g,'^($1)');
+  s.eqText=tmp.textContent+(s.modeleType==='constante'?'':'   (R² = '+m.r2.toFixed(4).replace('.',',')+')');
+}
+
+function refreshGraphSelects(){
+  graphs.forEach(gr=>{
+    const sx=$('gsel-x-'+gr.id);if(sx){fillSelect(sx,gr.gx);gr.gx=sx.value;}
+    gr.series.forEach(s=>{if(s.el?.selY){fillSelect(s.el.selY,s.gy);s.gy=s.el.selY.value;}});
+  });
+}
+let _gTimer=null;
+function scheduleGraphs(){clearTimeout(_gTimer);_gTimer=setTimeout(()=>graphs.forEach(updateGraph),120);}
+function updateGraph(gr){gr.series.forEach(s=>fitSerie(gr,s));if(!gr.manual)autoScale(gr);drawGraph(gr);}
+
+// échelles
+function niceStep(raw){if(!(raw>0)||!isFinite(raw))return 1;const mag=Math.pow(10,Math.floor(Math.log10(raw)));const f=raw/mag;return(f<1.5?1:f<2.25?2:f<3.5?2.5:f<7.5?5:10)*mag;}
+function autoScale(gr){
+  let xs=[],ys=[];
+  gr.series.forEach(s=>getPts(gr,s.gy).forEach(p=>{xs.push(p.x);ys.push(p.y);}));
+  if(!xs.length){gr.scaleXmin=0;gr.scaleXmax=10;gr.scaleYmin=0;gr.scaleYmax=10;updateScaleLabels(gr);return;}
+  if(gr.origine){xs.push(0);ys.push(0);}
+  const rng=(arr,padLo,padHi)=>{
+    let lo=Math.min(...arr),hi=Math.max(...arr);
+    if(hi===lo){const d=Math.abs(lo)*0.1||1;lo-=d;hi+=d;}
+    const sp=hi-lo,st=niceStep(sp/5);
+    let a=lo-sp*padLo,b=hi+sp*padHi;
+    if(lo>=0&&a<0)a=0;if(hi<=0&&b>0)b=0;
+    return[Math.floor(a/st+1e-9)*st,Math.ceil(b/st-1e-9)*st];
+  };
+  [gr.scaleXmin,gr.scaleXmax]=rng(xs,.04,.04);
+  [gr.scaleYmin,gr.scaleYmax]=rng(ys,.06,.08);
+  updateScaleLabels(gr);
+}
+function scaleStep(gr,ax,d){
+  const isX=ax[0]==='x',lo=isX?gr.scaleXmin:gr.scaleYmin,hi=isX?gr.scaleXmax:gr.scaleYmax;
+  const st=niceStep((hi-lo)/5);
+  let v=(ax.endsWith('min')?lo:hi)+d*st;
+  if(ax.endsWith('min')&&v>=hi-st/2)return;
+  if(ax.endsWith('max')&&v<=lo+st/2)return;
+  if(Math.abs(v)<st*1e-9)v=0;
+  gr['scale'+ax[0].toUpperCase()+ax.slice(1)]=v;
+  gr.manual=true;updateScaleLabels(gr);drawGraph(gr);
+}
+function updateScaleLabels(gr){
+  ['xmin','xmax','ymin','ymax'].forEach(k=>{const el=$('lbl-'+gr.id+'-'+k);if(el){const v=gr['scale'+k[0].toUpperCase()+k.slice(1)];el.textContent=v==null?'auto':numStr(v).replace('-','−');}});
+}
+function ticks(min,max,target){
+  const st=niceStep((max-min)/target),out=[];
+  const i0=Math.ceil(min/st-1e-9),i1=Math.floor(max/st+1e-9);
+  for(let i=i0;i<=i1;i++)out.push(i*st);
+  return{out,st};
+}
+function fmtTick(v,st){
+  if(Math.abs(v)<st*1e-9)return'0';
+  const a=Math.max(Math.abs(v),st);
+  if(a>=1e5||st<1e-4)return fmtSig(v,3);
+  const e=Math.floor(Math.log10(st)+1e-9);let d=Math.max(0,-e);
+  if(Math.abs(st/Math.pow(10,e)-2.5)<1e-6)d++;
+  return v.toFixed(d).replace('.',',').replace('-','−');
+}
+
+// dessin
+const PAD={t:16,r:22,b:46,l:70};
+function drawGraph(gr){
+  const cv=gr.canvas;if(!cv)return;
+  const W=cv.parentElement.getBoundingClientRect().width||700,H=GH,dpr=window.devicePixelRatio||1;
+  [cv,gr.overlay].forEach(c=>{c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.width=W+'px';c.style.height=H+'px';});
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const cw=W-PAD.l-PAD.r,ch=H-PAD.t-PAD.b;
+  if(gr.scaleXmin==null)autoScale(gr);
+  const xMin=gr.scaleXmin,xMax=gr.scaleXmax,yMin=gr.scaleYmin,yMax=gr.scaleYmax;
+  const xp=v=>PAD.l+(v-xMin)/(xMax-xMin)*cw,yp=v=>PAD.t+ch-(v-yMin)/(yMax-yMin)*ch;
+  const font=s=>s+'px "Bricolage Grotesque",system-ui,sans-serif';
+  // grille + graduations
+  const tx=ticks(xMin,xMax,Math.max(3,Math.min(10,Math.round(cw/90)))),ty=ticks(yMin,yMax,6);
+  ctx.lineWidth=1;
+  ctx.font=font(11);ctx.fillStyle=CHART_AXIS;
+  tx.out.forEach(v=>{const x=Math.round(xp(v))+.5;ctx.strokeStyle=CHART_GRID;ctx.beginPath();ctx.moveTo(x,PAD.t);ctx.lineTo(x,PAD.t+ch);ctx.stroke();ctx.textAlign='center';ctx.fillText(fmtTick(v,tx.st),x,PAD.t+ch+15);});
+  ty.out.forEach(v=>{const y=Math.round(yp(v))+.5;ctx.strokeStyle=CHART_GRID;ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();ctx.textAlign='right';ctx.fillText(fmtTick(v,ty.st),PAD.l-6,y+4);});
+  ctx.strokeStyle=CHART_ZERO;
+  if(xMin<0&&xMax>0){const x=Math.round(xp(0))+.5;ctx.beginPath();ctx.moveTo(x,PAD.t);ctx.lineTo(x,PAD.t+ch);ctx.stroke();}
+  if(yMin<0&&yMax>0){const y=Math.round(yp(0))+.5;ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();}
+  ctx.strokeStyle=CHART_AXIS;ctx.strokeRect(PAD.l+.5,PAD.t+.5,cw,ch);
+  // titres d'axes
+  const gx=G(gr.gx);
+  const lab=g=>g?(g.nom+(g.unite?' ('+g.unite+')':'')):'';
+  const gys=gr.series.map(s=>G(s.gy)).filter(Boolean);
+  let yl;
+  if(gys.length===1)yl=lab(gys[0]);
+  else{const us=[...new Set(gys.map(g=>g.unite))];yl=gys.map(g=>g.nom).join(', ')+(us.length===1&&us[0]?' ('+us[0]+')':'');}
+  ctx.fillStyle=CHART_AXIS;ctx.font=font(12.5);ctx.textAlign='center';
+  ctx.fillText(lab(gx),PAD.l+cw/2,H-8);
+  ctx.save();ctx.translate(15,PAD.t+ch/2);ctx.rotate(-Math.PI/2);ctx.fillText(yl,0,0);ctx.restore();
+  // séries
+  let hasData=false,leg='';
+  ctx.save();ctx.beginPath();ctx.rect(PAD.l,PAD.t,cw,ch);ctx.clip();
+  gr.series.forEach((s,si)=>{
+    const col=COLORS[si%COLORS.length],pts=getPts(gr,s.gy);
+    if(pts.length)hasData=true;
+    if(s.modele){
+      ctx.beginPath();let first=true;
+      for(let i=0;i<=500;i++){
+        const xv=xMin+(xMax-xMin)*i/500;let yv;try{yv=s.modele.fn(xv);}catch(e){yv=NaN;}
+        if(!isFinite(yv)||Math.abs(yp(yv))>1e5){first=true;continue;}
+        if(first){ctx.moveTo(xp(xv),yp(yv));first=false;}else ctx.lineTo(xp(xv),yp(yv));
+      }
+      ctx.strokeStyle=col;ctx.lineWidth=1.8;ctx.globalAlpha=.85;ctx.stroke();ctx.globalAlpha=1;
+    }
+    if(gr.joined&&pts.length>1){
+      ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(xp(p.x),yp(p.y)):ctx.moveTo(xp(p.x),yp(p.y)));
+      ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=.5;ctx.stroke();ctx.globalAlpha=1;
+    }
+    const outR=new Set((s.modele?.outliers||[]).map(o=>o.r));
+    pts.forEach(p=>{
+      const x=xp(p.x),y=yp(p.y);
+      ctx.beginPath();ctx.arc(x,y,4.2,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      ctx.strokeStyle='rgba(253,250,240,.95)';ctx.lineWidth=1.3;ctx.stroke();
+      if(outR.has(p.r)){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.strokeStyle='#a63020';ctx.lineWidth=1.6;ctx.stroke();}
+    });
+    const g=G(s.gy);
+    leg+=`<span><span class="leg-dot" style="background:${col}"></span> ${esc(lab(g))}</span>`;
+    if(s.modele)leg+=`<span><span class="leg-line" style="border-color:${col}"></span>modèle</span>`;
+  });
+  ctx.restore();
+  if(!hasData){ctx.fillStyle=CHART_AXIS;ctx.font=font(13);ctx.textAlign='center';ctx.fillText('Aucune donnée : remplis le tableau',PAD.l+cw/2,PAD.t+ch/2);}
+  $('leg-'+gr.id).innerHTML=leg;
+}
+function clearOverlay(gr){const o=gr.overlay;o.getContext('2d').clearRect(0,0,o.width,o.height);}
+function handleCursor(gr,e){
+  const rect=gr.canvas.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const cw=rect.width-PAD.l-PAD.r,ch=rect.height-PAD.t-PAD.b,cur=$('cur-'+gr.id);
+  if(mx<PAD.l||mx>PAD.l+cw||my<PAD.t||my>PAD.t+ch){cur.style.display='none';clearOverlay(gr);return;}
+  const xv=gr.scaleXmin+(mx-PAD.l)/cw*(gr.scaleXmax-gr.scaleXmin),yv=gr.scaleYmax-(my-PAD.t)/ch*(gr.scaleYmax-gr.scaleYmin);
+  const gx=G(gr.gx),gyn=gr.series.map(s=>G(s.gy)?.nom||'y').join(' / ');
+  cur.style.display='block';cur.textContent=`${gx?.nom||'x'} = ${fmtRead(xv)}    ${gyn} = ${fmtRead(yv)}`;
+  const o=gr.overlay,c=o.getContext('2d'),dpr=window.devicePixelRatio||1;
+  c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,o.width,o.height);
+  c.strokeStyle='rgba(28,61,110,.5)';c.lineWidth=1;c.setLineDash([4,3]);
+  c.beginPath();c.moveTo(mx,PAD.t);c.lineTo(mx,PAD.t+ch);c.stroke();
+  c.beginPath();c.moveTo(PAD.l,my);c.lineTo(PAD.l+cw,my);c.stroke();
+  c.setLineDash([]);c.beginPath();c.arc(mx,my,3.5,0,Math.PI*2);c.fillStyle='rgba(28,61,110,.8)';c.fill();
+}
+function exportPNG(gr){
+  const cv=gr.canvas,dpr=window.devicePixelRatio||1;
+  const lines=gr.series.map((s,si)=>({t:s.eqText,c:COLORS[si%COLORS.length]})).filter(l=>l.t);
+  const extra=(lines.length?lines.length*22+12:0)*dpr;
+  const off=document.createElement('canvas');off.width=cv.width;off.height=cv.height+extra;
+  const c=off.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,off.width,off.height);
+  c.drawImage(cv,0,0);
+  c.setTransform(dpr,0,0,dpr,0,0);c.font='600 14px "Bricolage Grotesque",system-ui,sans-serif';c.textAlign='left';
+  lines.forEach((l,i)=>{c.fillStyle=l.c;c.fillText(l.t,PAD.l,cv.height/dpr+22*(i+1));});
+  off.toBlob(b=>download(b,'graphique_'+stamp()+'.png'),'image/png');
+}
+$('btn-add-graph').addEventListener('click',()=>{addGraph();scheduleSave();});
+function resetGraphs(){graphs=[];$('graphs-container').innerHTML='';}
+window.addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(()=>graphs.forEach(drawGraph),100);});
+
+// ══ SESSION ══
+function snapshot(){
+  const idx=id=>cols.findIndex(c=>c.id===id);
+  return{app:'tableur-graphes',v:1,nRows,cs:optCS,angle:optAngle,
+    cols:cols.map(c=>({type:c.type,nom:c.nom,unite:c.unite,formule:c.formule,raw:Array.from({length:nRows},(_,r)=>c.raw[r]??'')})),
+    graphs:graphs.map(gr=>({gx:idx(gr.gx),joined:gr.joined,origine:gr.origine,series:gr.series.map(s=>({gy:idx(s.gy),modeleType:s.modeleType,fixed:s.fixed}))}))};
+}
+function applySnapshot(sn){
+  if(!sn||!Array.isArray(sn.cols)||!sn.cols.length)throw new Error('fichier non reconnu');
+  cols=sn.cols.map(c=>newCol(c.type==='calc'?'calc':'saisie',c.nom,c.unite,c.formule,(c.raw||[]).map(v=>v==null?'':String(v))));
+  nRows=Math.max(1,sn.nRows||cols[0].raw.length||10);
+  optCS=[2,3,4,5].includes(sn.cs)?sn.cs:3;optAngle=sn.angle==='rad'?'rad':'deg';
+  $('opt-cs').value=String(optCS);$('opt-angle').value=optAngle;
+  compute();renderSheet();resetGraphs();
+  const gl=Array.isArray(sn.graphs)?sn.graphs:[];
+  if(!gl.length)addGraph();
+  gl.forEach(g=>addGraph({gx:cols[g.gx]?.id,joined:g.joined,origine:g.origine,
+    series:(g.series||[]).map(s=>({gy:cols[s.gy]?.id,modeleType:s.modeleType,fixed:s.fixed}))}));
+}
+let _sTimer=null;
+function scheduleSave(){clearTimeout(_sTimer);_sTimer=setTimeout(()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(snapshot()));}catch(e){}},400);}
+$('btn-export-session').addEventListener('click',()=>download(JSON.stringify(snapshot(),null,1),'session_graphes_'+stamp()+'.json','application/json'));
+$('btn-import-session').addEventListener('click',()=>$('input-session').click());
+$('input-session').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;e.target.value='';
+  const rd=new FileReader();
+  rd.onload=()=>{try{applySnapshot(JSON.parse(String(rd.result)));scheduleSave();}catch(err){alert('Impossible de lire cette session : '+err.message);}};
+  rd.readAsText(f);
+});
+function defaultSnapshot(){
+  return{nRows:10,cs:3,angle:'deg',cols:[{type:'saisie',nom:'x',unite:'',raw:[]},{type:'saisie',nom:'y',unite:'',raw:[]}],graphs:[{gx:0,series:[{gy:1}]}]};
+}
+$('btn-clear').addEventListener('click',()=>{
+  if(!confirm('Effacer tout le tableau et les graphiques ?'))return;
+  applySnapshot(defaultSnapshot());scheduleSave();
+});
+$('btn-exemple').addEventListener('click',()=>{
+  if(tableNonVide()&&!confirm('L\'exemple va remplacer le tableau actuel. Continuer ?'))return;
+  applySnapshot({nRows:9,cs:3,angle:'deg',
+    cols:[{type:'saisie',nom:'I',unite:'A',raw:['0','0,010','0,020','0,031','0,040','0,051','0,060','0,069']},
+          {type:'saisie',nom:'U',unite:'V',raw:['0','0,98','2,03','3,05','3,96','5,02','6,07','6,93']},
+          {type:'calc',nom:'R',unite:'Ω',formule:'U/I'}],
+    graphs:[{gx:0,series:[{gy:1,modeleType:'lineaire'}]}]});
+  scheduleSave();
+});
+
+window.addEventListener('DOMContentLoaded',()=>{
+  let sn=null;try{sn=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}
+  try{applySnapshot(sn||defaultSnapshot());}catch(e){applySnapshot(defaultSnapshot());}
+});
+</script>
+</body>
+</html>
