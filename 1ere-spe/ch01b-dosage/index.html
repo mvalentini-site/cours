@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chapitre 1b – Dosage par étalonnage</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/parcours.css?v=3">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
 </head>
-<body class="niveau-1spe une-colonne" data-page="1spe-ch01b">
+<body class="niveau-1spe une-colonne en-onglets" data-page="1spe-ch01b">
 
 <header class="topbar">
   <div class="crumb"><a href="../../index.html#1ere-spe">1re Spé</a><span>/</span><b>Chapitre 1b</b></div>
@@ -25,7 +25,7 @@
   <aside>
     <div class="kicker">Spécialité physique-chimie · Chapitre 1 · Partie 2</div>
     <h1>Dosage par étalonnage</h1>
-    <div class="meta">9 étapes, dans l'ordre<br>Chaque tâche est validée par le professeur — l'étape 8 est facultative</div>
+    <div class="meta">9 étapes, dans l'ordre<br>Chaque tâche est validée par le professeur</div>
     <div class="progress">
       <div class="count"><span id="nb-done">0</span><small>étapes sur 9</small></div>
       <div class="bar"><i id="bar"></i></div>
@@ -54,8 +54,8 @@
     <h2 class="parcours-titre">Mon parcours</h2>
     <ol class="etapes">
       <li class="repere"><b>Je fais les tâches dans l'ordre.</b> Une tâche est terminée quand son critère est rempli : je coche, puis je montre mon travail au professeur.</li>
-      <li class="repere"><b>Couleur et absorbance</b></li>
-      <li class="etape" style="--c:var(--blue)">
+      <li class="repere section"><b>Couleur et absorbance</b></li>
+      <li class="etape" data-court="Sirop" style="--c:var(--blue)">
         <button class="marker" type="button" aria-label="Marquer l'étape 1 comme faite"><span>1</span></button>
         <div class="head"><h2 class="titre">Pourquoi le sirop de menthe est-il vert ?</h2><span class="type">Documentaire</span></div>
         <p class="consigne">Activité 1F — tracer le spectre du colorant E102 sur papier millimétré, relever λ<sub>max</sub> et expliquer la couleur du sirop (radiations absorbées, transmises, couleur complémentaire).</p>
@@ -63,7 +63,7 @@
           <button class="doc" data-url="https://drive.google.com/file/d/192abm7DalV9R-KOwu55gJb5r0wgzEJNb/preview" data-title="Activité 1F – Le sirop de menthe"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche d'activité 1F</button>
         </div>
       </li>
-      <li class="etape" style="--c:var(--red)">
+      <li class="etape" data-court="Ex. 1-2" style="--c:var(--red)">
         <button class="marker" type="button" aria-label="Marquer l'étape 2 comme faite"><span>2</span></button>
         <div class="head"><h2 class="titre">Exercices 1 et 2</h2><span class="type">Entraînement</span></div>
         <p class="consigne">Validé si λ<sub>max</sub> et la couleur perçue sont justes et le choix de la longueur d'onde de travail est justifié.</p>
@@ -72,8 +72,8 @@
           <button class="doc corrige" data-url="https://drive.google.com/file/d/10Lmr98DYee_bLvmLrtPuDL-uMxGgMN0U/preview" data-title="Chapitre 1b – Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
         </div>
       </li>
-      <li class="repere"><b>Dilution et courbe d'étalonnage</b></li>
-      <li class="etape" style="--c:var(--green)">
+      <li class="repere section"><b>Dilution et courbe d'étalonnage</b></li>
+      <li class="etape" data-court="Dakin" style="--c:var(--green)">
         <button class="marker" type="button" aria-label="Marquer l'étape 3 comme faite"><span>3</span></button>
         <div class="head"><h2 class="titre">Dosage du Dakin</h2><span class="type">TP</span></div>
         <p class="consigne">Compléter le tableau de dilution, tracer la droite A = f(C<sub>m</sub>) et comparer C<sub>m</sub> à l'étiquette. S'appuyer sur la fiche méthode « Utilisation d'un colorimètre ».</p>
@@ -83,7 +83,7 @@
           <button class="doc" data-url="https://drive.google.com/file/d/1wN1EZnGuazor1oC2XZoHHSVwuXoEK-hm/preview" data-title="Fiche méthode – Utilisation d'un colorimètre"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Fiche méthode Colorimètre</button>
         </div>
       </li>
-      <li class="etape" style="--c:var(--brown)">
+      <li class="etape" data-court="Cours" style="--c:var(--brown)">
         <button class="marker" type="button" aria-label="Marquer l'étape 4 comme faite"><span>4</span></button>
         <div class="head"><h2 class="titre">Fiche de synthèse et vidéo</h2><span class="type">Cours</span></div>
         <p class="consigne">Savoir écrire sans la fiche : A = ε × ℓ × C, F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>mère</sub>, C<sub>m</sub> = C × M.</p>
@@ -92,7 +92,7 @@
           <button class="doc video" data-url="https://drive.google.com/file/d/1YcwnS3oSSag5gq24SvbMGG20Uhn-Sceu/preview" data-title="Vidéo – Dosage par étalonnage"><svg class="ic" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3l12 7-12 7z"/></svg>Dosage par étalonnage</button>
         </div>
       </li>
-      <li class="etape" style="--c:var(--red)">
+      <li class="etape" data-court="Ex. 3-4" style="--c:var(--red)">
         <button class="marker" type="button" aria-label="Marquer l'étape 5 comme faite"><span>5</span></button>
         <div class="head"><h2 class="titre">Exercices 3 et 4</h2><span class="type">Entraînement</span></div>
         <p class="consigne">Validé si les calculs sont justes, avec les conversions mL → L et mg → g.</p>
@@ -101,8 +101,8 @@
           <button class="doc corrige" data-url="https://drive.google.com/file/d/10Lmr98DYee_bLvmLrtPuDL-uMxGgMN0U/preview" data-title="Chapitre 1b – Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
         </div>
       </li>
-      <li class="repere"><b>Doser une solution</b></li>
-      <li class="etape" style="--c:var(--green)">
+      <li class="repere section"><b>Doser une solution</b></li>
+      <li class="etape" data-court="Bétadine" style="--c:var(--green)">
         <button class="marker" type="button" aria-label="Marquer l'étape 6 comme faite"><span>6</span></button>
         <div class="head"><h2 class="titre">Dosage de la Bétadine</h2><span class="type">TP évalué</span></div>
         <p class="consigne">TP 1G, évalué par compétences — tous les appels validés ; la concentration en diiode est déterminée et comparée à l'étiquette (écart relatif).</p>
@@ -113,7 +113,7 @@
           <button class="doc corrige" data-url="https://drive.google.com/file/d/1oZMB1veBtUzEkk8w4OBU6xi_gyFpia2f/preview" data-title="Corrigé 1G"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
         </div>
       </li>
-      <li class="etape" style="--c:var(--red)">
+      <li class="etape" data-court="Ex. 5-9" style="--c:var(--red)">
         <button class="marker" type="button" aria-label="Marquer l'étape 7 comme faite"><span>7</span></button>
         <div class="head"><h2 class="titre">Exercices 5 à 9</h2><span class="type">Entraînement</span></div>
         <p class="consigne">Au moins 3 exercices, corrigés avec le corrigé, erreurs reprises d'une autre couleur.</p>
@@ -122,16 +122,16 @@
           <button class="doc corrige" data-url="https://drive.google.com/file/d/10Lmr98DYee_bLvmLrtPuDL-uMxGgMN0U/preview" data-title="Chapitre 1b – Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
         </div>
       </li>
-      <li class="etape facultatif" style="--c:var(--olive)">
+      <li class="etape" data-court="Ex. 10-11" style="--c:var(--olive)">
         <button class="marker" type="button" aria-label="Marquer l'étape 8 comme faite"><span>8</span></button>
-        <div class="head"><h2 class="titre">Pour aller plus loin</h2><span class="type">Expert</span></div>
-        <p class="consigne">Exercice 10 (tâche complexe) et exercice 11 (type bac) : démarche complète, formules littérales, conversions, conclusion.</p>
+        <div class="head"><h2 class="titre">Exercices 10 et 11 — expert et type bac</h2><span class="type">Expert / bac</span></div>
+        <p class="consigne">Exercice 10 (tâche complexe) et exercice 11 (type bac) — démarche complète, formules littérales, conversions, conclusion.</p>
         <div class="docs">
           <button class="doc" data-url="https://drive.google.com/file/d/1LfSAIu80X-aA8klUs-cgMdGEskIM9VfU/preview" data-title="Chapitre 1b – Exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2h8l4 4v12H4zM12 2v4h4M7 10h6M7 13h6"/></svg>Feuille d'exercices</button>
           <button class="doc corrige" data-url="https://drive.google.com/file/d/10Lmr98DYee_bLvmLrtPuDL-uMxGgMN0U/preview" data-title="Chapitre 1b – Corrigé des exercices"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5 5 9-10"/></svg>Corrigé</button>
         </div>
       </li>
-      <li class="etape" style="--c:var(--ink)">
+      <li class="etape" data-court="Bilan" style="--c:var(--ink)">
         <button class="marker" type="button" aria-label="Marquer l'étape 9 comme faite"><span>9</span></button>
         <div class="head"><h2 class="titre">Je m'évalue</h2><span class="type">Bilan</span></div>
         <p class="consigne">Auto-évaluation du plan de travail : une case « à revoir » = je refais l'exercice indiqué en face.</p>
@@ -144,6 +144,6 @@
 </div>
 
 
-<script src="../../assets/js/parcours.js?v=3"></script>
+<script src="../../assets/js/parcours.js?v=4"></script>
 </body>
 </html>

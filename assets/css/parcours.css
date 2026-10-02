@@ -128,3 +128,44 @@ h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing
   .une-colonne .objectifs{display:block;}
   .une-colonne .objectifs ul{grid-template-columns:1fr;}
 }
+
+
+/* ===== Variante onglets (body.en-onglets) : une étape = un onglet, comme le pointage v2 ===== */
+.en-onglets.une-colonne .layout{max-width:1180px;}
+.en-onglets .onglets{display:flex;gap:2px;padding:8px 8px 0;background:var(--paper2);border:1px solid var(--rule);border-bottom:none;overflow-x:auto;scrollbar-width:thin;}
+.en-onglets .onglet{display:flex;align-items:center;gap:7px;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;background:transparent;
+  padding:8px 11px 9px 7px;font:inherit;font-size:14px;color:var(--faded);white-space:nowrap;margin-bottom:-1px;cursor:pointer;}
+.en-onglets .onglet.sep{margin-left:8px;}
+.en-onglets .onglet:hover{background:rgba(255,255,255,.5);color:var(--ink);}
+.en-onglets .onglet:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+.en-onglets .onglet .num{width:24px;height:24px;border-radius:50%;background:var(--c);color:var(--paper);font-size:13px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.55;transition:opacity .12s;}
+.en-onglets .onglet.actif{background:var(--surface);border-color:var(--rule);color:var(--ink);font-weight:600;box-shadow:inset 0 3px 0 var(--c);}
+.en-onglets .onglet.actif .num,.en-onglets .onglet:hover .num{opacity:1;}
+.en-onglets .onglet.fait .num{font-size:0;background:var(--paper);color:var(--c);box-shadow:inset 0 0 0 2px var(--c);opacity:1;}
+.en-onglets .onglet.fait .num::after{content:'✓';font-size:13px;}
+.en-onglets .onglet.fait .lib{text-decoration:line-through;text-decoration-color:rgba(28,18,8,.3);}
+.en-onglets .panneau{background:var(--surface);border:1px solid var(--rule);padding:28px clamp(16px,3vw,32px) 20px;min-height:340px;display:flex;flex-direction:column;}
+.en-onglets .panneau[hidden]{display:none;}
+.en-onglets .panneau .intro{margin-bottom:8px;}
+.en-onglets .panneau .intro-bloc{background:var(--paper);}
+.en-onglets .consignes-generales{list-style:none;margin-bottom:14px;}
+.en-onglets .consignes-generales .repere{margin:0 0 10px;}
+.en-onglets .section-nom{font-size:13px;font-weight:600;color:var(--faded2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+.en-onglets .panneau .etapes::before{display:none;}
+.en-onglets .panneau .etape{padding-bottom:0;}
+.en-onglets .nav-bas{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:28px;}
+.en-onglets .nav-btn,.en-onglets .btn-fait{font:inherit;font-size:14px;padding:8px 14px;border-radius:4px;cursor:pointer;}
+.en-onglets .nav-btn{background:none;border:1px solid transparent;color:var(--faded);}
+.en-onglets .nav-btn:hover{color:var(--ink);border-color:var(--rule);}
+.en-onglets .nav-btn.suiv{color:var(--ink);font-weight:600;}
+.en-onglets .btn-fait{background:var(--accent);color:var(--paper);border:1px solid var(--accent);font-weight:600;}
+.en-onglets .btn-fait.on{background:none;color:var(--faded);border-color:var(--rule);font-weight:400;}
+@media (max-width:1100px){
+  .en-onglets .onglet:not(.actif) .lib{display:none;}
+}
+@media (max-width:820px){
+  .en-onglets .onglet{padding:8px 8px 9px;}
+  .en-onglets .onglet.sep{margin-left:6px;}
+  .en-onglets .panneau .etape{padding-left:52px;}
+}
