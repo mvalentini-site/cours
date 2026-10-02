@@ -2,729 +2,540 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Désintégration radioactive — Dés &amp; simulation</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Désintégration radioactive – dés et datation au carbone 14</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css?v=4">
 <style>
-:root{
-  --cream:#f6f1e4;--cream2:#ede8d6;--cream3:#e3ddc8;
-  --ink:#1a1814;--ink2:#4a4640;--ink3:#8a8070;
-  --red:#c0392b;--blue:#185FA5;--blue-bg:#e8f0fb;
-  --green:#1a6e3c;--green-bg:#e4f2eb;
-  --amber:#8a5a00;--amber-bg:#fdf3dc;
-  --orange:#c05a00;--orange-bg:#fdebd8;
-  --violet:#6b3a8f;
-  --border:#ccc5b0;--mm:3.78px;
+body{--accent:var(--green);--crumb:#b7dcc0;}
+main{min-width:0}
+.panneau h2{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.015em;line-height:1.15;margin-bottom:8px;}
+.panneau p{font-size:16px;max-width:72ch;margin-bottom:12px;color:var(--ink);}
+.panneau p.sous{color:var(--faded);font-size:15px;}
+.panneau h3{font-size:17px;font-weight:600;margin-bottom:10px;}
+
+.grille{display:grid;gap:16px;margin:18px 0;align-items:start;}
+.grille.deux{grid-template-columns:1.25fr .75fr;}
+.grille.moitie{grid-template-columns:1fr 1fr;}
+@media(max-width:820px){.grille.deux,.grille.moitie{grid-template-columns:1fr;}}
+.carte{background:var(--paper);border:1px solid var(--rule);padding:16px 18px;}
+.carte.clair{background:#fffdf6;}
+
+canvas{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid var(--rule);}
+.legende{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--faded);margin-top:10px;}
+.legende span{display:flex;align-items:center;gap:6px;}
+.pastille{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.trait{width:18px;height:3px;border-radius:2px;display:inline-block;}
+
+.champ{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);margin-bottom:12px;}
+.champ .haut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
+.champ .haut b{color:var(--ink);font-weight:600;font-size:14px;}
+.champ select,.champ input[type=number]{font:inherit;font-size:16px;color:var(--ink);padding:7px 10px;
+  border:1px solid rgba(28,18,8,.22);background:#fff;border-radius:3px;width:100%;}
+.champ input[type=range]{width:100%;accent-color:var(--accent);}
+.champ select:focus,.champ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(42,92,58,.15);}
+
+.boutons{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+.btn{font:inherit;font-size:15px;padding:8px 16px;border:1px solid var(--rule);background:var(--surface);
+  color:var(--ink);cursor:pointer;border-radius:4px;}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--ink);outline:none;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn.plein{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600;}
+.btn.plein:hover:not(:disabled){filter:brightness(1.12);}
+.btn.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-top:14px;}
+.stat{background:var(--surface);border:1px solid var(--rule);padding:9px 12px;}
+.stat .k{font-size:12px;color:var(--faded);line-height:1.3;}
+.stat .v{font-size:23px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:2px;}
+.stat .u{font-size:12px;color:var(--faded);font-weight:400;}
+
+.tab-wrap{overflow:auto;max-height:320px;border:1px solid var(--rule);background:#fff;}
+table.tab{border-collapse:collapse;font-size:14.5px;width:100%;font-variant-numeric:tabular-nums;}
+table.tab th,table.tab td{border:1px solid var(--rule);padding:5px 10px;text-align:right;}
+table.tab th{background:var(--paper2);font-weight:600;position:sticky;top:0;font-size:13px;}
+table.tab td:first-child,table.tab th:first-child{text-align:left;}
+
+.formule{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);
+  padding:14px 18px;margin:14px 0;font-size:19px;text-align:center;}
+.formule small{display:block;font-size:14px;color:var(--faded);margin-top:4px;}
+.astuce{margin:14px 0;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;max-width:74ch;}
+.astuce b{font-weight:600;}
+.calcul-ligne{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:16px;}
+.calcul-ligne .lab{font-size:14px;color:var(--faded);width:170px;}
+.calcul-ligne input{font:inherit;font-size:16px;padding:7px 9px;border:1px solid rgba(28,18,8,.22);
+  background:#fff;border-radius:3px;width:96px;}
+.calcul-ligne input.exp{width:66px;}
+.resultat{margin-top:12px;padding:14px 18px;background:var(--ink);color:var(--paper);
+  font-size:clamp(18px,2.2vw,22px);font-weight:600;line-height:1.35;}
+.resultat small{display:block;font-size:14px;font-weight:400;opacity:.78;margin-top:4px;}
+.msg{color:var(--red);font-size:14.5px;margin-top:8px;min-height:20px;}
+
+@media print{
+  .topbar,.onglets,.boutons,.msg{display:none!important;}
+  .panneau[hidden]{display:block!important;}
+  .layout{padding-top:12px;}
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Mono',monospace;background:#d8d2c0;color:var(--ink);min-height:100vh;padding:2rem 1.5rem;}
-.page{max-width:1000px;margin:0 auto;background:var(--cream);border-radius:2px;
-  box-shadow:4px 4px 0 #b8b2a0,8px 8px 0 #a8a290,0 0 40px rgba(0,0,0,.15);
-  position:relative;overflow:hidden;}
-.page::before{content:'';position:absolute;inset:0;
-  background-image:linear-gradient(var(--cream2) 1px,transparent 1px),linear-gradient(90deg,var(--cream2) 1px,transparent 1px);
-  background-size:calc(var(--mm)*5) calc(var(--mm)*5);pointer-events:none;z-index:0;}
-.page::after{content:'';position:absolute;left:52px;top:0;bottom:0;width:1.5px;
-  background:var(--red);opacity:.5;z-index:1;pointer-events:none;}
-.holes{position:absolute;left:0;top:0;bottom:0;width:52px;display:flex;flex-direction:column;
-  justify-content:space-around;align-items:center;z-index:2;pointer-events:none;}
-.hole{width:18px;height:18px;border-radius:50%;background:#d8d2c0;border:1px solid #b8b2a0;
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
-.content{position:relative;z-index:3;padding:2rem 2rem 2.5rem 4.5rem;}
-
-.header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;
-  padding-bottom:1rem;border-bottom:1px solid var(--border);}
-.tape-label{background:rgba(255,240,180,.85);border:.5px solid rgba(200,180,80,.4);
-  padding:4px 14px;font-size:11px;letter-spacing:.1em;color:var(--ink2);white-space:nowrap;}
-.title-block{flex:1;}
-.title-block h1{font-family:'Fraunces',serif;font-size:23px;font-weight:600;color:var(--ink);}
-.title-block .subtitle{font-size:11px;color:var(--ink3);margin-top:3px;}
-
-.section-tab{display:inline-block;font-family:'Fraunces',serif;font-size:15px;font-weight:600;
-  background:var(--cream3);border:.5px solid var(--border);border-bottom:none;
-  padding:5px 16px;border-radius:3px 3px 0 0;position:relative;top:1px;}
-.section{border-top:1px solid var(--border);padding-top:1.1rem;margin-bottom:2rem;}
-
-.card{background:rgba(255,255,255,.5);border:.5px solid var(--border);border-radius:3px;
-  padding:1rem 1.25rem;margin-bottom:1rem;}
-.card-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
-  margin-bottom:.75rem;font-weight:500;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;}
-.grid2.wide{grid-template-columns:1.15fr .85fr;}
-@media(max-width:820px){.grid2,.grid2.wide{grid-template-columns:1fr;}}
-
-button{font-family:'DM Mono',monospace;font-size:12px;padding:6px 14px;border-radius:2px;
-  border:.5px solid var(--border);background:var(--cream);color:var(--ink);cursor:pointer;transition:background .1s;}
-button:hover:not(:disabled){background:var(--cream2);}
-button:disabled{opacity:.35;cursor:default;}
-button.primary{background:var(--ink);color:var(--cream);border-color:var(--ink);}
-button.primary:hover:not(:disabled){background:var(--ink2);}
-button.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-.btn-row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;}
-
-canvas{display:block;width:100%;background:rgba(255,255,255,.65);border:.5px solid var(--border);border-radius:3px;}
-.ctrl{margin-bottom:.8rem;}
-.ctrl label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:3px;gap:.5rem;}
-.ctrl label b{color:var(--ink);font-weight:500;white-space:nowrap;}
-input[type=range]{width:100%;accent-color:var(--blue);height:18px;}
-input[type=number]{font-family:'DM Mono',monospace;font-size:12px;padding:4px 6px;width:100px;
-  background:var(--cream);border:.5px solid var(--border);border-radius:2px;color:var(--ink);}
-select{font-family:'DM Mono',monospace;font-size:11px;padding:4px 6px;background:var(--cream);
-  border:.5px solid var(--border);border-radius:2px;color:var(--ink);}
-input[type=checkbox]{accent-color:var(--blue);}
-.toggles{display:flex;flex-wrap:wrap;gap:1rem;font-size:11px;color:var(--ink2);align-items:center;}
-.toggles label{display:flex;gap:.35rem;align-items:center;cursor:pointer;}
-
-.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:.6rem;}
-.readout{background:var(--blue-bg);border:.5px solid var(--border);border-radius:3px;padding:.5rem .7rem;}
-.readout.g{background:var(--green-bg);}
-.readout.a{background:var(--amber-bg);}
-.readout.o{background:var(--orange-bg);}
-.readout .k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);}
-.readout .v{font-size:15px;font-weight:500;color:var(--blue);margin-top:2px;}
-.readout.g .v{color:var(--green);}
-.readout.a .v{color:var(--amber);}
-.readout.o .v{color:var(--orange);}
-.readout .u{font-size:10px;color:var(--ink3);}
-
-.note{font-size:10.5px;color:var(--ink3);line-height:1.55;margin-top:.6rem;}
-.note b{color:var(--ink2);}
-.formula{font-family:'Fraunces',serif;font-size:15px;text-align:center;color:var(--ink);
-  background:var(--cream2);border:.5px solid var(--border);border-radius:3px;padding:.6rem;margin:.5rem 0;}
-.formula sub,.formula sup{font-size:.68em;}
-
-table{width:100%;border-collapse:collapse;font-size:11px;}
-th,td{border:.5px solid var(--border);padding:4px 7px;text-align:right;}
-th{background:var(--cream2);font-weight:500;font-size:9.5px;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink3);text-align:right;}
-td:first-child,th:first-child{text-align:left;}
-tbody tr:nth-child(even){background:rgba(255,255,255,.4);}
-.tablewrap{max-height:250px;overflow:auto;}
-
-.legend{display:flex;flex-wrap:wrap;gap:1rem;font-size:10.5px;color:var(--ink2);margin-top:.5rem;}
-.legend span{display:flex;align-items:center;gap:.35rem;}
-.swatch{width:16px;height:3px;border-radius:2px;display:inline-block;}
-.swatch.dot{width:8px;height:8px;border-radius:50%;}
-.footer{font-size:10px;color:var(--ink3);text-align:center;margin-top:1.5rem;
-  padding-top:.8rem;border-top:1px solid var(--border);}
 </style>
 </head>
-<body>
-<div class="page">
-  <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
-  <div class="content">
+<body class="une-colonne en-onglets">
 
-    <div class="header">
-      <div class="title-block">
-        <h1>Désintégration radioactive</h1>
-        <div class="subtitle">Modèle des dés &amp; simulation — demi-vie — activité — datation</div>
-      </div>
-      <div class="tape-label">OUTIL — NOYAUX</div>
-    </div>
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Désintégration radioactive</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
 
-    <!-- ════════════ PARTIE 1 : DÉS ════════════ -->
-    <div class="section-tab">1 — Le modèle des dés</div>
-    <div class="section">
+<div class="layout">
+  <aside>
+    <div class="kicker">Outil · Radioactivité · 1re Ens. Sci.</div>
+    <h1>Désintégration radioactive</h1>
+    <div class="meta">Le modèle des dés pour comprendre la demi-vie, puis la datation d'un échantillon au carbone 14.<br>
+      Activité 3D — Comment utiliser le carbone 14 pour dater un échantillon ?</div>
+  </aside>
 
-      <div class="card">
-        <div class="note" style="margin-top:0">
-          Chaque dé représente un <b>noyau radioactif</b>. À chaque lancer, un dé qui tombe sur la face
-          « désintégration » est retiré : le noyau s'est désintégré. On ne peut pas prévoir <b>quel</b> dé
-          va tomber, ni <b>quand</b> — mais sur un grand nombre de dés, la population décroît de façon très régulière.
+<main>
+
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-des" style="--c:var(--green)">
+      <span class="num">1</span><span class="lib">Lancer de dés</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-c14" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Datation au carbone 14</span></button>
+  </div>
+
+  <!-- ══════════════ ONGLET 1 ══════════════ -->
+  <section class="panneau" id="p-des" role="tabpanel">
+    <h2>Le modèle des dés</h2>
+    <p>Chaque dé représente un <b>noyau radioactif</b>. À chaque lancer, les dés qui tombent sur un nombre
+      <b>pair</b> sont retirés : ces noyaux se sont désintégrés. Impossible de prévoir quel dé tombera, ni quand —
+      mais la population totale, elle, décroît très régulièrement.</p>
+
+    <div class="grille deux">
+      <div class="carte">
+        <h3>Les dés <span id="d_etat" style="float:right;font-weight:400;font-size:14px;color:var(--faded)"></span></h3>
+        <canvas id="cvDice" width="600" height="300"></canvas>
+        <div class="legende">
+          <span><i class="pastille" style="background:#1c3d6e"></i> dé encore en jeu</span>
+          <span><i class="pastille" style="background:#a63020"></i> retiré à ce lancer</span>
+          <span><i class="pastille" style="background:#ded5c0"></i> déjà retiré</span>
         </div>
       </div>
 
-      <div class="grid2 wide">
-        <div class="card">
-          <div class="card-title">Population de noyaux
-            <span id="d_state" style="float:right;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink2)"></span>
-          </div>
-          <canvas id="cvDice" width="620" height="330"></canvas>
-          <div class="legend">
-            <span><i class="swatch dot" style="background:var(--blue)"></i> noyau intact</span>
-            <span><i class="swatch dot" style="background:var(--red)"></i> vient de se désintégrer</span>
-            <span><i class="swatch dot" style="background:#d5cfbc"></i> déjà désintégré</span>
-          </div>
+      <div class="carte clair">
+        <h3>Réglages</h3>
+        <div class="champ">
+          <div class="haut"><span>Nombre de dés au départ</span><b id="d_n0v">200</b></div>
+          <input type="range" id="d_n0" min="20" max="400" step="10" value="200">
         </div>
-
-        <div class="card">
-          <div class="card-title">Réglages &amp; lancers</div>
-          <div class="ctrl">
-            <label><span>Nombre de dés au départ N₀</span><b id="d_n0v">200</b></label>
-            <input type="range" id="d_n0" min="20" max="600" step="10" value="200">
-          </div>
-          <div class="ctrl">
-            <label><span>Type de dé</span></label>
-            <select id="d_type">
-              <option value="4">dé à 4 faces — désintégration sur le 4 (p = 1/4)</option>
-              <option value="6" selected>dé à 6 faces — désintégration sur le 6 (p = 1/6)</option>
-              <option value="10">dé à 10 faces — désintégration sur le 10 (p = 1/10)</option>
-              <option value="20">dé à 20 faces — désintégration sur le 20 (p = 1/20)</option>
-            </select>
-          </div>
-          <div class="btn-row" style="margin:.9rem 0 .3rem">
-            <button class="primary" id="d_roll">Lancer une fois</button>
-            <button id="d_auto">Lancer en boucle</button>
-            <button id="d_reset">Réinitialiser</button>
-          </div>
-          <div class="readouts" style="margin-top:.9rem">
-            <div class="readout"><div class="k">Lancers</div><div class="v" id="d_k">0</div></div>
-            <div class="readout g"><div class="k">Noyaux restants</div><div class="v" id="d_alive">200</div></div>
-            <div class="readout o"><div class="k">Désint. au dernier lancer</div><div class="v" id="d_last">—</div></div>
-            <div class="readout a"><div class="k">Demi-vie mesurée</div><div class="v" id="d_t12m">—</div><div class="u">lancers</div></div>
-          </div>
-          <div class="note">Demi-vie attendue pour ce dé : <b id="d_t12th">3,8</b> lancers.
-            C'est le nombre de lancers au bout duquel il reste, en moyenne, la moitié des dés.</div>
+        <div class="champ">
+          <div class="haut"><span>Règle de désintégration</span></div>
+          <select id="d_rule">
+            <option value="pair" selected>on retire les dés pairs (2, 4, 6)</option>
+            <option value="cinqsix">on retire les 5 et les 6</option>
+            <option value="six">on retire seulement les 6</option>
+          </select>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Nombre de dés restants en fonction du nombre de lancers</div>
-        <canvas id="cvDiceChart" width="900" height="300"></canvas>
-        <div class="legend">
-          <span><i class="swatch dot" style="background:var(--blue)"></i> résultat de l'expérience</span>
-          <span><i class="swatch" style="background:var(--red)"></i> décroissance moyenne attendue</span>
-          <span><i class="swatch" style="background:var(--ink3);height:0;border-top:2px dashed var(--ink3)"></i> N₀/2 et demi-vie</span>
+        <div class="boutons">
+          <button class="btn plein" id="d_roll" type="button">Lancer</button>
+          <button class="btn" id="d_auto" type="button">Lancer en boucle</button>
+          <button class="btn" id="d_reset" type="button">Recommencer</button>
         </div>
-        <div class="note">Les points expérimentaux s'écartent un peu de la courbe : c'est le
-          <b>caractère aléatoire</b> de la désintégration. Plus N₀ est grand, plus l'écart relatif est faible —
-          exactement comme pour les noyaux d'un échantillon réel, où N₀ se compte en milliards de milliards.</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Lancers</div><div class="v" id="d_k">0</div></div>
+          <div class="stat"><div class="k">Dés restants</div><div class="v" id="d_alive">200</div></div>
+          <div class="stat"><div class="k">Retirés au dernier lancer</div><div class="v" id="d_last">—</div></div>
+          <div class="stat"><div class="k">Demi-vie mesurée</div><div class="v" id="d_t12m">—<span class="u"> lancers</span></div></div>
+        </div>
+        <div class="astuce" style="margin-bottom:0">Avec cette règle, un dé a <b id="d_pv">1 chance sur 2</b>
+          d'être retiré à chaque lancer : la demi-vie vaut <b id="d_t12th">1,0</b> lancer(s).</div>
       </div>
     </div>
 
-    <!-- ════════════ PARTIE 2 : SIMULATION ════════════ -->
-    <div class="section-tab">2 — Simulation : demi-vie et durée</div>
-    <div class="section">
-
-      <div class="card">
-        <div class="formula">
-          N(t) = N<sub>0</sub> × (½)<sup>n</sup> &nbsp;&nbsp;avec&nbsp;&nbsp; n = t / t<sub>½</sub> (nombre de demi-vies écoulées)
-        </div>
-        <div class="note" style="text-align:center">À chaque demi-vie qui passe, il reste deux fois moins de noyaux qu'avant.</div>
-      </div>
-
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">Réglages de l'échantillon</div>
-          <div class="ctrl">
-            <label><span>Nombre de noyaux au départ N₀</span><b id="s_n0v"></b></label>
-            <input type="range" id="s_n0" min="2" max="20" step="1" value="6">
-          </div>
-          <div class="ctrl">
-            <label><span>Durée d'une demi-vie t½</span></label>
-            <div class="btn-row">
-              <input type="number" id="s_t12" value="8" min="0.001" step="any">
-              <select id="s_unit">
-                <option value="1">secondes</option>
-                <option value="60">minutes</option>
-                <option value="3600">heures</option>
-                <option value="86400" selected>jours</option>
-                <option value="31557600">années</option>
-              </select>
-            </div>
-          </div>
-          <div class="ctrl" style="margin-top:.8rem">
-            <label><span>Durée observée</span><b id="s_nhv">6 demi-vies</b></label>
-            <input type="range" id="s_nh" min="1" max="12" step="1" value="6">
-          </div>
-          <div class="toggles" style="margin-top:.6rem">
-            <label><input type="checkbox" id="s_fluct"> fluctuations statistiques</label>
-            <label><input type="checkbox" id="s_act" checked> axe des activités</label>
-            <button id="s_new" style="margin-left:auto">Nouveau tirage</button>
-          </div>
-          <div class="note">Les fluctuations montrent <b>un</b> échantillon simulé noyau par noyau :
-            la courbe réelle serpente autour de la courbe théorique, d'autant plus que N devient petit.
-            Bien visible pour N₀ = 10<sup>2</sup> à 10<sup>4</sup> ; invisible pour un échantillon réel
-            (10<sup>18</sup> noyaux et plus).</div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Bilan</div>
-          <div class="readouts">
-            <div class="readout"><div class="k">N₀</div><div class="v" id="s_rn0">—</div><div class="u">noyaux</div></div>
-            <div class="readout a"><div class="k">Activité initiale A₀</div><div class="v" id="s_ra0">—</div><div class="u" id="s_ra0u">Bq</div></div>
-            <div class="readout g"><div class="k">Noyaux restants</div><div class="v" id="s_rnf">—</div><div class="u" id="s_rnfu">après 6 t½</div></div>
-            <div class="readout o"><div class="k">Activité finale</div><div class="v" id="s_raf">—</div><div class="u" id="s_rafu">Bq</div></div>
-          </div>
-          <div class="formula" style="font-size:13px;margin-top:.9rem">
-            A = N × ln2 / t<sub>½</sub> &nbsp;&nbsp;(activité en becquerels, 1 Bq = 1 désintégration par seconde)
-          </div>
-          <div class="note">L'activité est <b>proportionnelle</b> au nombre de noyaux : elle est divisée par 2
-            à chaque demi-vie, exactement comme N. C'est elle que mesure un compteur Geiger.</div>
+    <div class="grille moitie">
+      <div class="carte">
+        <h3>Dés restants en fonction du nombre de lancers</h3>
+        <canvas id="cvDiceChart" width="520" height="300"></canvas>
+        <div class="legende">
+          <span><i class="pastille" style="background:#1c3d6e"></i> expérience</span>
+          <span><i class="trait" style="background:#a63020"></i> décroissance moyenne attendue</span>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Courbe de décroissance</div>
-        <canvas id="cvSim" width="900" height="330"></canvas>
-        <div class="legend">
-          <span><i class="swatch" style="background:var(--blue)"></i> N(t) théorique</span>
-          <span><i class="swatch dot" style="background:var(--red)"></i> valeurs aux demi-vies successives</span>
-          <span id="lg_fluct" style="display:none"><i class="swatch" style="background:var(--violet)"></i> échantillon simulé</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Tableau des demi-vies</div>
-        <div class="tablewrap"><table id="s_table">
-          <thead><tr><th>Demi-vies écoulées</th><th>Durée t</th><th>Noyaux restants N</th><th>N / N₀</th><th>Activité A</th></tr></thead>
+      <div class="carte">
+        <h3>Tableau des résultats</h3>
+        <div class="tab-wrap"><table class="tab" id="d_table">
+          <thead><tr><th>Lancer</th><th>Nbre désintégré</th><th>Dés restants</th></tr></thead>
           <tbody></tbody>
         </table></div>
+        <div class="astuce" style="margin-bottom:0">À recopier sur la feuille d'activité. Les résultats changent
+          à chaque série : la désintégration est un phénomène <b>aléatoire</b>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ ONGLET 2 ══════════════ -->
+  <section class="panneau" id="p-c14" role="tabpanel" hidden>
+    <h2>Dater un échantillon au carbone 14</h2>
+    <p>Tous les êtres vivants absorbent du carbone 14 pendant leur vie. À leur mort, ce stock n'est plus
+      renouvelé et le nombre de noyaux de <sup>14</sup>C diminue par désintégration radioactive. Comparer
+      ce qu'il reste aujourd'hui à ce qu'il y avait au départ permet de remonter à la date de la mort.</p>
+    <div class="formule">demi-vie du carbone 14 : t<sub>½</sub> = 5 730 ans
+      <small>au bout de t½, il reste la moitié des noyaux ; au bout de 2 t½, le quart ; au bout de 3 t½, le huitième…</small></div>
+
+    <div class="carte">
+      <h3>Courbe de décroissance radioactive du carbone 14</h3>
+      <canvas id="cvC14" width="900" height="340"></canvas>
+      <div class="legende">
+        <span><i class="trait" style="background:#1c3d6e"></i> noyaux de <sup>14</sup>C restants</span>
+        <span><i class="pastille" style="background:#a63020"></i> demi-vies successives</span>
+        <span><i class="trait" style="background:#2a5c3a"></i> lecture de l'échantillon</span>
       </div>
     </div>
 
-    <!-- ════════════ PARTIE 3 : DATATION ════════════ -->
-    <div class="section-tab">3 — Datation d'un échantillon</div>
-    <div class="section">
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">Mesure</div>
-          <div class="ctrl">
-            <label><span>Noyau radioactif</span></label>
-            <select id="da_iso"></select>
-          </div>
-          <div class="ctrl" style="margin-top:.8rem">
-            <label><span>Proportion de noyaux restants N/N₀</span><b id="da_pv">50 %</b></label>
-            <input type="range" id="da_p" min="1" max="99" step="0.5" value="50">
-          </div>
-          <div class="note">Un échantillon vivant contient une proportion connue de noyaux radioactifs.
-            Après sa mort, ce stock n'est plus renouvelé : il suffit de comparer ce qu'il en reste
-            aujourd'hui à ce qu'il y avait au départ pour remonter à l'âge.</div>
+    <div class="grille moitie">
+      <div class="carte clair">
+        <h3>Calculateur d'âge</h3>
+        <div class="calcul-ligne">
+          <span class="lab">Noyaux au départ N₀</span>
+          <input type="number" id="c_n0m" value="5" step="any" min="0">
+          <span>× 10</span><input class="exp" type="number" id="c_n0e" value="10" step="1">
         </div>
-        <div class="card">
-          <div class="card-title">Âge de l'échantillon</div>
-          <div class="readouts">
-            <div class="readout g"><div class="k">Âge estimé</div><div class="v" id="da_age">—</div></div>
-            <div class="readout"><div class="k">Demi-vies écoulées</div><div class="v" id="da_n">—</div></div>
-            <div class="readout a"><div class="k">Demi-vie du noyau</div><div class="v" id="da_t12">—</div></div>
-          </div>
-          <canvas id="cvDate" width="440" height="200" style="margin-top:.9rem"></canvas>
-          <div class="note">Chaque noyau a sa plage utile : le carbone 14 date des vestiges de quelques
-            milliers d'années, l'uranium 238 des roches vieilles de milliards d'années, l'iode 131
-            se mesure en jours à l'hôpital.</div>
+        <div class="calcul-ligne">
+          <span class="lab">Noyaux mesurés N</span>
+          <input type="number" id="c_nm" value="0.7" step="any" min="0">
+          <span>× 10</span><input class="exp" type="number" id="c_ne" value="10" step="1">
         </div>
+        <div class="champ">
+          <div class="haut"><span>ou faire glisser la mesure</span><b id="c_fv">14 %</b></div>
+          <input type="range" id="c_frac" min="1" max="99" step="0.5" value="14">
+        </div>
+        <div class="msg" id="c_err"></div>
+        <div class="astuce" style="margin-bottom:0">Exemple de l'activité : un fragment de charbon de la grotte
+          de Lascaux contient 0,7 × 10<sup>10</sup> noyaux de <sup>14</sup>C, pour 5 × 10<sup>10</sup> dans un
+          charbon actuel de même masse.</div>
+      </div>
+
+      <div class="carte">
+        <h3>Résultat</h3>
+        <div class="resultat" id="c_res">—</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Demi-vies écoulées</div><div class="v" id="c_n">—</div></div>
+          <div class="stat"><div class="k">Proportion restante</div><div class="v" id="c_pct">—</div></div>
+          <div class="stat"><div class="k">Date estimée</div><div class="v" id="c_date">—</div></div>
+        </div>
+        <div class="formule" style="font-size:17px">N = N<sub>0</sub> × (½)<sup>n</sup> &nbsp;→&nbsp; âge = n × t<sub>½</sub>
+          <small>n est le nombre de demi-vies écoulées</small></div>
       </div>
     </div>
 
-    <div class="footer">Physique-Chimie — outil interactif — mvalentini-site</div>
-  </div>
+    <div class="carte">
+      <h3>Repères</h3>
+      <div class="tab-wrap" style="max-height:none"><table class="tab">
+        <thead><tr><th>Demi-vies écoulées</th><th>Durée écoulée</th><th>Noyaux restants</th><th>Proportion</th></tr></thead>
+        <tbody id="c_tb"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+</main>
 </div>
 
 <script>
 "use strict";
-const CSS = getComputedStyle(document.documentElement);
-const C = {
-  ink:'#1a1814', ink2:'#4a4640', ink3:'#8a8070',
-  blue:'#185FA5', red:'#c0392b', green:'#1a6e3c', amber:'#8a5a00',
-  violet:'#6b3a8f', border:'#ccc5b0', dead:'#d5cfbc'
-};
-const fmtFR = (x,d=0)=> x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-
-/* Exposants en caractères Unicode, pour le canvas */
+const C={ink:'#1c1208',faded:'#5f4e33',faded2:'#87704c',blue:'#1c3d6e',red:'#a63020',
+         green:'#2a5c3a',grid:'#e3dcc8',grid2:'#efe8d6',dead:'#ded5c0',rule:'#c9bfa8'};
+const FONT="'Bricolage Grotesque',system-ui,sans-serif";
+const T12=5730;                      /* demi-vie du carbone 14, en années */
+const ANNEE=new Date().getFullYear();
+const fmt=(x,d=0)=>x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
-const sup = n => String(n).split('').map(c=>SUP[c]||c).join('');
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
 function sciHTML(x,d=2){
+  if(!isFinite(x)) return '—';
   if(x===0) return '0';
-  if(x<10000 && x>=0.01) return fmtFR(x, x<10?d:(x<100?1:0));
-  const e = Math.floor(Math.log10(x));
-  const m = x/Math.pow(10,e);
-  return fmtFR(m,d)+'&times;10<sup>'+e+'</sup>';
+  if(x<10000&&x>=0.01) return fmt(x,x<10?d:(x<100?1:0));
+  const e=Math.floor(Math.log10(x));
+  return fmt(x/Math.pow(10,e),d)+'&times;10<sup>'+e+'</sup>';
 }
-
-/* Prépare un canvas en haute résolution */
+function sciTxt(v){
+  if(!isFinite(v)) return '';
+  if(v===0) return '0';
+  if(v<10000&&v>=0.01) return fmt(v,v<10?1:0);
+  const e=Math.floor(Math.log10(v));
+  return fmt(v/Math.pow(10,e),1)+'·10'+sup(e);
+}
 function hidpi(cv){
-  const r = window.devicePixelRatio||1;
-  const w = cv.width, h = cv.height;
-  if(cv.dataset.hd!=='1'){
-    cv.dataset.w=w; cv.dataset.h=h;
-    cv.width=w*r; cv.height=h*r; cv.style.height='auto';
-    cv.dataset.hd='1';
-  }
-  const ctx = cv.getContext('2d');
-  ctx.setTransform(r,0,0,r,0,0);
-  return {ctx, w:+cv.dataset.w, h:+cv.dataset.h};
+  const r=window.devicePixelRatio||1;
+  if(cv.dataset.hd!=='1'){cv.dataset.w=cv.width;cv.dataset.h=cv.height;
+    cv.width=cv.width*r;cv.height=cv.height*r;cv.dataset.hd='1';}
+  const ctx=cv.getContext('2d');ctx.setTransform(r,0,0,r,0,0);
+  return {ctx,w:+cv.dataset.w,h:+cv.dataset.h};
 }
+const $=id=>document.getElementById(id);
 
-/* ══════════════ PARTIE 1 — DÉS ══════════════ */
-const D = { n0:200, sides:6, alive:[], faces:[], just:[], hist:[200], k:0, last:null, timer:null };
+/* ══════════ ONGLET 1 — DÉS ══════════ */
+const REGLES={pair:{p:1/2,test:f=>f%2===0,txt:'1 chance sur 2'},
+              cinqsix:{p:1/3,test:f=>f>=5,txt:'2 chances sur 6'},
+              six:{p:1/6,test:f=>f===6,txt:'1 chance sur 6'}};
+const D={n0:200,regle:'pair',alive:[],faces:[],just:[],hist:[200],died:[],k:0,timer:null};
 
 function dReset(){
-  D.n0 = +document.getElementById('d_n0').value;
-  D.sides = +document.getElementById('d_type').value;
-  D.alive = new Array(D.n0).fill(true);
-  D.faces = new Array(D.n0).fill(0);
-  D.just  = new Array(D.n0).fill(false);
-  D.hist = [D.n0]; D.k = 0; D.last = null;
-  dStop();
-  dUpdate();
+  D.n0=+$('d_n0').value; D.regle=$('d_rule').value;
+  D.alive=new Array(D.n0).fill(true);
+  D.faces=new Array(D.n0).fill(0);
+  D.just=new Array(D.n0).fill(false);
+  D.hist=[D.n0]; D.died=[]; D.k=0;
+  dStop(); dUpdate();
 }
 function dRoll(){
+  const test=REGLES[D.regle].test;
   let died=0;
   for(let i=0;i<D.n0;i++){
     D.just[i]=false;
     if(!D.alive[i]) continue;
-    const f = 1+Math.floor(Math.random()*D.sides);
+    const f=1+Math.floor(Math.random()*6);
     D.faces[i]=f;
-    if(f===D.sides){ D.alive[i]=false; D.just[i]=true; died++; }
+    if(test(f)){D.alive[i]=false;D.just[i]=true;died++;}
   }
-  D.k++; D.last=died;
+  D.k++; D.died.push(died);
   D.hist.push(D.hist[D.hist.length-1]-died);
   if(D.hist[D.hist.length-1]===0) dStop();
   dUpdate();
 }
-function dStop(){ if(D.timer){clearInterval(D.timer);D.timer=null;}
-  document.getElementById('d_auto').classList.remove('active');
-  document.getElementById('d_auto').textContent='Lancer en boucle'; }
-function dAuto(){
-  if(D.timer){ dStop(); return; }
-  const b=document.getElementById('d_auto');
-  b.classList.add('active'); b.textContent='Arrêter';
-  D.timer = setInterval(()=>{ if(D.hist[D.hist.length-1]===0){dStop();return;} dRoll(); }, 750);
+function dStop(){
+  if(D.timer){clearInterval(D.timer);D.timer=null;}
+  const b=$('d_auto'); b.classList.remove('on'); b.textContent='Lancer en boucle';
 }
-
+function dAuto(){
+  if(D.timer){dStop();return;}
+  const b=$('d_auto'); b.classList.add('on'); b.textContent='Arrêter';
+  D.timer=setInterval(()=>{ if(D.hist[D.hist.length-1]===0){dStop();return;} dRoll(); },800);
+}
 function dUpdate(){
-  const p = 1/D.sides;
-  const t12th = Math.log(2)/(-Math.log(1-p));
-  document.getElementById('d_n0v').textContent = D.n0;
-  document.getElementById('d_k').textContent = D.k;
-  document.getElementById('d_alive').textContent = D.hist[D.hist.length-1];
-  document.getElementById('d_last').textContent = D.last===null?'—':D.last;
-  document.getElementById('d_t12th').textContent = fmtFR(t12th,1);
-  /* demi-vie mesurée : interpolation linéaire au passage sous N0/2 */
-  let t12m='—';
-  const half = D.n0/2;
+  const R=REGLES[D.regle];
+  const t12=Math.log(2)/(-Math.log(1-R.p));
+  const reste=D.hist[D.hist.length-1];
+  $('d_n0v').textContent=D.n0;
+  $('d_k').textContent=D.k;
+  $('d_alive').textContent=reste;
+  $('d_last').textContent=D.k?D.died[D.died.length-1]:'—';
+  $('d_pv').textContent=R.txt;
+  $('d_t12th').textContent=fmt(t12,1);
+  let t12m='—'; const moitie=D.n0/2;
   for(let i=1;i<D.hist.length;i++){
-    if(D.hist[i]<=half){
-      const a=D.hist[i-1], b=D.hist[i];
-      t12m = fmtFR((i-1)+(a-half)/(a-b||1),1);
-      break;
-    }
+    if(D.hist[i]<=moitie){const a=D.hist[i-1],b=D.hist[i];
+      t12m=fmt((i-1)+(a-moitie)/((a-b)||1),1);break;}
   }
-  document.getElementById('d_t12m').textContent = t12m;
-  const rest = D.hist[D.hist.length-1];
-  document.getElementById('d_state').textContent =
-    rest===0 ? 'tous les noyaux sont désintégrés' : (D.k===0?'échantillon initial':'lancer n°'+D.k);
-  document.getElementById('d_roll').disabled = (rest===0);
+  $('d_t12m').innerHTML=t12m+'<span class="u"> lancers</span>';
+  $('d_etat').textContent=reste===0?'tous les dés sont retirés'
+    :(D.k===0?'avant le premier lancer':'lancer n° '+D.k);
+  $('d_roll').disabled=(reste===0);
+  let rows='';
+  for(let i=0;i<D.died.length;i++)
+    rows+='<tr><td>'+(i+1)+'</td><td>'+D.died[i]+'</td><td>'+D.hist[i+1]+'</td></tr>';
+  $('d_table').querySelector('tbody').innerHTML=rows||'<tr><td colspan="3">—</td></tr>';
   drawDice(); drawDiceChart();
 }
-
 function drawDice(){
-  const cv=document.getElementById('cvDice'); const {ctx,w,h}=hidpi(cv);
+  const cv=$('cvDice'); const {ctx,w,h}=hidpi(cv);
   ctx.clearRect(0,0,w,h);
-  const pad=8, W=w-2*pad, H=h-2*pad;
-  const cols = Math.max(1,Math.ceil(Math.sqrt(D.n0*W/H)));
-  const rows = Math.ceil(D.n0/cols);
-  const s = Math.min(W/cols, H/rows);
-  const ox = pad+(W-cols*s)/2, oy = pad+(H-rows*s)/2;
-  const g = Math.max(1, s*0.12);
+  const pad=8,W=w-2*pad,H=h-2*pad;
+  const cols=Math.max(1,Math.ceil(Math.sqrt(D.n0*W/H)));
+  const rows=Math.ceil(D.n0/cols);
+  const s=Math.min(W/cols,H/rows);
+  const ox=pad+(W-cols*s)/2, oy=pad+(H-rows*s)/2, g=Math.max(1,s*0.13);
   for(let i=0;i<D.n0;i++){
-    const cx = ox+(i%cols)*s, cy = oy+Math.floor(i/cols)*s;
-    const x=cx+g/2, y=cy+g/2, sz=s-g;
+    const x=ox+(i%cols)*s+g/2, y=oy+Math.floor(i/cols)*s+g/2, sz=s-g;
     ctx.beginPath();
-    if(ctx.roundRect) ctx.roundRect(x,y,sz,sz,Math.max(1,sz*0.18));
-    else ctx.rect(x,y,sz,sz);
-    if(D.alive[i]){ ctx.fillStyle=C.blue; }
-    else if(D.just[i]){ ctx.fillStyle=C.red; }
-    else { ctx.fillStyle=C.dead; }
+    if(ctx.roundRect) ctx.roundRect(x,y,sz,sz,Math.max(1,sz*0.2)); else ctx.rect(x,y,sz,sz);
+    ctx.fillStyle=D.alive[i]?C.blue:(D.just[i]?C.red:C.dead);
     ctx.fill();
-    if(sz>=15 && (D.alive[i]||D.just[i]) && D.faces[i]>0){
-      ctx.fillStyle='#fff'; ctx.font='500 '+Math.round(sz*0.55)+"px 'DM Mono',monospace";
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(String(D.faces[i]), x+sz/2, y+sz/2+0.5);
+    if(sz>=14&&(D.alive[i]||D.just[i])&&D.faces[i]>0){
+      ctx.fillStyle='#f6f1e4';ctx.font='600 '+Math.round(sz*0.55)+'px '+FONT;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(D.faces[i]),x+sz/2,y+sz/2+0.5);
     }
   }
-}
-
-/* ── Graphique générique : axes + cadre ── */
-function axes(ctx,L,T,W,H,xMax,yMax,xLab,yLab,xStep,yTicks){
-  ctx.save();
-  ctx.strokeStyle=C.border; ctx.lineWidth=1;
-  ctx.fillStyle=C.ink3; ctx.font="400 10px 'DM Mono',monospace";
-  /* grille horizontale */
-  for(let i=0;i<=yTicks;i++){
-    const v=yMax*i/yTicks, y=T+H-H*i/yTicks;
-    ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(L+W,y);
-    ctx.strokeStyle = i===0? C.ink2 : '#e0dac8'; ctx.stroke();
-    ctx.textAlign='right'; ctx.textBaseline='middle';
-    ctx.fillText(sci2(v), L-6, y);
-  }
-  /* graduations horizontales (pas entier) */
-  for(let v=0;v<=xMax+1e-9;v+=xStep){
-    const x=L+W*v/xMax;
-    ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,T+H);
-    ctx.strokeStyle = v===0? C.ink2 : '#e9e3d1'; ctx.stroke();
-    ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillStyle=C.ink3; ctx.fillText(fmtFR(v,0), x, T+H+6);
-  }
-  ctx.fillStyle=C.ink2; ctx.font="400 10.5px 'DM Mono',monospace";
-  ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText(xLab, L+W/2, T+H+22);
-  ctx.save(); ctx.translate(14,T+H/2); ctx.rotate(-Math.PI/2);
-  ctx.textBaseline='top'; ctx.fillText(yLab,0,0); ctx.restore();
-  ctx.restore();
 }
 function drawDiceChart(){
-  const cv=document.getElementById('cvDiceChart'); const {ctx,w,h}=hidpi(cv);
+  const cv=$('cvDiceChart'); const {ctx,w,h}=hidpi(cv);
   ctx.clearRect(0,0,w,h);
-  const L=52,T=14,W=w-L-16,H=h-T-42;
-  const p=1/D.sides;
-  const t12th=Math.log(2)/(-Math.log(1-p));
-  const xMax=Math.max(8, Math.ceil(Math.max(D.k+1, t12th*4)));
-  const yMax=D.n0;
-  axes(ctx,L,T,W,H,xMax,yMax,'nombre de lancers','dés restants',Math.ceil(xMax/12),4);
-  const X=n=>L+W*n/xMax, Y=v=>T+H-H*v/yMax;
-
-  /* N0/2 et demi-vie théorique */
-  ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle=C.ink3; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(L,Y(yMax/2)); ctx.lineTo(L+W,Y(yMax/2)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(X(t12th),T); ctx.lineTo(X(t12th),T+H); ctx.stroke();
-  ctx.restore();
-  ctx.fillStyle=C.ink3; ctx.font="400 10px 'DM Mono',monospace"; ctx.textAlign='left';
-  ctx.fillText('N₀/2', L+4, Y(yMax/2)-6);
-  ctx.textAlign='center'; ctx.fillText('t½', X(t12th), T+10);
-
-  /* courbe théorique N0(1-p)^n */
-  ctx.beginPath(); ctx.strokeStyle=C.red; ctx.lineWidth=1.6;
-  for(let i=0;i<=200;i++){
-    const n=xMax*i/200, v=D.n0*Math.pow(1-p,n);
-    i?ctx.lineTo(X(n),Y(v)):ctx.moveTo(X(n),Y(v));
+  const L=48,T=16,W=w-L-16,H=h-T-42;
+  const R=REGLES[D.regle];
+  const t12=Math.log(2)/(-Math.log(1-R.p));
+  const xMax=Math.max(6,Math.ceil(Math.max(D.k+1,t12*4)));
+  const pas=Math.ceil(xMax/10);
+  const X=n=>L+W*n/xMax, Y=v=>T+H-H*v/D.n0;
+  ctx.font='13px '+FONT; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const v=D.n0*i/4,y=T+H-H*i/4;
+    ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
+    ctx.strokeStyle=i===0?C.ink:C.grid;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(fmt(v,0),L-7,y);
   }
+  for(let v=0;v<=xMax+1e-9;v+=pas){
+    const x=X(v);
+    ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+H);
+    ctx.strokeStyle=v===0?C.ink:C.grid2;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(fmt(v,0),x,T+H+7);
+  }
+  ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('nombre de lancers',L+W/2,T+H+23);
+  ctx.save();ctx.translate(13,T+H/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('dés restants',0,0);ctx.restore();
+  ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle=C.faded2;
+  ctx.beginPath();ctx.moveTo(L,Y(D.n0/2));ctx.lineTo(L+W,Y(D.n0/2));ctx.stroke();ctx.restore();
+  ctx.fillStyle=C.faded2;ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillText('moitié des dés',L+5,Y(D.n0/2)-4);
+  ctx.beginPath();ctx.strokeStyle=C.red;ctx.lineWidth=1.8;
+  for(let i=0;i<=200;i++){const n=xMax*i/200,v=D.n0*Math.pow(1-R.p,n);
+    i?ctx.lineTo(X(n),Y(v)):ctx.moveTo(X(n),Y(v));}
   ctx.stroke();
-
-  /* points expérimentaux */
-  ctx.strokeStyle=C.blue; ctx.lineWidth=1.2; ctx.beginPath();
-  D.hist.forEach((v,i)=>{ i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v)); });
+  ctx.beginPath();ctx.strokeStyle=C.blue;ctx.lineWidth=1.4;
+  D.hist.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});
   ctx.stroke();
   ctx.fillStyle=C.blue;
-  D.hist.forEach((v,i)=>{ ctx.beginPath(); ctx.arc(X(i),Y(v),3,0,7); ctx.fill(); });
+  D.hist.forEach((v,i)=>{ctx.beginPath();ctx.arc(X(i),Y(v),3.2,0,7);ctx.fill();});
 }
 
-/* ══════════════ PARTIE 2 — SIMULATION ══════════════ */
-const S = { fluctPts:null };
-const UNITS = {1:'s',60:'min',3600:'h',86400:'j',31557600:'ans'};
+/* ══════════ ONGLET 2 — CARBONE 14 ══════════ */
+const val=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:NaN;};
+const cRead=()=>({n0:val('c_n0m')*Math.pow(10,val('c_n0e')), n:val('c_nm')*Math.pow(10,val('c_ne'))});
 
-function sParams(){
-  const n0 = Math.round(Math.pow(10, +document.getElementById('s_n0').value));
-  const unit = +document.getElementById('s_unit').value;
-  const t12u = Math.max(1e-9, +document.getElementById('s_t12').value || 1);
-  const nh = +document.getElementById('s_nh').value;
-  return {n0, unit, t12u, t12s:t12u*unit, nh, uname:UNITS[unit]};
+function cFromInputs(){
+  const {n0,n}=cRead();
+  if(!isFinite(n0)||!isFinite(n)||n0<=0||n<=0){
+    $('c_err').textContent='Entrer deux nombres strictement positifs.';cShow(null);return;}
+  if(n>n0){
+    $('c_err').textContent='N doit être inférieur à N₀ : un échantillon ne peut pas gagner des noyaux.';
+    cShow(null);return;}
+  $('c_err').textContent='';
+  const f=n/n0;
+  $('c_frac').value=Math.min(99,Math.max(1,f*100));
+  $('c_fv').textContent=fmt(f*100,1)+' %';
+  cShow(f);
 }
-/* tirage binomial */
-function binom(n,p){
-  if(n<=0) return 0;
-  if(n<=1500){ let k=0; for(let i=0;i<n;i++) if(Math.random()<p) k++; return k; }
-  const mu=n*p, sd=Math.sqrt(n*p*(1-p));
-  let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
-  const z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-  return Math.max(0,Math.min(n,Math.round(mu+sd*z)));
-}
-function buildFluct(){
-  const P=sParams();
-  const steps=40*P.nh, dt=P.nh/steps;
-  const pStep = 1-Math.pow(0.5, dt);
-  let N=P.n0; const pts=[[0,N]];
-  for(let i=1;i<=steps;i++){ N-=binom(N,pStep); pts.push([i*dt,N]); }
-  S.fluctPts=pts;
-}
-
-function sUpdate(rebuild){
-  const P=sParams();
-  document.getElementById('s_n0v').innerHTML = sciHTML(P.n0,1)+' noyaux';
-  document.getElementById('s_nhv').textContent = P.nh+(P.nh>1?' demi-vies':' demi-vie');
-  const A0 = P.n0*Math.LN2/P.t12s;
-  const Nf = P.n0*Math.pow(0.5,P.nh);
-  const Af = A0*Math.pow(0.5,P.nh);
-  document.getElementById('s_rn0').innerHTML = sciHTML(P.n0);
-  document.getElementById('s_ra0').innerHTML = sciHTML(A0);
-  document.getElementById('s_rnf').innerHTML = sciHTML(Nf);
-  document.getElementById('s_raf').innerHTML = sciHTML(Af);
-  document.getElementById('s_rnfu').textContent = 'après '+P.nh+' t½ = '+fmtFR(P.nh*P.t12u,2)+' '+P.uname;
-  if(rebuild || !S.fluctPts) buildFluct();
-  document.getElementById('lg_fluct').style.display =
-    document.getElementById('s_fluct').checked?'flex':'none';
-  drawSim(); sTable();
-}
-/* Nombre lisible sur un canvas : 2,5·10⁵ */
-function sci2(x){
-  if(x===0) return '0';
-  if(x<10000 && x>=0.01) return fmtFR(x, x<10?2:(x<100?1:0));
-  const e=Math.floor(Math.log10(x));
-  return fmtFR(x/Math.pow(10,e),1)+'·10'+sup(e);
-}
-
-function drawSim(){
-  const cv=document.getElementById('cvSim'); const {ctx,w,h}=hidpi(cv);
-  ctx.clearRect(0,0,w,h);
-  const P=sParams();
-  const showA=document.getElementById('s_act').checked;
-  const L=64,T=16,R=showA?66:18,W=w-L-R,H=h-T-46;
-  const yMax=P.n0, xMax=P.nh;
-  const X=n=>L+W*n/xMax, Y=v=>T+H-H*v/yMax;
-
-  /* grille + axe des N */
-  ctx.strokeStyle=C.border; ctx.font="400 10px 'DM Mono',monospace";
-  for(let i=0;i<=4;i++){
-    const v=yMax*i/4, y=T+H-H*i/4;
-    ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(L+W,y);
-    ctx.strokeStyle=i===0?C.ink2:'#e0dac8'; ctx.stroke();
-    ctx.fillStyle=C.blue; ctx.textAlign='right'; ctx.textBaseline='middle';
-    ctx.fillText(sci2(v), L-6, y);
-    if(showA){
-      const A=v*Math.LN2/P.t12s;
-      ctx.fillStyle=C.amber; ctx.textAlign='left';
-      ctx.fillText(A===0?'0':sci2(A), L+W+6, y);
-    }
+function cFromSlider(){
+  const f=+$('c_frac').value/100;
+  $('c_fv').textContent=fmt(f*100,1)+' %';
+  const n0=cRead().n0;
+  if(isFinite(n0)&&n0>0){
+    const e=val('c_ne');
+    $('c_nm').value=(n0*f/Math.pow(10,e)).toPrecision(3);
   }
-  for(let i=0;i<=xMax;i++){
-    const x=X(i);
-    ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,T+H);
-    ctx.strokeStyle=i===0?C.ink2:'#e9e3d1'; ctx.stroke();
-    ctx.fillStyle=C.ink3; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(i, x, T+H+6);
-  }
-  ctx.fillStyle=C.ink2; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('nombre de demi-vies écoulées  (1 t½ = '+fmtFR(P.t12u,2)+' '+P.uname+')', L+W/2, T+H+22);
-  ctx.save(); ctx.translate(13,T+H/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=C.blue; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('noyaux N',0,0); ctx.restore();
-  if(showA){
-    ctx.save(); ctx.translate(w-12,T+H/2); ctx.rotate(Math.PI/2);
-    ctx.fillStyle=C.amber; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText('activité A (Bq)',0,0); ctx.restore();
-  }
-
-  /* échantillon simulé */
-  if(document.getElementById('s_fluct').checked && S.fluctPts){
-    ctx.beginPath(); ctx.strokeStyle=C.violet; ctx.lineWidth=1.1;
-    S.fluctPts.forEach((pt,i)=>{ i?ctx.lineTo(X(pt[0]),Y(pt[1])):ctx.moveTo(X(pt[0]),Y(pt[1])); });
-    ctx.stroke();
-  }
-
-  /* courbe théorique */
-  ctx.beginPath(); ctx.strokeStyle=C.blue; ctx.lineWidth=1.8;
-  for(let i=0;i<=300;i++){
-    const n=xMax*i/300, v=P.n0*Math.pow(0.5,n);
-    i?ctx.lineTo(X(n),Y(v)):ctx.moveTo(X(n),Y(v));
-  }
-  ctx.stroke();
-
-  /* points aux demi-vies + paliers */
-  for(let i=0;i<=xMax;i++){
-    const v=P.n0*Math.pow(0.5,i);
-    ctx.save(); ctx.setLineDash([3,3]); ctx.strokeStyle='#c9b8b0'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(X(i),Y(v)); ctx.lineTo(X(i),T+H); ctx.stroke();
-    ctx.restore();
-    ctx.fillStyle=C.red; ctx.beginPath(); ctx.arc(X(i),Y(v),3.5,0,7); ctx.fill();
-    if(i>0 && i<=4){
-      ctx.fillStyle=C.ink3; ctx.font="400 10px 'DM Mono',monospace";
-      ctx.textAlign='left'; ctx.textBaseline='bottom';
-      ctx.fillText('N₀/'+Math.pow(2,i), X(i)+5, Y(v)-4);
-    }
-  }
+  $('c_err').textContent='';
+  cShow(f);
 }
-
-function sTable(){
-  const P=sParams();
-  const A0=P.n0*Math.LN2/P.t12s;
+function cShow(f){
+  if(f===null){
+    $('c_res').textContent='—';
+    ['c_n','c_pct','c_date'].forEach(i=>$(i).textContent='—');
+    drawC14(null);return;
+  }
+  const n=Math.log(1/f)/Math.LN2, age=n*T12;
+  $('c_res').innerHTML='Âge ≈ '+fmt(Math.round(age/10)*10,0)+' ans'+
+    '<small>soit '+fmt(n,2)+' demi-vies du carbone 14</small>';
+  $('c_n').textContent=fmt(n,2);
+  $('c_pct').textContent=fmt(f*100,1)+' %';
+  const an=Math.round(ANNEE-age);
+  $('c_date').innerHTML=fmt(Math.abs(an),0)+
+    '<span class="u" style="display:block">'+(an<0?'av. J.-C.':'ap. J.-C.')+'</span>';
+  cTable(); drawC14({f,n,age});
+}
+function cTable(){
+  const n0=cRead().n0;
   let rows='';
-  for(let i=0;i<=P.nh;i++){
-    const N=P.n0*Math.pow(0.5,i), A=A0*Math.pow(0.5,i);
-    rows+='<tr><td>'+i+'</td><td>'+fmtFR(i*P.t12u,2)+' '+P.uname+'</td><td>'+sciHTML(N)+
-      '</td><td>'+ (i===0?'1':'1/'+Math.pow(2,i)) +' = '+fmtFR(100*Math.pow(0.5,i),i>6?3:1)+' %</td><td>'+
-      sciHTML(A)+' Bq</td></tr>';
+  for(let i=0;i<=5;i++){
+    const N=n0*Math.pow(0.5,i);
+    rows+='<tr><td>'+i+'</td><td>'+fmt(i*T12,0)+' ans</td><td>'+sciHTML(N)+'</td><td>'+
+      fmt(100*Math.pow(0.5,i),i>3?2:1)+' %</td></tr>';
   }
-  document.querySelector('#s_table tbody').innerHTML=rows;
+  $('c_tb').innerHTML=rows;
 }
-
-/* ══════════════ PARTIE 3 — DATATION ══════════════ */
-const ISO=[
-  {n:'Carbone 14 — datation archéologique', t:5730, u:'ans', s:5730*31557600},
-  {n:'Potassium 40 — datation des roches', t:1.25e9, u:'ans', s:1.25e9*31557600},
-  {n:'Uranium 238 — âge de la Terre', t:4.47e9, u:'ans', s:4.47e9*31557600},
-  {n:'Césium 137 — retombées nucléaires', t:30.2, u:'ans', s:30.2*31557600},
-  {n:'Cobalt 60 — radiothérapie', t:5.27, u:'ans', s:5.27*31557600},
-  {n:'Radon 222 — gaz radioactif naturel', t:3.82, u:'jours', s:3.82*86400},
-  {n:'Iode 131 — médecine nucléaire', t:8.02, u:'jours', s:8.02*86400},
-  {n:'Technétium 99m — imagerie médicale', t:6.0, u:'heures', s:6*3600}
-];
-function isoInit(){
-  document.getElementById('da_iso').innerHTML =
-    ISO.map((o,i)=>'<option value="'+i+'">'+o.n+'</option>').join('');
-}
-function humanAge(sec){
-  const an=31557600;
-  if(sec>=an*1e9) return fmtFR(sec/(an*1e9),2)+' milliards d\'années';
-  if(sec>=an*1e6) return fmtFR(sec/(an*1e6),2)+' millions d\'années';
-  if(sec>=an) return fmtFR(sec/an, sec/an<100?1:0)+' ans';
-  if(sec>=86400) return fmtFR(sec/86400,1)+' jours';
-  if(sec>=3600) return fmtFR(sec/3600,1)+' heures';
-  return fmtFR(sec,0)+' s';
-}
-function daUpdate(){
-  const iso=ISO[+document.getElementById('da_iso').value];
-  const pct=+document.getElementById('da_p').value;
-  const frac=pct/100;
-  const n=Math.log(1/frac)/Math.LN2;           /* nombre de demi-vies */
-  const age=n*iso.s;
-  document.getElementById('da_pv').textContent=fmtFR(pct,1)+' %';
-  document.getElementById('da_age').textContent=humanAge(age);
-  document.getElementById('da_n').textContent=fmtFR(n,2);
-  document.getElementById('da_t12').textContent=(iso.t>=1e6?sciHTML(iso.t):fmtFR(iso.t,2))+' '+iso.u;
-  document.getElementById('da_t12').innerHTML=(iso.t>=1e6?sciHTML(iso.t):fmtFR(iso.t,2))+' <span style="font-size:11px">'+iso.u+'</span>';
-  drawDate(n,frac);
-}
-function drawDate(nHalf,frac){
-  const cv=document.getElementById('cvDate'); const {ctx,w,h}=hidpi(cv);
+function drawC14(M){
+  const cv=$('cvC14'); const {ctx,w,h}=hidpi(cv);
   ctx.clearRect(0,0,w,h);
-  const L=34,T=12,W=w-L-14,H=h-T-30;
-  const xMax=Math.max(6, Math.ceil(nHalf+1));
-  const X=n=>L+W*n/xMax, Y=v=>T+H-H*v;
-  ctx.strokeStyle='#e0dac8'; ctx.font="400 9.5px 'DM Mono',monospace"; ctx.fillStyle=C.ink3;
-  for(let i=0;i<=4;i++){
-    const y=T+H-H*i/4;
-    ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(L+W,y);
-    ctx.strokeStyle=i===0?C.ink2:'#e0dac8'; ctx.stroke();
-    ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle=C.ink3;
-    ctx.fillText((i*25)+'%', L-5, y);
+  const n0=cRead().n0;
+  const L=86,T=34,W=w-L-20,H=h-T-48;
+  const tMax=50000;
+  const X=t=>L+W*t/tMax, Y=v=>T+H-H*v/(n0||1);
+  ctx.font='13px '+FONT; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const v=(n0||1)*i/5,y=T+H-H*i/5;
+    ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
+    ctx.strokeStyle=i===0?C.ink:C.grid;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(i===0?'0':sciTxt(v),L-8,y);
   }
-  for(let i=0;i<=xMax;i++){
-    ctx.strokeStyle='#eee7d5'; ctx.beginPath(); ctx.moveTo(X(i),T); ctx.lineTo(X(i),T+H); ctx.stroke();
-    ctx.fillStyle=C.ink3; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(i, X(i), T+H+5);
+  for(let t=0;t<=tMax;t+=5000){
+    const x=X(t);
+    ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+H);
+    ctx.strokeStyle=t===0?C.ink:C.grid2;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(fmt(t/1000,0),x,T+H+7);
   }
-  ctx.fillStyle=C.ink2; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('demi-vies écoulées', L+W/2, T+H+16);
-  ctx.beginPath(); ctx.strokeStyle=C.blue; ctx.lineWidth=1.8;
-  for(let i=0;i<=200;i++){ const n=xMax*i/200; const v=Math.pow(0.5,n);
-    i?ctx.lineTo(X(n),Y(v)):ctx.moveTo(X(n),Y(v)); }
+  ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText("temps écoulé depuis la mort de l'organisme (×10³ ans)",L+W/2,T+H+24);
+  ctx.fillStyle=C.blue;ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillText('nombre de noyaux de carbone 14 restants',L-34,T-12);
+  if(!isFinite(n0)||n0<=0) return;
+  ctx.beginPath();ctx.strokeStyle=C.blue;ctx.lineWidth=2;
+  for(let i=0;i<=300;i++){const t=tMax*i/300,v=n0*Math.pow(0.5,t/T12);
+    i?ctx.lineTo(X(t),Y(v)):ctx.moveTo(X(t),Y(v));}
   ctx.stroke();
-  ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle=C.green; ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.moveTo(L,Y(frac)); ctx.lineTo(X(nHalf),Y(frac)); ctx.lineTo(X(nHalf),T+H); ctx.stroke();
-  ctx.restore();
-  ctx.fillStyle=C.green; ctx.beginPath(); ctx.arc(X(nHalf),Y(frac),4,0,7); ctx.fill();
+  for(let i=1;i*T12<=tMax;i++){
+    const t=i*T12,v=n0*Math.pow(0.5,i);
+    ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle='#d8bfb6';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(X(t),Y(v));ctx.lineTo(X(t),T+H);ctx.stroke();ctx.restore();
+    ctx.fillStyle=C.red;ctx.beginPath();ctx.arc(X(t),Y(v),3.5,0,7);ctx.fill();
+    if(i<=3){ctx.fillStyle=C.faded2;ctx.textAlign='left';ctx.textBaseline='bottom';
+      ctx.fillText('N₀/'+Math.pow(2,i),X(t)+7,Y(v)-5);}
+  }
+  if(M&&isFinite(M.age)&&M.age<=tMax){
+    const v=n0*M.f,t=M.age;
+    ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle=C.green;ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(X(t),Y(v));ctx.lineTo(X(t),T+H);ctx.stroke();ctx.restore();
+    ctx.fillStyle=C.green;ctx.beginPath();ctx.arc(X(t),Y(v),4.5,0,7);ctx.fill();
+    const lab=fmt(Math.round(t/10)*10,0)+' ans';
+    ctx.font='600 14px '+FONT;
+    const droite=X(t)<L+W*0.8;
+    ctx.textAlign=droite?'left':'right';ctx.textBaseline='middle';
+    const lx=X(t)+(droite?11:-11), ly=Y(v)-16, tw=ctx.measureText(lab).width;
+    ctx.fillStyle='rgba(253,250,240,.9)';
+    ctx.fillRect(droite?lx-4:lx-tw-4,ly-10,tw+8,20);
+    ctx.fillStyle=C.green;ctx.fillText(lab,lx,ly);
+  }
 }
 
-/* ══════════════ ÉVÉNEMENTS ══════════════ */
-document.getElementById('d_roll').addEventListener('click',dRoll);
-document.getElementById('d_auto').addEventListener('click',dAuto);
-document.getElementById('d_reset').addEventListener('click',dReset);
-document.getElementById('d_n0').addEventListener('input',dReset);
-document.getElementById('d_type').addEventListener('change',dReset);
+/* ══════════ ONGLETS ══════════ */
+document.querySelectorAll('.onglet').forEach(o=>o.addEventListener('click',()=>{
+  document.querySelectorAll('.onglet').forEach(x=>{x.classList.remove('actif');x.setAttribute('aria-selected','false');});
+  document.querySelectorAll('.panneau').forEach(p=>p.hidden=true);
+  o.classList.add('actif'); o.setAttribute('aria-selected','true');
+  $(o.dataset.cible).hidden=false;
+  if(o.dataset.cible==='p-des'){drawDice();drawDiceChart();} else cFromInputs();
+}));
 
-['s_n0','s_nh'].forEach(id=>document.getElementById(id).addEventListener('input',()=>sUpdate(true)));
-['s_t12','s_unit'].forEach(id=>document.getElementById(id).addEventListener('input',()=>sUpdate(false)));
-document.getElementById('s_fluct').addEventListener('change',()=>sUpdate(false));
-document.getElementById('s_act').addEventListener('change',()=>sUpdate(false));
-document.getElementById('s_new').addEventListener('click',()=>sUpdate(true));
+$('d_roll').addEventListener('click',dRoll);
+$('d_auto').addEventListener('click',dAuto);
+$('d_reset').addEventListener('click',dReset);
+$('d_n0').addEventListener('input',dReset);
+$('d_rule').addEventListener('change',dReset);
+['c_n0m','c_n0e','c_nm','c_ne'].forEach(id=>$(id).addEventListener('input',cFromInputs));
+$('c_frac').addEventListener('input',cFromSlider);
+window.addEventListener('resize',()=>{
+  if(!$('p-des').hidden){drawDice();drawDiceChart();} else cFromInputs();
+});
 
-document.getElementById('da_iso').addEventListener('change',daUpdate);
-document.getElementById('da_p').addEventListener('input',daUpdate);
-
-isoInit();
 dReset();
-sUpdate(true);
-daUpdate();
+cFromInputs();
 </script>
 </body>
 </html>
