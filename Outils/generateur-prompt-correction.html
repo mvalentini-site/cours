@@ -3,367 +3,406 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Générateur de prompt — Correction de copies</title>
+<title>Prompt de correction – Profs</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink: #1a2238;
-    --paper: #fbf9f4;
-    --line: #d8d2c4;
-    --accent: #2f6f6a;
-    --accent-soft: #e3efed;
-    --amber: #b5651d;
-    --muted: #6b6557;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    background: var(--paper); color: var(--ink); line-height: 1.55;
-    padding: 2rem 1rem 4rem;
-  }
-  .wrap { max-width: 880px; margin: 0 auto; }
-  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
-  .eyebrow {
-    font-family: "SF Mono", "Consolas", monospace;
-    letter-spacing: .18em; text-transform: uppercase;
-    font-size: .7rem; color: var(--accent); margin: 0 0 .4rem;
-  }
-  h1 { margin: 0; font-size: 2rem; font-weight: 600; letter-spacing: -.01em; }
-  .lede { color: var(--muted); margin: .5rem 0 0; font-size: 1rem; }
-  .notice {
-    margin: 1rem 0 0; padding: .7rem .9rem; border: 1px solid var(--line);
-    border-left: 3px solid var(--accent); background: #fff; font-size: .9rem; color: var(--ink);
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--surface:#fdfaf0;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#5f4e33;--faded2:#87704c;
+  --rule:rgba(28,18,8,.16);
+  --blue:#1c3d6e;--green:#2a5c3a;--brown:#6b3a1c;--red:#a63020;--purple:#3a1c6b;--olive:#3a3a1c;--video:#5a3a1c;--amber:#7a4e00;--profs:#2f4a5c;
+  --font:'Bricolage Grotesque',system-ui,sans-serif;
+  --mono:'SF Mono','Consolas','Menlo',monospace;
+}
+html{font-size:17px;}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);line-height:1.5;min-height:100vh;}
+a{color:inherit}
+[hidden]{display:none!important}
 
-  form { display: grid; gap: 1.6rem; }
-  .field { display: grid; gap: .4rem; align-content: start; }
-  .grid2 { display: grid; gap: 1.6rem; grid-template-columns: 1fr 1fr; align-items: start; }
-  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
-  label, .lbl {
-    font-family: "SF Mono", "Consolas", monospace;
-    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
-  }
-  input, select, textarea {
-    font: inherit; padding: .65rem .7rem; border: 1px solid var(--line);
-    border-radius: 2px; background: #fff; color: var(--ink); width: 100%;
-  }
-  input:focus, select:focus, textarea:focus, .chip:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
-  }
-  textarea { resize: vertical; min-height: 90px; }
-  .hint { font-size: .8rem; color: var(--muted); margin: 0; }
+/* barre du haut */
+.topbar{background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,4vw,48px);height:52px;font-size:14px;}
+.topbar .crumb{display:flex;gap:10px;align-items:center;}
+.topbar .crumb a{text-decoration:none;opacity:.7}
+.topbar .crumb a:hover{opacity:1}
+.topbar .crumb b{font-weight:600;color:#a9c4ea}
+.topbar nav{display:flex;gap:4px;}
+.topbar nav a{text-decoration:none;padding:6px 12px;border-radius:999px;opacity:.7}
+.topbar nav a:hover,.topbar nav a[aria-current]{opacity:1;background:rgba(255,255,255,.12)}
 
-  fieldset { border: 1px solid var(--line); border-radius: 3px; padding: 1rem; margin: 0; display: grid; gap: 1.2rem; }
-  legend {
-    font-family: "SF Mono", "Consolas", monospace;
-    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--accent); padding: 0 .4rem;
-  }
+/* en-tête */
+.layout{max-width:1000px;margin:0 auto;padding:36px clamp(16px,4vw,48px) 96px;}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+.kicker{font-size:14px;color:var(--faded);margin-bottom:6px;}
+h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing:-.02em;margin-bottom:18px;font-variation-settings:'opsz' 96;}
+.meta{font-size:15px;color:var(--faded);line-height:1.6;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:26px;max-width:66ch;}
 
-  .chips { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; align-content: flex-start; }
-  .chip {
-    font: inherit; cursor: pointer; padding: .45rem .85rem;
-    border: 1px solid var(--line); border-radius: 999px; background: #fff;
-    color: var(--ink); transition: background .15s, border-color .15s, color .15s;
-  }
-  .chip:hover { background: var(--accent-soft); }
-  .chip.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-  .chip-custom { display: inline-flex; align-items: center; gap: .4rem; }
-  .chip-custom input { width: 8.5rem; padding: .35rem .5rem; border-radius: 999px; }
-  .chip .code { font-family: "SF Mono", "Consolas", monospace; font-size: .75rem; opacity: .75; margin-right: .35rem; }
+/* étapes numérotées */
+.etapes{list-style:none;position:relative;}
+.etapes::before{content:'';position:absolute;left:19px;top:20px;bottom:20px;width:2px;background:var(--rule);}
+.etape{position:relative;padding:0 0 34px 62px;scroll-margin-top:24px;}
+.etape:last-child{padding-bottom:0}
+.marker{position:absolute;left:0;top:2px;width:40px;height:40px;border-radius:50%;
+  background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:17px;
+  display:flex;align-items:center;justify-content:center;border:4px solid var(--paper);}
+.etape .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px;}
+.titre{font-size:21px;font-weight:600;line-height:1.2;letter-spacing:-.01em;}
+.type{font-size:13px;font-weight:500;color:var(--c,var(--ink));white-space:nowrap;}
+.type::after{content:' · ';color:var(--faded2)}
+.duree{font-size:13px;color:var(--faded);}
+.consigne{font-size:15px;color:var(--faded);max-width:66ch;margin-bottom:12px;}
+.consigne b{font-weight:600;color:var(--ink2)}
+.bloc{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c,var(--ink));padding:16px 18px;display:grid;gap:18px;}
+.repere{margin:0 0 30px 62px;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--profs);font-size:15px;}
+.repere b{font-weight:600}
 
-  .actions { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
-  button.act {
-    font: inherit; cursor: pointer; padding: .7rem 1.3rem; border-radius: 2px; border: 1px solid var(--ink);
-  }
-  button.small { padding: .4rem .8rem; font-size: .9rem; }
-  .primary { background: var(--ink); color: var(--paper); }
-  .primary:hover { background: var(--accent); border-color: var(--accent); }
-  .ghost { background: transparent; color: var(--ink); }
-  .ghost:hover { background: var(--accent-soft); }
+/* champs */
+.field{display:grid;gap:6px;align-content:start;}
+.field > label,.lbl{font-size:13px;color:var(--faded);}
+.grid2{display:grid;gap:18px;grid-template-columns:1fr 1fr;align-items:start;}
+input[type=text],input[type=number],textarea,select{
+  font:inherit;font-size:15px;border:1px solid var(--rule);border-radius:4px;background:#fff;color:var(--ink);
+  padding:7px 10px;min-height:38px;width:100%;}
+textarea{resize:vertical;min-height:90px;line-height:1.45;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c,var(--blue));box-shadow:0 0 0 3px rgba(28,61,110,.15);}
+.hint{font-size:13px;color:var(--faded2);font-style:italic;}
 
-  .output { margin-top: 2.2rem; }
-  .output h2 {
-    font-family: "SF Mono", "Consolas", monospace;
-    font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--accent); border-top: 1px solid var(--line); padding-top: 1.2rem;
-    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
-  }
-  .badge { font-size: .72rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
-  pre {
-    background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--amber);
-    border-radius: 2px; padding: 1.2rem; white-space: pre-wrap; word-wrap: break-word;
-    font-family: "SF Mono", "Consolas", monospace; font-size: .9rem; line-height: 1.55; color: var(--ink);
-  }
-  pre.short { border-left-color: var(--accent); }
-  .copied { color: var(--accent); font-size: .85rem; }
-  .err { color: var(--amber); font-size: .85rem; }
+/* puces */
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;align-content:flex-start;}
+.chip{font:inherit;font-size:14px;cursor:pointer;padding:6px 13px;min-height:36px;border:1px solid var(--rule);border-radius:4px;
+  background:#fff;color:var(--ink);transition:background .12s,border-color .12s,color .12s;}
+.chip:hover{border-color:var(--c,var(--ink));}
+.chip.active{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:var(--paper);}
+.chip:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+.chip-custom{display:inline-flex;align-items:center;gap:6px;padding-top:3px;padding-bottom:3px;}
+.chip-custom input{width:8rem;min-height:28px;padding:2px 8px;font-size:14px;}
+.chip .code{font-family:var(--mono);font-size:12px;opacity:.75;margin-right:6px;}
 
-  .checks { display: flex; flex-wrap: wrap; gap: .5rem; }
-  .check {
-    display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
-    padding: .45rem .85rem; border: 1px solid var(--line); border-radius: 999px;
-    background: #fff; transition: background .15s, border-color .15s;
-  }
-  .check:hover { background: var(--accent-soft); }
-  .check input { width: auto; }
-  .check.checked { border-color: var(--accent); background: var(--accent-soft); }
+/* cases à cocher */
+.checks{display:flex;flex-wrap:wrap;gap:6px;}
+.check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--ink);
+  padding:6px 12px;min-height:36px;border:1px solid var(--rule);border-radius:4px;background:#fff;transition:background .12s,border-color .12s;}
+.check:hover{border-color:var(--c,var(--ink));}
+.check input{width:auto;accent-color:var(--c,var(--ink));}
+.check.checked{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 9%,#fff);}
+.toggle-line{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:15px;}
+.toggle-line input{width:auto;margin-top:5px;accent-color:var(--c,var(--ink));}
+.toggle-line strong{display:block;font-weight:600;}
+.toggle-line .desc{color:var(--faded);font-size:14px;}
 
-  .toggle-line { display: flex; gap: .7rem; align-items: flex-start; cursor: pointer; }
-  .toggle-line input { width: auto; margin-top: .3rem; }
-  .toggle-line strong { display: block; }
-  .toggle-line span.desc { color: var(--muted); font-size: .88rem; }
+/* boutons */
+button.act{font:inherit;font-size:14px;cursor:pointer;padding:7px 14px;min-height:36px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:4px;color:var(--ink);transition:border-color .12s,background .12s;}
+button.act:hover{background:#fff;border-color:var(--ink);}
+button.act:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+button.primary:hover{background:var(--ink2);border-color:var(--ink2);}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.err{color:var(--red);font-size:14px;}
+.copied{color:var(--green);font-size:14px;}
 
-  /* Sujets */
-  .sujet { border: 1px solid var(--line); border-radius: 3px; padding: .9rem; display: grid; gap: .8rem; background: #fff; }
-  .sujet h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
-  .sujet textarea { min-height: 80px; background: var(--paper); }
+/* sujets */
+.sujet{border:1px solid var(--rule);background:var(--paper);padding:12px 14px;display:grid;gap:10px;}
+.sujet h3{font-size:16px;font-weight:600;}
 
-  /* Barème détaillé */
-  table.bareme { width: 100%; border-collapse: collapse; }
-  table.bareme th {
-    font-family: "SF Mono", "Consolas", monospace; font-size: .68rem; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--muted); font-weight: normal; text-align: left; padding: 0 .3rem .3rem;
-  }
-  table.bareme td { padding: .2rem .3rem; vertical-align: middle; }
-  table.bareme td input { padding: .45rem .55rem; }
-  table.bareme .c-pts { width: 5.5rem; }
-  table.bareme .c-comp { width: 11rem; }
-  table.bareme .c-del { width: 2.4rem; text-align: center; }
-  .del {
-    font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fff; color: var(--muted);
-    width: 2rem; height: 2rem; border-radius: 2px; line-height: 1;
-  }
-  .del:hover { border-color: var(--amber); color: var(--amber); }
-  .no-points .c-pts { display: none; }
-  .sum { font-size: .9rem; }
-  .sum.bad { color: var(--amber); }
+/* barème détaillé */
+.table-wrap{overflow-x:auto;}
+table.bareme{width:100%;border-collapse:collapse;min-width:460px;}
+table.bareme th{font-size:12px;font-weight:500;color:var(--faded);text-align:left;padding:0 4px 4px;}
+table.bareme td{padding:3px 4px;vertical-align:middle;}
+table.bareme td input{min-height:34px;padding:5px 8px;font-size:14px;}
+table.bareme .c-pts{width:5rem;}
+table.bareme .c-comp{width:9.5rem;}
+table.bareme .c-del{width:2.4rem;text-align:center;}
+.del{font:inherit;cursor:pointer;border:1px solid var(--rule);background:#fff;color:var(--faded);width:30px;height:30px;border-radius:4px;line-height:1;}
+.del:hover{border-color:var(--red);color:var(--red);}
+.no-points .c-pts,.no-comp .c-comp{display:none;}
+.sum{font-size:14px;color:var(--green);font-variant-numeric:tabular-nums;}
+.sum.bad{color:var(--red);}
+.add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.add-row input{width:auto;flex:1 1 14rem;}
+.add-row input.code-in{flex:0 0 6rem;}
 
-  .add-row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-  .add-row input { width: auto; flex: 1 1 14rem; }
-  .add-row input.code-in { flex: 0 0 6rem; }
+/* sortie */
+.output{display:grid;gap:10px;}
+.output h3{font-size:16px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:8px;}
+.badge{font-size:13px;font-weight:400;color:var(--faded);}
+pre{background:#fff;border:1px solid var(--rule);border-left:3px solid var(--c,var(--ink));padding:14px 16px;
+  white-space:pre-wrap;word-wrap:break-word;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink);}
 
-  /* En-tête + menu démo */
-  .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-  .demo-wrap { position: relative; flex-shrink: 0; }
-  .demo-menu {
-    position: absolute; right: 0; top: calc(100% + .3rem); z-index: 10;
-    background: #fff; border: 1px solid var(--line); border-radius: 4px;
-    box-shadow: 0 6px 20px rgba(26,34,56,.12); grid-template-columns: 1fr; min-width: 240px; overflow: hidden;
-    display: none;
-  }
-  .demo-menu.open { display: grid; }
-  .demo-menu button {
-    font: inherit; text-align: left; cursor: pointer; padding: .7rem .9rem;
-    background: #fff; border: none; border-bottom: 1px solid var(--line); color: var(--ink);
-  }
-  .demo-menu button:last-child { border-bottom: none; }
-  .demo-menu button:hover { background: var(--accent-soft); }
+/* menu démo */
+.demo-wrap{position:relative;flex-shrink:0;margin-top:4px;}
+.demo-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:10;background:var(--surface);border:1px solid var(--rule);
+  box-shadow:0 6px 20px rgba(28,18,8,.12);min-width:250px;display:none;}
+.demo-menu.open{display:grid;}
+.demo-menu button{font:inherit;font-size:14px;text-align:left;cursor:pointer;padding:9px 12px;background:transparent;border:none;
+  border-bottom:1px solid var(--rule);color:var(--ink);}
+.demo-menu button:last-child{border-bottom:none;}
+.demo-menu button:hover{background:var(--paper2);}
 
-  [hidden] { display: none !important; }
-  label.check, label.toggle-line {
-    font-family: inherit; font-size: .95rem; letter-spacing: 0; text-transform: none; color: var(--ink);
-  }
+@media (max-width:1000px){
+  .layout{padding:24px 16px 80px;}
+  .topbar nav{display:none;}
+  .etape{padding-left:52px;}
+  .repere{margin-left:52px;}
+  .bloc{padding:12px;}
+}
+@media (max-width:640px){
+  .grid2{grid-template-columns:1fr;}
+  .etape{padding-left:0;}
+  .etape .head{padding-left:52px;min-height:40px;align-items:center;}
+  .etapes::before{display:none;}
+  .repere{margin-left:0;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="head-row">
-      <div>
-        <p class="eyebrow">Outil enseignant</p>
-        <h1>Générateur de prompt de correction</h1>
-      </div>
-      <div class="demo-wrap">
-        <button type="button" class="act ghost" id="demoBtn">Démo ▾</button>
-        <div class="demo-menu" id="demoMenu">
-          <button type="button" data-demo="pc1">1re Spé — Physique-Chimie (2 sujets)</button>
-          <button type="button" data-demo="pc5">5e — Physique-Chimie (compétences)</button>
-          <button type="button" data-demo="ma2">Seconde — Mathématiques</button>
-        </div>
-      </div>
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#profs">Profs</a><span>/</span><b>Prompt de correction</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils">Outils</a>
+    <a href="../index.html#profs" aria-current="page">Profs</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <div class="head-row">
+    <div>
+      <div class="kicker">Outil enseignant · correction assistée par IA</div>
+      <h1>Prompt de correction</h1>
     </div>
-    <p class="lede">Renseignez le sujet, le corrigé, le barème et les compétences : le prompt produit est à coller dans une conversation Claude en navigation privée, avec les copies en pièces jointes.</p>
-    <p class="notice"><strong>Avant d'envoyer les copies :</strong> masquez les noms des élèves (numéro ou code à la place). Relisez toujours les notes proposées : l'IA assiste la correction, elle ne la remplace pas.</p>
-  </header>
-
-  <form id="form" novalidate>
-    <div class="field">
-      <span class="lbl">Matière</span>
-      <div class="chips" id="chips-matiere"></div>
-    </div>
-
-    <div class="field">
-      <span class="lbl">Niveau de classe</span>
-      <div class="chips" id="chips-niveau"></div>
-    </div>
-
-    <div class="field">
-      <label for="intitule">Intitulé de l'évaluation (optionnel)</label>
-      <input id="intitule" type="text" placeholder="Ex. DS n°2 — Mouvement d'un système">
-    </div>
-
-    <!-- ===== Sujets ===== -->
-    <fieldset>
-      <legend>Sujets et corrigés</legend>
-      <div class="field">
-        <span class="lbl">Nombre de sujets</span>
-        <div class="chips" id="chips-nbSujets"></div>
-        <p class="hint">Plusieurs sujets (A, B…) : l'IA identifie le sujet de chaque copie et applique le bon corrigé.</p>
-      </div>
-      <div id="sujets" style="display:grid; gap:1rem;"></div>
-      <p class="hint">Champs vides = le document sera joint en pièce jointe avec les copies.</p>
-    </fieldset>
-
-    <!-- ===== Mode d'évaluation ===== -->
-    <div class="field">
-      <span class="lbl">Mode d'évaluation</span>
-      <div class="chips" id="chips-mode"></div>
-    </div>
-
-    <!-- ===== Barème ===== -->
-    <fieldset id="baremeBox">
-      <legend id="baremeLegend">Barème</legend>
-      <div class="field" id="baremeTotalField">
-        <span class="lbl">Barème total</span>
-        <div class="chips" id="chips-bareme"></div>
-      </div>
-      <div class="field">
-        <span class="lbl" id="detailLbl">Barème détaillé (optionnel)</span>
-        <table class="bareme" id="baremeTable">
-          <thead><tr>
-            <th>Question / exercice</th>
-            <th class="c-pts">Points</th>
-            <th class="c-comp">Compétence(s)</th>
-            <th class="c-del"></th>
-          </tr></thead>
-          <tbody id="baremeRows"></tbody>
-        </table>
-        <div class="actions">
-          <button type="button" class="act ghost small" id="addRow">+ Ajouter une ligne</button>
-          <span class="sum" id="sum"></span>
-        </div>
-        <p class="hint" id="baremeHint">Laisser vide si le barème détaillé figure dans le corrigé. Colonne « Compétence(s) » : utiliser les codes ci-dessous (APP, REA…).</p>
-      </div>
-      <div class="field" id="arrondiField">
-        <span class="lbl">Arrondi de la note</span>
-        <div class="chips" id="chips-arrondi"></div>
-      </div>
-    </fieldset>
-
-    <!-- ===== Compétences ===== -->
-    <fieldset id="compBox">
-      <legend>Compétences évaluées</legend>
-      <div class="field">
-        <span class="lbl">Compétences (cliquer pour sélectionner)</span>
-        <div class="chips" id="compChips"></div>
-        <p class="hint" id="compHint"></p>
-      </div>
-      <div class="field">
-        <span class="lbl">Ajouter une compétence</span>
-        <div class="add-row">
-          <input id="compCode" class="code-in" type="text" placeholder="Code" maxlength="8">
-          <input id="compLabel" type="text" placeholder="Ex. Exploiter un graphique">
-          <button type="button" class="act ghost small" id="compAdd">Ajouter</button>
-        </div>
-      </div>
-      <div class="field">
-        <span class="lbl">Échelle de maîtrise</span>
-        <div class="chips" id="chips-echelle"></div>
-      </div>
-    </fieldset>
-
-    <!-- ===== Règles de correction ===== -->
-    <fieldset>
-      <legend>Règles de correction</legend>
-      <div class="field">
-        <span class="lbl">Exigence</span>
-        <div class="chips" id="chips-exigence"></div>
-      </div>
-      <div class="field">
-        <span class="lbl">Options</span>
-        <div class="checks" id="reglesChecks"></div>
-      </div>
-    </fieldset>
-
-    <!-- ===== Copies ===== -->
-    <fieldset>
-      <legend>Copies</legend>
-      <div class="grid2">
-        <div class="field">
-          <span class="lbl">Format des copies</span>
-          <div class="chips" id="chips-copies"></div>
-        </div>
-        <div class="field">
-          <span class="lbl">Identification des copies</span>
-          <div class="chips" id="chips-ident"></div>
-        </div>
-      </div>
-      <label class="toggle-line">
-        <input type="checkbox" id="lotsToggle">
-        <span><strong>Envoyer les copies en plusieurs lots</strong>
-        <span class="desc">Pour une classe entière : l'IA attend chaque lot, puis produit le bilan quand vous écrivez FIN. Des messages de relance sont générés.</span></span>
-      </label>
-      <div class="field" id="lotBox" hidden>
-        <label for="lotTaille">Copies par lot (optionnel)</label>
-        <input id="lotTaille" type="number" min="1" max="40" placeholder="Ex. 8" style="max-width:10rem">
-      </div>
-    </fieldset>
-
-    <!-- ===== Restitution ===== -->
-    <fieldset>
-      <legend>Restitution attendue</legend>
-      <div class="field">
-        <span class="lbl">Pour chaque copie / pour la classe</span>
-        <div class="checks" id="retourChecks"></div>
-      </div>
-      <div class="grid2" id="appBox">
-        <div class="field">
-          <span class="lbl">Longueur de l'appréciation</span>
-          <div class="chips" id="chips-appLong"></div>
-        </div>
-        <div class="field">
-          <span class="lbl">Destinataire de l'appréciation</span>
-          <div class="chips" id="chips-appAdresse"></div>
-        </div>
-      </div>
-    </fieldset>
-
-    <div class="field">
-      <label for="consignes">Consignes particulières (optionnel)</label>
-      <textarea id="consignes" placeholder="Ex. accepter g = 9,8 ou 9,81 N/kg ; question 3b hors barème ; ne pas pénaliser l'absence de schéma…"></textarea>
-    </div>
-
-    <div class="actions">
-      <button type="submit" class="act primary" id="submitBtn">Générer le prompt</button>
-      <button type="button" class="act ghost" id="resetBtn">Réinitialiser</button>
-      <span class="err" id="formErr" hidden></span>
-    </div>
-  </form>
-
-  <div class="output" id="output" hidden>
-    <h2>Prompt de correction <span class="badge" id="charCount"></span></h2>
-    <pre id="result"></pre>
-    <div class="actions">
-      <button type="button" class="act ghost" data-copy="result">Copier le prompt</button>
-      <span class="copied" data-copied="result" hidden>Copié ✓</span>
-    </div>
-
-    <div id="lotsOut" hidden>
-      <h2>Message — lot suivant</h2>
-      <pre class="short" id="relance"></pre>
-      <div class="actions">
-        <button type="button" class="act ghost" data-copy="relance">Copier</button>
-        <span class="copied" data-copied="relance" hidden>Copié ✓</span>
-      </div>
-      <h2>Message — fin de la correction</h2>
-      <pre class="short" id="cloture"></pre>
-      <div class="actions">
-        <button type="button" class="act ghost" data-copy="cloture">Copier</button>
-        <span class="copied" data-copied="cloture" hidden>Copié ✓</span>
+    <div class="demo-wrap">
+      <button type="button" class="act" id="demoBtn">Démo ▾</button>
+      <div class="demo-menu" id="demoMenu">
+        <button type="button" data-demo="pc1">1re Spé — Physique-Chimie (2 sujets)</button>
+        <button type="button" data-demo="pc5">5e — Physique-Chimie (compétences)</button>
+        <button type="button" data-demo="ma2">Seconde — Mathématiques</button>
       </div>
     </div>
   </div>
+  <p class="meta">Renseigne le sujet, le corrigé, le barème et les compétences : le prompt produit est à coller dans une conversation Claude en navigation privée, avec les copies en pièces jointes.</p>
+
+  <form id="form" novalidate>
+  <main>
+    <ol class="etapes">
+
+      <li class="repere"><b>Avant d'envoyer les copies :</b> masque les noms des élèves (numéro ou code à la place). Relis toujours les notes proposées : l'IA assiste la correction, elle ne la remplace pas.</li>
+
+      <!-- ÉVALUATION -->
+      <li class="etape" style="--c:var(--video)">
+        <div class="marker" aria-hidden="true"><span>1</span></div>
+        <div class="head"><h2 class="titre">Évaluation</h2><span class="type">Contexte</span><span class="duree">matière · niveau · mode de notation</span></div>
+        <div class="bloc">
+          <div class="field">
+            <span class="lbl">Matière</span>
+            <div class="chips" id="chips-matiere"></div>
+          </div>
+          <div class="field">
+            <span class="lbl">Niveau de classe</span>
+            <div class="chips" id="chips-niveau"></div>
+          </div>
+          <div class="field">
+            <label for="intitule">Intitulé de l'évaluation (optionnel)</label>
+            <input id="intitule" type="text" placeholder="Ex. DS n°2 — Mouvement d'un système">
+          </div>
+          <div class="field">
+            <span class="lbl">Mode d'évaluation</span>
+            <div class="chips" id="chips-mode"></div>
+          </div>
+        </div>
+      </li>
+
+      <!-- SUJETS -->
+      <li class="etape" style="--c:var(--blue)">
+        <div class="marker" aria-hidden="true"><span>2</span></div>
+        <div class="head"><h2 class="titre">Sujets et corrigés</h2><span class="type">Documents</span><span class="duree">énoncé et corrigé de chaque sujet</span></div>
+        <p class="consigne">Plusieurs sujets (A, B…) : l'IA identifie le sujet de chaque copie et applique le bon corrigé. <b>Champ vide</b> = document joint en pièce jointe avec les copies.</p>
+        <div class="bloc">
+          <div class="field">
+            <span class="lbl">Nombre de sujets</span>
+            <div class="chips" id="chips-nbSujets"></div>
+          </div>
+          <div id="sujets" style="display:grid;gap:12px;"></div>
+        </div>
+      </li>
+
+      <!-- BARÈME -->
+      <li class="etape" id="baremeBox" style="--c:var(--green)">
+        <div class="marker" aria-hidden="true"><span>3</span></div>
+        <div class="head"><h2 class="titre" id="baremeLegend">Barème</h2><span class="type">Notation</span><span class="duree">total · détail par question · arrondi</span></div>
+        <div class="bloc">
+          <div class="field" id="baremeTotalField">
+            <span class="lbl">Barème total</span>
+            <div class="chips" id="chips-bareme"></div>
+          </div>
+          <div class="field">
+            <span class="lbl" id="detailLbl">Barème détaillé (optionnel)</span>
+            <div class="table-wrap">
+              <table class="bareme" id="baremeTable">
+                <thead><tr>
+                  <th>Question / exercice</th>
+                  <th class="c-pts">Points</th>
+                  <th class="c-comp">Compétence(s)</th>
+                  <th class="c-del"></th>
+                </tr></thead>
+                <tbody id="baremeRows"></tbody>
+              </table>
+            </div>
+            <div class="actions">
+              <button type="button" class="act" id="addRow">+ Ajouter une ligne</button>
+              <span class="sum" id="sum"></span>
+            </div>
+            <p class="hint" id="baremeHint">Laisser vide si le barème détaillé figure dans le corrigé. Colonne « Compétence(s) » : codes de l'étape suivante (APP, REA…).</p>
+          </div>
+          <div class="field" id="arrondiField">
+            <span class="lbl">Arrondi de la note</span>
+            <div class="chips" id="chips-arrondi"></div>
+          </div>
+        </div>
+      </li>
+
+      <!-- COMPÉTENCES -->
+      <li class="etape" id="compBox" style="--c:var(--brown)">
+        <div class="marker" aria-hidden="true"><span>4</span></div>
+        <div class="head"><h2 class="titre">Compétences</h2><span class="type">Grille</span><span class="duree">compétences évaluées · échelle de maîtrise</span></div>
+        <div class="bloc">
+          <div class="field">
+            <span class="lbl">Compétences (cliquer pour sélectionner)</span>
+            <div class="chips" id="compChips"></div>
+            <p class="hint" id="compHint"></p>
+          </div>
+          <div class="field">
+            <span class="lbl">Ajouter une compétence</span>
+            <div class="add-row">
+              <input id="compCode" class="code-in" type="text" placeholder="Code" maxlength="8">
+              <input id="compLabel" type="text" placeholder="Ex. Exploiter un graphique">
+              <button type="button" class="act" id="compAdd">Ajouter</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl">Échelle de maîtrise</span>
+            <div class="chips" id="chips-echelle"></div>
+          </div>
+        </div>
+      </li>
+
+      <!-- RÈGLES -->
+      <li class="etape" style="--c:var(--red)">
+        <div class="marker" aria-hidden="true"><span>5</span></div>
+        <div class="head"><h2 class="titre">Règles de correction</h2><span class="type">Exigence</span><span class="duree">tolérances et points de vigilance</span></div>
+        <div class="bloc">
+          <div class="field">
+            <span class="lbl">Exigence</span>
+            <div class="chips" id="chips-exigence"></div>
+          </div>
+          <div class="field">
+            <span class="lbl">Options</span>
+            <div class="checks" id="reglesChecks"></div>
+          </div>
+          <div class="field">
+            <label for="consignes">Consignes particulières (optionnel)</label>
+            <textarea id="consignes" placeholder="Ex. accepter g = 9,8 ou 9,81 N/kg ; question 3b hors barème ; ne pas pénaliser l'absence de schéma…"></textarea>
+          </div>
+        </div>
+      </li>
+
+      <!-- COPIES -->
+      <li class="etape" style="--c:var(--purple)">
+        <div class="marker" aria-hidden="true"><span>6</span></div>
+        <div class="head"><h2 class="titre">Copies</h2><span class="type">Envoi</span><span class="duree">format · identification · lots</span></div>
+        <div class="bloc">
+          <div class="grid2">
+            <div class="field">
+              <span class="lbl">Format des copies</span>
+              <div class="chips" id="chips-copies"></div>
+            </div>
+            <div class="field">
+              <span class="lbl">Identification des copies</span>
+              <div class="chips" id="chips-ident"></div>
+            </div>
+          </div>
+          <label class="toggle-line">
+            <input type="checkbox" id="lotsToggle">
+            <span><strong>Envoyer les copies en plusieurs lots</strong>
+            <span class="desc">Pour une classe entière : l'IA attend chaque lot, puis produit le bilan quand tu écris FIN. Les messages de relance sont générés avec le prompt.</span></span>
+          </label>
+          <div class="field" id="lotBox" hidden>
+            <label for="lotTaille">Copies par lot (optionnel)</label>
+            <input id="lotTaille" type="number" min="1" max="40" placeholder="Ex. 8" style="max-width:10rem">
+          </div>
+        </div>
+      </li>
+
+      <!-- RESTITUTION -->
+      <li class="etape" style="--c:var(--olive)">
+        <div class="marker" aria-hidden="true"><span>7</span></div>
+        <div class="head"><h2 class="titre">Restitution</h2><span class="type">Retour</span><span class="duree">par copie et pour la classe</span></div>
+        <div class="bloc">
+          <div class="field">
+            <span class="lbl">Contenu attendu</span>
+            <div class="checks" id="retourChecks"></div>
+          </div>
+          <div class="grid2" id="appBox">
+            <div class="field">
+              <span class="lbl">Longueur de l'appréciation</span>
+              <div class="chips" id="chips-appLong"></div>
+            </div>
+            <div class="field">
+              <span class="lbl">Destinataire de l'appréciation</span>
+              <div class="chips" id="chips-appAdresse"></div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- PROMPT -->
+      <li class="etape" style="--c:var(--ink)">
+        <div class="marker" aria-hidden="true"><span>8</span></div>
+        <div class="head"><h2 class="titre">Prompt</h2><span class="type">Résultat</span><span class="duree">à coller dans Claude, copies jointes</span></div>
+        <div class="bloc">
+          <div class="actions">
+            <button type="submit" class="act primary" id="submitBtn">Générer le prompt</button>
+            <button type="button" class="act" id="resetBtn">Réinitialiser</button>
+            <span class="err" id="formErr" hidden></span>
+          </div>
+
+          <div class="output" id="output" hidden>
+            <h3>Prompt de correction <span class="badge" id="charCount"></span></h3>
+            <pre id="result"></pre>
+            <div class="actions">
+              <button type="button" class="act" data-copy="result">Copier le prompt</button>
+              <span class="copied" data-copied="result" hidden>Copié ✓</span>
+            </div>
+
+            <div id="lotsOut" class="output" hidden>
+              <h3>Message — lot suivant</h3>
+              <pre id="relance"></pre>
+              <div class="actions">
+                <button type="button" class="act" data-copy="relance">Copier</button>
+                <span class="copied" data-copied="relance" hidden>Copié ✓</span>
+              </div>
+              <h3>Message — fin de la correction</h3>
+              <pre id="cloture"></pre>
+              <div class="actions">
+                <button type="button" class="act" data-copy="cloture">Copier</button>
+                <span class="copied" data-copied="cloture" hidden>Copié ✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+    </ol>
+  </main>
+  </form>
 </div>
 
 <script>
@@ -633,8 +672,8 @@
         h.textContent = n > 1 ? 'Sujet ' + LETTRES[i] : 'Sujet';
         d.appendChild(h);
 
-        [['enonce', 'Énoncé (optionnel)', 'Collez l’énoncé, ou laissez vide s’il est joint…'],
-         ['corrige', 'Corrigé / réponses attendues', 'Collez le corrigé : réponses, résultats numériques, éléments attendus…']].forEach(function (f) {
+        [['enonce', 'Énoncé (optionnel)', 'Colle l’énoncé, ou laisse vide s’il est joint…'],
+         ['corrige', 'Corrigé / réponses attendues', 'Colle le corrigé : réponses, résultats numériques, éléments attendus…']].forEach(function (f) {
           var fld = document.createElement('div');
           fld.className = 'field';
           var lab = document.createElement('label');
@@ -737,11 +776,24 @@
     $('baremeTotalField').hidden = noNote;
     $('arrondiField').hidden = noNote;
     $('baremeTable').classList.toggle('no-points', noNote);
+    $('baremeTable').classList.toggle('no-comp', noComp);
     $('baremeLegend').textContent = noNote ? 'Questions et compétences' : 'Barème';
     $('detailLbl').textContent = noNote ? 'Compétence(s) évaluée(s) par question (optionnel)' : 'Barème détaillé (optionnel)';
     var niv = document.querySelector('.check[data-key="niveaux"]');
     if (niv) niv.hidden = noComp;
     updateSum();
+    renumber();
+  }
+
+  // numérotation des étapes visibles (1, 2, 3…)
+  function renumber() {
+    var k = 0;
+    var steps = document.querySelectorAll('.etapes > .etape');
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].hidden) continue;
+      var m = steps[i].querySelector('.marker span');
+      if (m) m.textContent = ++k;
+    }
   }
 
   // ---------- Callbacks ----------
