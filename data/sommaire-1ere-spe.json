@@ -14,7 +14,8 @@
       "num": "01",
       "title": "Dosage par étalonnage",
       "partie": "Partie 2",
-      "hidden": true
+      "file": "1ere-spe/ch01b-dosage/index.html",
+      "hidden": false
     },
     {
       "num": "02",
