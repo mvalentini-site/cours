@@ -2,6 +2,8 @@
   GABARIT DE PAGE CHAPITRE
   1. Copier ce fichier dans NIVEAU/chXX-nom/index.html
   2. Sur <body> : class="niveau-1spe" | "niveau-ens" | "niveau-5e" | "niveau-4e", et data-page="identifiant unique"
+     + "une-colonne en-onglets" : un onglet « Plan & cours » puis un onglet par étape
+       (retirer "en-onglets" pour revenir à la liste verticale)
   3. Dans le bandeau <nav>, poser aria-current="page" sur le bon niveau
   4. Remplacer ID_DRIVE par l'identifiant du fichier (partage : « tous les utilisateurs disposant du lien »)
      - fichier Drive   : https://drive.google.com/file/d/ID/preview
@@ -17,9 +19,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chapitre 1 – Titre du chapitre</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/parcours.css?v=3">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
 </head>
-<body class="niveau-1spe" data-page="NIVEAU-chXX">
+<body class="niveau-1spe une-colonne en-onglets" data-page="NIVEAU-chXX">
 
 <header class="topbar">
   <div class="crumb"><a href="../../index.html#1ere-spe">1re Spé</a><span>/</span><b>Chapitre X</b></div>
@@ -76,8 +78,9 @@
              green = TP · blue = documentaire · brown = lecture
              red = entraînement · purple = atelier · olive = expert · ink = bilan
            Ajouter class="facultatif" sur le <li> pour une étape optionnelle.
+           data-court = libellé court de l'onglet (sinon le titre de l'étape).
       -->
-      <li class="etape" style="--c:var(--green)">
+      <li class="etape" data-court="Activité XA" style="--c:var(--green)">
         <button class="marker" type="button" aria-label="Marquer l'étape 1 comme faite"><span>1</span></button>
         <div class="head"><h2 class="titre">Titre de l'étape</h2><span class="type">TP</span><span class="duree">50 min</span></div>
         <p class="consigne">Consigne courte, une ou deux phrases.</p>
@@ -90,10 +93,13 @@
         </div>
       </li>
 
-      <!-- repère entre deux groupes d'étapes -->
+      <!-- repères (en mode onglets) :
+           li.repere.section       -> nom de partie, affiché en tête des étapes suivantes
+           li.repere simple        -> consigne, rangée dans l'onglet « Plan & cours »
+           li.repere avec <div class="docs"> -> onglet à part (Boîte à outils, Corrigés…), libellé = data-court ou <b> -->
       <li class="repere"><b>Texte en gras,</b> puis la suite.</li>
 
-      <li class="etape" style="--c:var(--red)">
+      <li class="etape" data-court="Exercices" style="--c:var(--red)">
         <button class="marker" type="button" aria-label="Marquer l'étape 2 comme faite"><span>2</span></button>
         <div class="head"><h2 class="titre">Exercices</h2><span class="type">Entraînement</span><span class="duree">45 min</span></div>
         <div class="docs">
@@ -103,7 +109,7 @@
       </li>
 
       <!-- étape sans document : on supprime simplement le <div class="docs"> -->
-      <li class="etape" style="--c:var(--purple)">
+      <li class="etape" data-court="Atelier" style="--c:var(--purple)">
         <button class="marker" type="button" aria-label="Marquer l'étape 3 comme faite"><span>3</span></button>
         <div class="head"><h2 class="titre">Atelier court</h2><span class="type">Atelier</span><span class="duree">15 min</span></div>
         <p class="consigne">Consigne.</p>
@@ -114,6 +120,6 @@
 </div>
 
 
-<script src="../../assets/js/parcours.js?v=3"></script>
+<script src="../../assets/js/parcours.js?v=4"></script>
 </body>
 </html>
