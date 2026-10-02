@@ -398,7 +398,7 @@ body{display:flex;flex-direction:column;}
       <section class="panneau hidden" data-panneau="4" style="--c:var(--brown)">
         <h2 class="titre">Résultats</h2>
         <p class="consigne">Le tableau se remplit à chaque point pointé. Les vitesses et accélérations sont calculées par dérivée centrée : elles n'existent pas pour les points extrêmes.</p>
-          <div class="hint" style="margin:0 0 6px;">Colonnes affichées (5 max) <span class="max-warn hidden" id="max-warn">maximum atteint</span> — Vx, Vy, Ax, Ay sont toujours dans l'export CSV.</div>
+          <div class="hint" style="margin:0 0 6px;">Colonnes affichées <span class="max-warn hidden" id="max-warn"></span> — l'export CSV contient aussi Vx, Vy, Ax, Ay, d et α.</div>
           <div class="col-toggle-bar" id="col-toggle-bar"></div>
           <div class="table-wrap">
             <table>
@@ -503,14 +503,8 @@ const ALL_COLS=[
   {id:'Ec',  label:'Ec',  unit:'J',     gid:'g11', def:false, grp:1, energy:true},
   {id:'Ep',  label:'Ep',  unit:'J',     gid:'g12', def:false, grp:1, energy:true},
   {id:'Em',  label:'Em',  unit:'J',     gid:'g13', def:false, grp:1, energy:true},
-  {id:'d',   label:'d',   unit:'u',     gid:'g9',  def:false, grp:2},
-  {id:'alpha',label:'α',  unit:'°',     gid:'g10', def:false, grp:2},
-  {id:'Vx',  label:'Vx',  unit:'u/s',   gid:'g3',  def:false, grp:2},
-  {id:'Vy',  label:'Vy',  unit:'u/s',   gid:'g4',  def:false, grp:2},
-  {id:'Ax',  label:'Ax',  unit:'u/s²',  gid:'g6',  def:false, grp:2},
-  {id:'Ay',  label:'Ay',  unit:'u/s²',  gid:'g7',  def:false, grp:2},
 ];
-const MAX_EXTRA_COLS=5;
+const MAX_EXTRA_COLS=99; // plus de limite : seules V, A, Ec, Ep, Em sont proposées
 let activeCols=new Set(['V','A']);
 
 function buildColToggles(){
@@ -688,10 +682,13 @@ function finishCalib(){
   const dx=calibPts[1].px-calibPts[0].px,dy=calibPts[1].py-calibPts[0].py;
   const distPx=Math.sqrt(dx*dx+dy*dy);pxPerUnit=distPx/dist;
   originPx={x:calibPts[0].px,y:calibPts[0].py};calibDone=true;
+  // nouvel étalonnage : on recalcule les coordonnées des points déjà pointés (positions écran conservées)
+  points.forEach(p=>{p.xReal=(p.xPx-originPx.x)/pxPerUnit;p.yReal=-(p.yPx-originPx.y)/pxPerUnit;});
   $('pill-calib').textContent='✓ Étalon : '+distPx.toFixed(1)+' px = '+dist+' '+calibUnit;$('pill-calib').className='info-pill ok';
   $('btn-calib-ok').classList.add('hidden');$('btn-calib-reset').disabled=false;$('btn-calib-start').disabled=false;
-  logCalib('Échelle : '+pxPerUnit.toFixed(2)+' px/'+calibUnit);
+  logCalib('Échelle : '+pxPerUnit.toFixed(2)+' px/'+calibUnit+(points.length?' — '+points.length+' point(s) recalculé(s)':''));
   $('btn-point').disabled=(window._crosshair===null);$('btn-add-graph').disabled=false;
+  if(points.length){computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();}
   buildGrandeurs();buildColToggles();refreshTableHeader();drawOverlay();autosave();
   if(ongletActif===2)afficherOnglet(3);
 }
@@ -746,7 +743,7 @@ function computeDerived(){
 // ══ TABLEAU ══
 function refreshTableHeader(){
   const cols=getActiveCols();
-  $('tr-head').innerHTML=`<th>#</th><th>img</th><th>t(s)</th><th>x(${calibUnit})</th><th>y(${calibUnit})</th>`
+  $('tr-head').innerHTML=`<th>img</th><th>t(s)</th><th>x(${calibUnit})</th><th>y(${calibUnit})</th>`
     +cols.map(c=>`<th>${c.label}${c.unit?' ('+c.unit.replace(/u/g,calibUnit)+')':''}</th>`).join('')+'<th></th>';
 }
 function getActiveCols(){return ALL_COLS.filter(c=>activeCols.has(c.id)&&!(c.energy&&!hasMasse()));}
@@ -773,7 +770,7 @@ function refreshTable(){
       const v=getColVal(d,c.id);
       return`<td${(c.id==='V'||c.id==='A')?' style="font-weight:500"':''}>${v!=null&&isFinite(v)?fmtN4(v):'—'}</td>`;
     }).join('');
-    return`<tr><td>${i+1}</td><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
+    return`<tr><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
   }).join('');
 }
 function getColVal(d,id){return{V:d.V,A:d.A,d:d.d,alpha:d.alpha,Ec:d.Ec,Ep:d.Ep,Em:d.Em,Vx:d.Vx,Vy:d.Vy,Ax:d.Ax,Ay:d.Ay}[id];}
@@ -898,14 +895,14 @@ function addGraph(){
   const div=document.createElement('div');div.className='graph-card';div.id='gc-'+id;
   div.innerHTML=`
     <div class="graph-header">
-      <span style="font-size:11px;color:var(--ink3);">X :</span>
+      <span style="font-size:12px;color:var(--ink3);">Abscisse :</span>
       <select class="graph-sel" id="gsel-x-${id}" onchange="setGraphX('${id}',this.value)"></select>
       <div style="margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--ink3);">
-          X<button class="sc-btn" onclick="gScaleStep('${id}','xmin',-1)">−</button><span class="sc-val" id="lbl-${id}-xmin"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','xmax',-1)">−</button><span class="sc-val" id="lbl-${id}-xmax"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmax',+1)">+</button>
+          Abscisse <button class="sc-btn" onclick="gScaleStep('${id}','xmin',-1)">−</button><span class="sc-val" id="lbl-${id}-xmin"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','xmax',-1)">−</button><span class="sc-val" id="lbl-${id}-xmax"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmax',+1)">+</button>
         </div>
         <div style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--ink3);">
-          Y<button class="sc-btn" onclick="gScaleStep('${id}','ymin',-1)">−</button><span class="sc-val" id="lbl-${id}-ymin"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','ymax',-1)">−</button><span class="sc-val" id="lbl-${id}-ymax"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymax',+1)">+</button>
+          Ordonnée <button class="sc-btn" onclick="gScaleStep('${id}','ymin',-1)">−</button><span class="sc-val" id="lbl-${id}-ymin"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','ymax',-1)">−</button><span class="sc-val" id="lbl-${id}-ymax"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymax',+1)">+</button>
         </div>
         <button onclick="gAutoScale('${id}')" style="font-size:10px;padding:3px 7px;">Auto</button>
         <button class="danger" onclick="removeGraph('${id}')" style="font-size:10px;padding:3px 7px;">✕</button>
@@ -962,7 +959,7 @@ function buildSeriesList(gr){
     row.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.4rem;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-        <span style="font-size:10px;color:var(--ink3);">Y :</span>
+        <span style="font-size:12px;color:var(--ink3);">Ordonnée :</span>
         <select class="graph-sel" id="gsel-y-${sid}" onchange="setSerieY('${id}',${si},this.value)"></select>
         ${gr.series.length>1?`<button class="danger" onclick="removeSerie('${id}',${si})" style="font-size:10px;padding:2px 7px;margin-left:auto;">✕</button>`:''}
       </div>

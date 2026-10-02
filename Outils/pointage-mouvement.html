@@ -609,10 +609,13 @@ function finishCalib(){
   const dx=calibPts[1].px-calibPts[0].px,dy=calibPts[1].py-calibPts[0].py;
   const distPx=Math.sqrt(dx*dx+dy*dy);pxPerUnit=distPx/dist;
   originPx={x:calibPts[0].px,y:calibPts[0].py};calibDone=true;
+  // nouvel étalonnage : on recalcule les coordonnées des points déjà pointés (positions écran conservées)
+  points.forEach(p=>{p.xReal=(p.xPx-originPx.x)/pxPerUnit;p.yReal=-(p.yPx-originPx.y)/pxPerUnit;});
   $('pill-calib').textContent='✓ Étalon : '+distPx.toFixed(1)+' px = '+dist+' '+calibUnit;$('pill-calib').className='info-pill ok';
   $('btn-calib-ok').classList.add('hidden');$('btn-calib-reset').disabled=false;$('btn-calib-start').disabled=false;
-  logCalib('Échelle : '+pxPerUnit.toFixed(2)+' px/'+calibUnit);
+  logCalib('Échelle : '+pxPerUnit.toFixed(2)+' px/'+calibUnit+(points.length?' — '+points.length+' point(s) recalculé(s)':''));
   $('btn-point').disabled=(window._crosshair===null);$('btn-add-graph').disabled=false;
+  if(points.length){computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();}
   buildGrandeurs();buildColToggles();refreshTableHeader();drawOverlay();autosave();
 }
 function logCalib(m){$('log-calib').textContent=m;}
