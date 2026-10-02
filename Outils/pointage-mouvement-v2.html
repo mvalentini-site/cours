@@ -344,16 +344,16 @@ body{display:flex;flex-direction:column;}
 
       <section class="panneau hidden" data-panneau="2" style="--c:var(--blue)">
         <h2 class="titre">Étalonnage et paramètres</h2>
-              <p class="consigne">Clique <b>Étalonner</b>, puis sur deux points de la vidéo dont tu connais la distance réelle. Le premier devient l'origine O du repère (axe y vers le haut).</p>
+              <p class="consigne">Clique sur deux points de la vidéo dont tu connais la distance réelle, indique cette distance, puis clique <b>✓ Valider</b>. Le premier point devient l'origine O du repère (axe y vers le haut). Un 3<sup>e</sup> clic remplace le point le plus ancien.</p>
               <div class="param-row">
                 <div class="field"><label>Distance réelle</label><input type="number" id="calib-dist" value="1" min="0.001" step="any" style="width:100px;"></div>
                 <div class="field"><label>Unité</label><input type="text" id="calib-unite" value="m" style="width:64px;min-width:0;"></div>
                 <div class="field"><label>Masse (kg)</label><input type="number" id="masse" value="" min="0" step="any" placeholder="optionnel" style="width:104px;"></div>
               </div>
               <div class="row">
-                <button id="btn-calib-start" disabled>Étalonner</button>
+                <button id="btn-calib-start" class="hidden" disabled>Étalonner</button>
                 <button id="btn-calib-ok" class="ok-btn hidden" disabled>✓ Valider</button>
-                <button id="btn-calib-reset" class="danger" disabled>Réinitialiser</button>
+                <button id="btn-calib-reset" class="danger" disabled>Recommencer l'étalonnage</button>
               </div>
               <div id="pill-calib" class="info-pill warn" style="margin-top:12px;">Vidéo non chargée</div>
               <div class="log-line" id="log-calib"></div>
@@ -578,7 +578,7 @@ function initVideoSrc(src, label){
     $('pill-video').textContent=(label||'Vidéo chargée')+' · '+fmtTime(duration);$('pill-video').className='info-pill ok';
     $('btn-calib-start').disabled=false;$('btn-prev').disabled=false;$('btn-next').disabled=false;
     updatePillFrame();$('pill-calib').textContent='Clique "Étalonner" puis sélectionne 2 points.';$('pill-calib').className='info-pill warn';
-    updateSteps();if(ongletActif===1)afficherOnglet(2);
+    updateSteps();if(ongletActif<=2)afficherOnglet(2);
   },{once:true});
   vid.addEventListener('error',()=>{$('pill-video').textContent='Format non supporté — convertis en MP4';$('pill-video').className='info-pill err';},{once:true});
 }
@@ -658,7 +658,7 @@ function handleVideoClick(e){
     calibPts.push({px,py});
     if(calibPts.length>2){calibPts.shift();logCalib('Nouveau point : le plus ancien a été remplacé.');}
     else logCalib('Point étalon '+calibPts.length+' enregistré.');
-    const n=calibPts.length;
+    const n=calibPts.length;$('btn-calib-reset').disabled=false;
     if(n===1){$('pill-calib').textContent='Clique le point 2…';}
     else if(n===2){$('btn-calib-ok').classList.remove('hidden');$('btn-calib-ok').disabled=false;$('pill-calib').textContent='2 points — clique ✓ Valider.';$('pill-calib').className='info-pill warn';}
     drawOverlay();return;
@@ -1640,11 +1640,26 @@ $('btn-reset-all').addEventListener('click',()=>{
 // ══ PROGRESSION DES ÉTAPES ══
 // ══ ONGLETS ══
 let ongletActif=1;
+function demarrerEtalonnage(){
+  if(!videoLoaded||calibDone)return;
+  calibMode=true;window._crosshair=null;$('btn-point').disabled=true;
+  const k=calibPts.length;
+  $('pill-calib').textContent=k===0?'Clique le point 1 sur la vidéo…':k===1?'Clique le point 2…':'2 points — indique la distance puis clique ✓ Valider.';
+  $('pill-calib').className='info-pill warn';
+  if(k>=2){$('btn-calib-ok').classList.remove('hidden');$('btn-calib-ok').disabled=false;}
+  $('btn-calib-reset').disabled=k===0;
+  drawOverlay();
+}
+// « Recommencer » : en onglet 2, on reprend directement les clics d'étalonnage
+$('btn-calib-reset').addEventListener('click',()=>{if(ongletActif===2)demarrerEtalonnage();});
 function afficherOnglet(n){
   ongletActif=n;
   const app=$('app');app.dataset.onglet=n;app.classList.toggle('large',n>=4);
   document.querySelectorAll('.onglet').forEach(b=>{const on=+b.dataset.onglet===n;b.classList.toggle('actif',on);b.setAttribute('aria-selected',on);});
   document.querySelectorAll('.panneau').forEach(p=>p.classList.toggle('hidden',+p.dataset.panneau!==n));
+  // onglet 2 : les clics sur la vidéo placent directement les points d'étalonnage
+  if(n===2)demarrerEtalonnage();
+  else if(calibMode&&!calibDone){calibMode=false;drawOverlay();}
   if(n<=3&&videoLoaded)resizeCanvases();
   if(n===5)requestAnimationFrame(()=>graphs.forEach(gr=>drawGraph(gr)));
 }
