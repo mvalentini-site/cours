@@ -115,7 +115,7 @@ input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-rad
 .carte .param-row{margin-bottom:10px;}
 .nav-video{padding:12px 16px 14px;}
 .nav-video #scrubber{margin:0 0 8px;}
-.nav-video #nav-bar{gap:6px;flex-wrap:nowrap;}
+.nav-video #nav-bar{gap:6px;flex-wrap:wrap;}
 .nav-video #nav-bar button{padding:7px 12px;}
 .nav-video .info-pill{padding:5px 8px;font-size:12px;white-space:nowrap;}
 .compteur{margin-left:auto;font-size:13px;color:var(--faded);font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -216,14 +216,14 @@ body{display:flex;flex-direction:column;}
 .ou{font-size:14px;font-weight:600;color:var(--faded);margin:10px 0;}
 
 #video-placeholder{width:100%;max-width:760px;}
-#video-container{max-width:100%;max-height:100%;display:flex;}
+#video-container{max-width:100%;max-height:100%;display:flex;flex-direction:column;}
 #video-wrap{display:inline-block;max-width:100%;background:transparent;}
 #video-wrap video{width:auto;height:auto;max-width:100%;}
 
-.nav-video{margin-top:auto;padding-top:14px;border-top:1px solid var(--rule);}
-.zone-cote .panneau + .nav-video{margin-top:auto;}
+.zone-video .nav-video{margin-top:10px;padding:0;}
+.zone-video .nav-video .info-pill{background:var(--surface);border:1px solid var(--rule);}
 .nav-video #scrubber{margin:0 0 8px;}
-.nav-video #nav-bar{gap:6px;flex-wrap:nowrap;}
+.nav-video #nav-bar{gap:6px;flex-wrap:wrap;}
 .nav-video #nav-bar button{padding:7px 12px;}
 .nav-video .info-pill{padding:5px 8px;font-size:12px;white-space:nowrap;}
 
@@ -302,6 +302,16 @@ body{display:flex;flex-direction:column;}
           <canvas id="overlay-canvas"></canvas>
           <canvas id="click-canvas"></canvas>
         </div>
+        <!-- navigation dans la vidéo, sous la vidéo -->
+          <div class="nav-video hidden" id="nav-video">
+            <input type="range" id="scrubber" min="0" value="0" step="1">
+            <div id="nav-bar">
+              <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
+              <button id="btn-next" disabled aria-label="Image suivante">▶</button>
+              <span class="info-pill" id="pill-frame">Image — / —</span>
+              <span class="info-pill" id="pill-time">t = — s</span>
+            </div>
+          </div>
       </div>
     </div>
 
@@ -380,16 +390,6 @@ body{display:flex;flex-direction:column;}
               </details>
       </section>
 
-      <!-- navigation dans la vidéo -->
-      <div class="nav-video hidden" id="nav-video">
-        <input type="range" id="scrubber" min="0" value="0" step="1">
-        <div id="nav-bar">
-          <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
-          <button id="btn-next" disabled aria-label="Image suivante">▶</button>
-          <span class="info-pill" id="pill-frame">Image — / —</span>
-          <span class="info-pill" id="pill-time">t = — s</span>
-        </div>
-      </div>
     </div>
 
     <!-- panneaux pleine largeur (onglets 4 à 6) -->
@@ -617,18 +617,21 @@ function updatePillFrame(){
   const tRel=t0!==null?currentFrame/fps-t0:currentFrame/fps;
   $('pill-time').textContent='t = '+fmtT(tRel)+' s';
 }
+// taille maximale d'affichage de la vidéo (en pixels écran)
+const VIDEO_MAX_W=800,VIDEO_MAX_H=600;
 function resizeCanvases(){
   const vid=$('vid');
   requestAnimationFrame(()=>{
     if(!vid.offsetWidth)return; // vidéo masquée (onglets 4 à 6) : on garde la taille actuelle
-    // la vidéo occupe toute sa zone (sans déformation)
+    // taille de la vidéo : tient dans sa zone (barre de défilement comprise), sans dépasser VIDEO_MAX_W × VIDEO_MAX_H
     const z=document.querySelector('.zone-video');
     if(z&&vid.videoWidth){
-      const cs=getComputedStyle(z);
+      const cs=getComputedStyle(z),nav=$('nav-video');
+      const navH=(nav&&nav.offsetHeight?nav.offsetHeight:80)+10;
       const W=z.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
-      const H=window.innerWidth<=1000?window.innerHeight*0.7:z.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+      const H=(window.innerWidth<=1000?window.innerHeight*0.7:z.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-navH);
       const r=vid.videoWidth/vid.videoHeight;
-      vid.style.width=Math.floor(Math.min(W,H*r))+'px';
+      vid.style.width=Math.floor(Math.min(W,H*r,VIDEO_MAX_W,VIDEO_MAX_H*r))+'px';
     }
     const w=vid.offsetWidth,h=vid.offsetHeight;
     ['overlay-canvas','click-canvas'].forEach(id=>{const cv=$(id);cv.width=w;cv.height=h;cv.style.width=w+'px';cv.style.height=h+'px';});
