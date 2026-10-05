@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dosage par étalonnage – échelle de teintes et colorimètre</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css?v=4">
+<style>
+body{--accent:var(--blue);--crumb:#a9c4ea;}
+main{min-width:0}
+.panneau h2{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.015em;line-height:1.15;margin-bottom:8px;}
+.panneau p{font-size:16px;max-width:76ch;margin-bottom:12px;color:var(--ink);}
+.panneau p.sous{color:var(--faded);font-size:15px;}
+.panneau h3{font-size:17px;font-weight:600;margin-bottom:10px;}
+
+.grille{display:grid;gap:16px;margin:16px 0;align-items:start;}
+.grille.deux{grid-template-columns:1.45fr .55fr;}
+.grille.moitie{grid-template-columns:1fr 1fr;}
+@media(max-width:900px){.grille.deux,.grille.moitie{grid-template-columns:1fr;}}
+.carte{background:var(--paper);border:1px solid var(--rule);padding:16px 18px;}
+.carte.clair{background:#fffdf6;}
+
+/* choix du dosage */
+.scenario{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--paper);border:1px solid var(--rule);
+  padding:12px 16px;margin-bottom:14px;}
+.scenario > span{font-size:14px;color:var(--faded);}
+.especes{display:flex;flex-wrap:wrap;gap:8px;}
+.esp{display:flex;align-items:center;gap:9px;font:inherit;font-size:15px;padding:7px 13px 7px 8px;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left;line-height:1.2;}
+.esp:hover,.esp:focus-visible{border-color:var(--ink);outline:none;}
+.esp .flacon{width:16px;height:22px;border:1.5px solid rgba(28,18,8,.45);border-top-width:4px;border-radius:2px 2px 5px 5px;flex-shrink:0;}
+.esp small{display:block;font-size:12px;color:var(--faded);}
+.esp.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.esp.on small{color:#c9bfa8;}
+.esp.on .flacon{border-color:rgba(246,241,228,.7);}
+.esp .mesure{font-size:11px;color:var(--green);font-weight:600;}
+.esp.on .mesure{color:#b7dcc0;}
+
+.champ{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);margin-bottom:12px;}
+.champ select{font:inherit;font-size:15px;color:var(--ink);padding:6px 9px;border:1px solid rgba(28,18,8,.22);background:#fff;border-radius:3px;}
+.coche{display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer;margin:4px 0;}
+.coche input{accent-color:var(--accent);width:16px;height:16px;}
+
+/* dessins */
+.appareil{background:var(--paper);border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
+.appareil svg{display:block;width:100%;height:auto;}
+#liquide{transform-box:fill-box;transform-origin:50% 100%;transition:transform .45s ease;}
+
+/* réglage de λ */
+.lambda-bloc{margin-top:16px;}
+.filtres{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+@media(max-width:620px){.filtres{grid-template-columns:repeat(4,1fr);}}
+.filtre{font:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 4px 8px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--rule);border-radius:4px;color:var(--ink);position:relative;}
+.filtre .sw{width:100%;max-width:64px;height:10px;border-radius:2px;}
+.filtre b{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1;}
+.filtre small{font-size:12px;color:var(--faded);}
+.filtre:hover,.filtre:focus-visible{border-color:var(--ink);outline:none;}
+.filtre.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.filtre.on small{color:#c9bfa8;}
+.filtre .zero{position:absolute;top:3px;right:5px;font-size:10px;font-weight:700;color:var(--green);}
+.filtre.on .zero{color:#b7dcc0;}
+
+.boutons{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+.btn{font:inherit;font-size:15px;padding:8px 16px;border:1px solid var(--rule);background:var(--surface);
+  color:var(--ink);cursor:pointer;border-radius:4px;}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--ink);outline:none;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn.plein{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600;}
+.btn.plein:hover:not(:disabled){filter:brightness(1.15);}
+.btn.vert{background:var(--green);border-color:var(--green);color:var(--paper);font-weight:600;}
+.btn.vert:hover:not(:disabled){filter:brightness(1.15);}
+.btn.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;}
+.stat{background:var(--surface);border:1px solid var(--rule);padding:9px 12px;}
+.stat .k{font-size:12px;color:var(--faded);line-height:1.3;}
+.stat .v{font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:2px;display:flex;align-items:center;gap:8px;}
+.stat .v.txt{font-size:15px;font-weight:600;letter-spacing:0;}
+.stat .u{font-size:12px;color:var(--faded);font-weight:400;}
+.stat.alerte{border-color:#c7781a;background:#fff4e0;}
+.pastille{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(28,18,8,.3);flex-shrink:0;}
+
+canvas{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid var(--rule);touch-action:none;cursor:crosshair;}
+.legende{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--faded);margin-top:10px;}
+.legende span{display:flex;align-items:center;gap:6px;}
+.trait{width:18px;height:3px;border-radius:2px;display:inline-block;}
+
+.tab-wrap{overflow:auto;border:1px solid var(--rule);background:#fff;}
+table.tab{border-collapse:collapse;font-size:14.5px;width:100%;font-variant-numeric:tabular-nums;}
+table.tab th,table.tab td{border:1px solid var(--rule);padding:5px 10px;text-align:right;}
+table.tab th{background:var(--paper2);font-weight:600;font-size:13px;}
+table.tab th:first-child,table.tab td:first-child{text-align:left;}
+table.tab td.vide{color:var(--faded2);}
+table.tab tr.courant td{background:#fff6d8;}
+table.tab tr.inc td{border-top:2px solid var(--ink);}
+table.tab input{font:inherit;font-size:14.5px;width:64px;text-align:right;padding:3px 5px;border:1px solid rgba(28,18,8,.25);border-radius:3px;background:#fff;}
+table.tab input:focus{outline:2px solid rgba(28,61,110,.35);}
+table.prepa th{text-align:center;}
+table.prepa td{text-align:center;}
+.cache{color:var(--faded2);letter-spacing:.1em;}
+.petit{font-size:13px;color:var(--faded);margin-top:8px;}
+.astuce{margin:14px 0 0;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;max-width:84ch;}
+.astuce b{font-weight:600;}
+.msg{font-size:14px;min-height:20px;margin-top:6px;color:var(--green);}
+.msg.err{color:var(--red);}
+.alerte-txt{font-size:14px;color:#9a5410;margin-top:8px;}
+
+.resultats{margin-top:12px;}
+.resultats dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;align-items:baseline;}
+.resultats dt{color:var(--faded);}
+.resultats dd{font-weight:600;font-variant-numeric:tabular-nums;}
+.resultats .gros{font-size:20px;font-weight:800;}
+.formule{font-size:13px;color:var(--faded);font-weight:400;}
+
+.dilution{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;}
+
+@media print{
+  .topbar,.onglets,.boutons,.lambda-bloc,.scenario,.msg{display:none!important;}
+  .panneau[hidden]{display:block!important;}
+}
+</style>
+</head>
+<body class="une-colonne en-onglets">
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Dosage par étalonnage</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Outil · Dosage par étalonnage · 1re Spé</div>
+    <h1>Dosage par étalonnage</h1>
+    <div class="meta">Préparer une échelle de teintes, mesurer les absorbances au colorimètre, tracer la droite
+      d'étalonnage A = f(C) et en déduire la concentration d'une solution inconnue.<br>
+      TP Dosage du Dakin · TP Dosage de la Bétadine</div>
+  </aside>
+
+<main>
+
+  <div class="scenario">
+    <span>Dosage :</span>
+    <div class="especes" id="scenarios"></div>
+  </div>
+
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-prepa" style="--c:var(--green)">
+      <span class="num">1</span><span class="lib">Échelle de teintes</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-mesure" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mesures au colorimètre</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-courbe" style="--c:var(--red)">
+      <span class="num">3</span><span class="lib">Courbe d'étalonnage</span></button>
+  </div>
+
+  <!-- ══════════════ ONGLET 1 : ÉCHELLE DE TEINTES ══════════════ -->
+  <section class="panneau" id="p-prepa" role="tabpanel">
+    <h2>Préparer les solutions étalons</h2>
+    <p id="prepa_txt"></p>
+
+    <div class="appareil">
+      <svg id="svgTubes" viewBox="0 0 1000 300" role="img" aria-label="Solution mère, échelle de teintes et solution à doser"
+           font-family="'Bricolage Grotesque',system-ui,sans-serif"></svg>
+    </div>
+
+    <div class="grille deux">
+      <div class="carte clair">
+        <h3>Tableau de dilution</h3>
+        <div class="tab-wrap"><table class="tab prepa" id="tabPrepa"></table></div>
+        <label class="coche" style="margin-top:10px"><input type="checkbox" id="voirCalc"> Afficher le facteur de dilution et la concentration (correction)</label>
+        <p class="petit">Les volumes de solution mère sont modifiables : la teinte du tube change, et la mesure déjà faite sur ce tube est effacée.</p>
+      </div>
+      <div class="carte">
+        <h3>Relations utiles</h3>
+        <p style="font-size:15px;margin-bottom:8px">Facteur de dilution :<br><b>F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>mère</sub></b></p>
+        <p style="font-size:15px;margin-bottom:8px">Volume d'eau à ajouter :<br><b>V<sub>eau</sub> = V<sub>fille</sub> − V<sub>mère</sub></b></p>
+        <p style="font-size:15px;margin-bottom:0">Concentration de la solution fille :<br><b>C<sub>fille</sub> = C<sub>mère</sub> / F</b></p>
+      </div>
+    </div>
+
+    <div class="carte" id="blocDilution" hidden>
+      <h3>Diluer la Bétadine avant la mesure</h3>
+      <p style="font-size:15px">La Bétadine commerciale est bien plus foncée que la solution S5 : son absorbance sort de
+        l'échelle de teintes (et même de l'appareil). On la dilue dans une fiole jaugée de 200,0 mL.</p>
+      <div class="champ" style="margin-bottom:4px"><span>Facteur de dilution choisi</span></div>
+      <div class="dilution" id="dilutions"></div>
+      <p class="petit" id="dil_txt"></p>
+    </div>
+  </section>
+
+  <!-- ══════════════ ONGLET 2 : MESURES ══════════════ -->
+  <section class="panneau" id="p-mesure" role="tabpanel" hidden>
+    <h2>Mesurer les absorbances</h2>
+    <p class="sous">Placer une cuve dans le colorimètre, choisir la longueur d'onde, faire le blanc avec l'eau distillée,
+      puis noter l'absorbance. <b>Le blanc doit être refait à chaque changement de longueur d'onde.</b></p>
+
+    <h3 style="margin-top:6px">Cuve placée dans le colorimètre</h3>
+    <div class="especes" id="cuves" style="margin-bottom:14px"></div>
+
+    <div class="appareil">
+    <svg id="svg" viewBox="0 0 1000 300" role="img" aria-label="Schéma du colorimètre : source, filtre coloré, cuve, détecteur et affichage de l'absorbance"
+         font-family="'Bricolage Grotesque',system-ui,sans-serif">
+      <defs>
+        <radialGradient id="gLampe"><stop offset="0" stop-color="#fff6c8"/><stop offset=".4" stop-color="#ffe58a" stop-opacity=".75"/>
+          <stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+        <linearGradient id="gCuve" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" id="gc0" stop-color="#0f0"/><stop offset="1" id="gc1" stop-color="#0f0"/></linearGradient>
+        <linearGradient id="gVerre" x1="0" x2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".25" stop-color="#fff" stop-opacity=".1"/>
+          <stop offset=".8" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".5"/></linearGradient>
+        <filter id="flou" x="-10%" y="-300%" width="120%" height="700%"><feGaussianBlur stdDeviation="4"/></filter>
+        <clipPath id="clipMono"><rect x="172" y="112" width="136" height="116"/></clipPath>
+      </defs>
+
+      <text x="26" y="34" fill="#1c1208" font-size="16" font-weight="600">Colorimètre</text>
+      <text x="26" y="52" fill="#87704c" font-size="12.5">vue en coupe : le trajet de la lumière</text>
+
+      <rect x="18" y="64" width="676" height="220" rx="6" fill="#ede7d3" stroke="rgba(28,18,8,.16)"/>
+      <line x1="40" y1="232" x2="672" y2="232" stroke="rgba(28,18,8,.12)" stroke-width="1"/>
+
+      <circle cx="70" cy="170" r="36" fill="url(#gLampe)"/>
+      <circle cx="70" cy="170" r="12" fill="#fffbe8" stroke="#c9a640" stroke-width="1.5"/>
+      <path d="M64 170 q3 -6 6 0 t6 0" stroke="#c08a10" stroke-width="1.5" fill="none"/>
+      <rect x="92" y="165" width="84" height="10" fill="#fffdf2" stroke="#d6c58e" stroke-width="1"/>
+
+      <rect x="170" y="110" width="140" height="120" rx="4" fill="#fffdf6" stroke="#87704c" stroke-width="1.5"/>
+      <rect x="172" y="166" width="58" height="8" fill="#fffdf2" stroke="#d6c58e" stroke-width="1"/>
+      <g clip-path="url(#clipMono)"><g id="barillet" style="transition:transform .35s ease"></g></g>
+
+      <rect id="f1g" x="250" y="163" width="154" height="14" filter="url(#flou)" opacity=".4"/>
+      <rect id="f1" x="250" y="166" width="154" height="8"/>
+      <text id="t_lam" x="352" y="150" text-anchor="middle" font-size="14" font-weight="600">λ = 525 nm</text>
+
+      <rect id="liquide" x="410" y="132" width="52" height="102" fill="#888"/>
+      <rect x="404" y="166" width="64" height="8" fill="url(#gCuve)"/>
+      <rect x="404" y="104" width="64" height="134" rx="2" fill="url(#gVerre)" stroke="#5f4e33" stroke-opacity=".7" stroke-width="1.5"/>
+      <text id="t_cuve" x="436" y="96" text-anchor="middle" font-size="13" font-weight="600" fill="#1c1208">eau</text>
+
+      <rect id="f2g" x="468" y="163" width="122" height="14" filter="url(#flou)"/>
+      <rect id="f2" x="468" y="166" width="122" height="8"/>
+      <rect x="468" y="166" width="122" height="8" fill="none" stroke="rgba(28,18,8,.12)" stroke-dasharray="3 3"/>
+      <text id="t_trans" x="529" y="150" text-anchor="middle" font-size="13.5" fill="#5f4e33">transmise : 100 %</text>
+
+      <rect x="590" y="138" width="36" height="64" rx="3" fill="#e3dcc8" stroke="#87704c" stroke-width="1.5"/>
+      <rect x="588" y="158" width="7" height="24" fill="#4d6275"/>
+      <path d="M626 170 H 712" stroke="#87704c" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+
+      <g fill="#5f4e33" font-size="12.5" text-anchor="middle">
+        <text x="70" y="254">source de</text><text x="70" y="269">lumière blanche</text>
+        <text x="240" y="254">filtre coloré</text><text x="240" y="269">(choix de λ)</text>
+        <text x="436" y="258">cuve</text>
+        <text x="608" y="254">détecteur</text>
+      </g>
+
+      <rect x="712" y="64" width="270" height="220" rx="8" fill="#fdfaf0" stroke="rgba(28,18,8,.22)" stroke-width="1.5"/>
+      <rect x="726" y="80" width="242" height="110" rx="4" fill="#c9d4b4" stroke="#9aa685"/>
+      <text x="738" y="102" font-size="13" font-weight="600" fill="#4a5640">ABSORBANCE</text>
+      <text id="lcdA" x="956" y="172" text-anchor="end" font-size="60" font-weight="600" fill="#1b2416"
+            font-family="ui-monospace,Consolas,'Courier New',monospace">0,000</text>
+      <rect x="726" y="198" width="242" height="38" rx="4" fill="#c9d4b4" stroke="#9aa685"/>
+      <text x="738" y="223" font-size="15" font-weight="600" fill="#4a5640">λ</text>
+      <text id="lcdL" x="956" y="225" text-anchor="end" font-size="22" font-weight="600" fill="#1b2416"
+            font-family="ui-monospace,Consolas,'Courier New',monospace">525 nm</text>
+      <circle id="led" cx="736" cy="261" r="5" fill="#3fae52"/>
+      <text id="ledTxt" x="748" y="265" font-size="12" fill="#87704c">blanc fait</text>
+      <g id="btnZero" style="cursor:pointer">
+        <rect x="900" y="248" width="68" height="26" rx="13" fill="#1c1208"/>
+        <text x="934" y="266" text-anchor="middle" font-size="13" font-weight="700" fill="#f6f1e4">ZÉRO</text>
+      </g>
+    </svg>
+    </div>
+
+    <div class="lambda-bloc">
+      <div class="champ" style="margin-bottom:6px"><span>Longueur d'onde du colorimètre (✓ 0 = blanc fait à cette longueur d'onde)</span></div>
+      <div class="filtres" id="filtres" role="radiogroup" aria-label="Longueur d'onde"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Cuve</div><div class="v txt"><i class="pastille" id="s_cp"></i><span id="s_cuve">—</span></div></div>
+      <div class="stat"><div class="k">Longueur d'onde</div><div class="v" id="s_l">—</div></div>
+      <div class="stat"><div class="k">Absorbance affichée</div><div class="v" id="s_a">—</div></div>
+      <div class="stat" id="s_blanc_box"><div class="k">Blanc à cette λ</div><div class="v txt" id="s_blanc">—</div></div>
+    </div>
+
+    <div class="boutons">
+      <button class="btn vert" id="b_blanc" type="button">Faire le blanc (régler A = 0)</button>
+      <button class="btn plein" id="b_noter" type="button">Noter la mesure</button>
+      <button class="btn" id="b_balayer" type="button">Spectre de la solution à doser (7 λ, blanc refait)</button>
+    </div>
+    <div class="msg" id="msgM"></div>
+
+    <div class="grille moitie">
+      <div class="carte clair">
+        <h3>Spectre de la solution à doser</h3>
+        <div class="tab-wrap"><table class="tab" id="tabSpectre"></table></div>
+        <p class="petit">La longueur d'onde de travail est celle pour laquelle l'absorbance est la plus élevée.</p>
+      </div>
+      <div class="carte clair">
+        <h3>Absorbances notées <span id="tabMes_l" style="font-weight:400;color:var(--faded);font-size:14px"></span></h3>
+        <div class="tab-wrap"><table class="tab" id="tabMes"></table></div>
+        <div class="boutons" style="margin-top:10px">
+          <button class="btn" id="b_effacerM" type="button">Effacer toutes les mesures</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ ONGLET 3 : COURBE ══════════════ -->
+  <section class="panneau" id="p-courbe" role="tabpanel" hidden>
+    <h2>Droite d'étalonnage et concentration inconnue</h2>
+    <p class="sous" id="courbe_txt"></p>
+
+    <div class="grille deux" style="margin-top:6px">
+      <div class="carte">
+        <h3 id="g_titre">A = f(C)</h3>
+        <canvas id="cvC" width="860" height="470"></canvas>
+        <div class="legende">
+          <span><i class="pastille" style="background:#fff;width:12px;height:12px;border:2px solid #1c1208"></i> solutions étalons</span>
+          <span><i class="trait" style="background:#1c3d6e"></i> droite d'étalonnage</span>
+          <span><i class="trait" style="background:#a63020"></i> solution à doser</span>
+          <span style="margin-left:auto">survoler le graphique pour lire les coordonnées</span>
+        </div>
+      </div>
+      <div class="carte clair">
+        <div class="champ"><span>Mesures faites à la longueur d'onde</span><select id="selL"></select></div>
+        <div class="tab-wrap"><table class="tab" id="tabCourbe"></table></div>
+        <div class="boutons" style="margin-top:10px">
+          <button class="btn" id="b_copier" type="button">Copier le tableau</button>
+        </div>
+        <div class="msg" id="msgC"></div>
+        <label class="coche"><input type="checkbox" id="voirDroite"> Tracer la droite passant par l'origine</label>
+        <label class="coche"><input type="checkbox" id="voirInc"> Placer la solution à doser sur la droite</label>
+        <div id="alertes" class="alerte-txt"></div>
+      </div>
+    </div>
+
+    <div class="carte">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">Exploitation</h3>
+        <button class="btn" id="b_res" type="button">Afficher les résultats</button>
+      </div>
+      <div class="resultats" id="resultats" hidden></div>
+    </div>
+
+    <div class="astuce">Pour calculer le coefficient directeur <b>k</b> à la main, choisir deux points M<sub>1</sub>(C<sub>1</sub> ; A<sub>1</sub>)
+      et M<sub>2</sub>(C<sub>2</sub> ; A<sub>2</sub>) <b>sur la droite</b>, éloignés l'un de l'autre (pas forcément des points de mesure) :
+      k = (A<sub>2</sub> − A<sub>1</sub>) / (C<sub>2</sub> − C<sub>1</sub>). Puis C = A / k.</div>
+  </section>
+
+</main>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const LAMBDAS=[470,525,570,590,605,626,660];
+const C={ink:'#1c1208',faded:'#5f4e33',faded2:'#87704c',blue:'#1c3d6e',red:'#a63020',green:'#2a5c3a',grid:'#e3dcc8',grid2:'#efe8d6'};
+const FONT="'Bricolage Grotesque',system-ui,sans-serif";
+const fmt=(x,d=0)=>x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SAT=2.5;   /* au-delà, le détecteur ne reçoit plus assez de lumière */
+function hidpi(cv){
+  const r=window.devicePixelRatio||1;
+  if(cv.dataset.hd!=='1'){cv.dataset.w=cv.width;cv.dataset.h=cv.height;cv.width*=r;cv.height*=r;cv.dataset.hd='1';}
+  const ctx=cv.getContext('2d');ctx.setTransform(r,0,0,r,0,0);
+  return {ctx,w:+cv.dataset.w,h:+cv.dataset.h};
+}
+/* nombre pseudo-aléatoire reproductible dans [-1 ; 1] */
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return ((h>>>0)%100000)/50000-1;}
+const graine=String(Date.now());
+
+/* ═════════ SPECTRES D'ABSORPTION (forme) ═════════ */
+const g=(l,mu,s1,s2=s1)=>{const s=l<mu?s1:s2;const u=(l-mu)/s;return Math.exp(-.5*u*u);};
+const KMN=l=>0.33*g(l,490,13)+0.62*g(l,507,10)+0.95*g(l,526,11)+0.92*g(l,546,11)+0.50*g(l,566,10)
+  +0.13*g(l,586,12)+0.18*g(l,530,42)+0.62*g(l,311,13)+0.58*g(l,347,16);
+/* diiode (ions triiodure en solution) : absorption forte dans l'UV et le bleu, d'où la couleur brun-orangé */
+const I2=l=>1.6*g(l,352,24)+1.1*g(l,290,16)+0.62*g(l,455,48,62);
+
+/* ═════════ LES DEUX DOSAGES ═════════ */
+const SCENARIOS=[
+  { id:'dakin', nom:'Eau de Dakin', sous:'ions permanganate MnO₄⁻',
+    forme:KMN, lref:525, k:15.2,            /* A = k × C à λref, C en g/L, cuve de 1 cm */
+    grandeur:'concentration en masse', sym:'C<sub>m</sub>', symTxt:'Cm',
+    unite:'g·L⁻¹', uniteTxt:'g/L', kUnite:'L·g⁻¹', dec:4,
+    C0:0.031, mere:'Solution mère S<sub>0</sub> de permanganate de potassium : C<sub>m0</sub> = 0,031 g·L⁻¹',
+    Vf:10, Vm:[1,2,4,6,8],
+    ref:0.010, refTxt:'étiquette : 0,0010 g de permanganate de potassium pour 100 mL, soit C<sub>m</sub> = 0,010 g·L⁻¹'
+  },
+  { id:'betadine', nom:'Bétadine', sous:'diiode I₂',
+    forme:I2, lref:470, k:0.0375,           /* C en mmol/L */
+    grandeur:'concentration en quantité de matière', sym:'C', symTxt:'C',
+    unite:'mmol·L⁻¹', uniteTxt:'mmol/L', kUnite:'L·mmol⁻¹', dec:1,
+    C0:80.0, mere:'Solution mère S<sub>0</sub> de diiode : C<sub>0</sub> = 80,0 mmol·L⁻¹',
+    Vf:10, Vm:[1,2,3,4,5],
+    M:253.8, d:1.01, Pref:10,
+    refTxt:'étiquette : Bétadine dermique 10 % — 10 % en masse de diiode ; M(I<sub>2</sub>) = 253,8 g·mol⁻¹ ; d = 1,01'
+  }
+];
+const DILUTIONS=[10,20,50,100];
+
+/* ═════════ COULEURS ═════════ */
+function lambdaRGB(l){
+  let r=0,gg=0,b=0;
+  if(l<440){r=-(l-440)/60;b=1;}
+  else if(l<490){gg=(l-440)/50;b=1;}
+  else if(l<510){gg=1;b=-(l-510)/20;}
+  else if(l<580){r=(l-510)/70;gg=1;}
+  else if(l<645){r=1;gg=-(l-645)/65;}
+  else r=1;
+  let f=1;
+  if(l<420) f=.35+.65*(l-380)/40;
+  else if(l>700) f=Math.max(.18,.35+.65*(780-l)/80);
+  const c=v=>Math.round(255*Math.pow(Math.max(0,v*f),.8));
+  return [c(r),c(gg),c(b)];
+}
+const rgbStr=a=>'rgb('+a[0]+','+a[1]+','+a[2]+')';
+function nomRadiation(l){
+  if(l<440) return 'violet'; if(l<510) return 'bleu'; if(l<570) return 'vert';
+  if(l<=590) return 'jaune'; if(l<610) return 'orange'; return 'rouge';
+}
+const xb=l=>1.056*g(l,599.8,37.9,31.0)+0.362*g(l,442.0,16.0,26.7)-0.065*g(l,501.1,20.4,26.2);
+const yb=l=>0.821*g(l,568.8,46.9,40.5)+0.286*g(l,530.9,16.3,31.1);
+const zb=l=>1.217*g(l,437.0,11.8,36.0)+0.681*g(l,459.0,26.0,13.8);
+function linRGB(Tf){
+  let X=0,Y=0,Z=0;
+  for(let l=380;l<=780;l+=4){const t=Tf(l);X+=t*xb(l);Y+=t*yb(l);Z+=t*zb(l);}
+  return [3.2406*X-1.5372*Y-.4986*Z, -.9689*X+1.8758*Y+.0415*Z, .0557*X-.2040*Y+1.0570*Z];
+}
+const BLANC=linRGB(()=>1);
+function couleurSolution(Afn){
+  const v=linRGB(l=>Math.pow(10,-Afn(l)));
+  return v.map((x,i)=>{let c=Math.min(1,Math.max(0,x/BLANC[i]));
+    c=c<=.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-.055; return Math.round(255*c);});
+}
+
+/* ═════════ ÉTAT ═════════ */
+const S={sc:SCENARIOS[0],Vm:[],err:[],reel:0,F:100,
+  cuve:'eau',lam:525,ref:{},refN:{},mes:{},lamT:null,anim:null,resultats:false};
+
+/* absorbance « vraie » d'une solution de concentration c à la longueur d'onde l (cuve de 1 cm) */
+function Asol(c,l){const sc=S.sc;return sc.k*c*sc.forme(l)/sc.forme(sc.lref);}
+/* absorbance propre de la cuve et de l'eau, différente pour chaque λ : c'est elle que le blanc retire */
+function Acuve(l){return 0.045+0.03*(1+hash(graine+'cuve'+l));}
+
+function Cnominal(i){return S.sc.C0*S.Vm[i]/S.sc.Vf;}
+function Creel(i){return Cnominal(i)*(1+S.err[i]);}
+function Ccommerciale(){ /* Bétadine : concentration réelle en mmol/L */
+  const sc=S.sc; return S.reel/100*sc.d*1000/sc.M*1000;
+}
+/* liste des cuves disponibles pour le dosage en cours */
+function cuves(){
+  const sc=S.sc, L=[{id:'eau',nom:'Eau distillée',sous:'pour le blanc',c:0}];
+  S.Vm.forEach((v,i)=>L.push({id:'S'+(i+1),nom:'S'+(i+1),sous:fmtC(Cnominal(i)),c:Creel(i),etalon:i}));
+  if(sc.id==='dakin') L.push({id:'inc',nom:'Eau de Dakin',sous:'solution à doser',c:S.reel,inconnue:true});
+  else{
+    L.push({id:'inc',nom:'Bétadine diluée',sous:'F = '+S.F+' · solution à doser',c:Ccommerciale()/S.F,inconnue:true});
+    L.push({id:'com',nom:'Bétadine commerciale',sous:'non diluée',c:Ccommerciale()});
+  }
+  return L;
+}
+const cuveCour=()=>cuves().find(c=>c.id===S.cuve)||cuves()[0];
+function fmtC(c){return fmt(c,S.sc.dec)+' '+S.sc.unite;}
+
+/* lecture du colorimètre */
+function brute(cv,l){return Acuve(l)+Asol(cv.c,l);}
+function lecture(cv,l){
+  const b=brute(cv,l);
+  if(b>SAT) return {sat:true,A:NaN};
+  const r=S.ref[l]===undefined?0:S.ref[l];
+  const bruit=0.0015*hash(graine+cv.id+'@'+l+'#'+(S.refN[l]||0)+'v'+cv.c.toFixed(6));
+  return {sat:false,A:Math.round((b-r+bruit)*1000)/1000};
+}
+
+/* ═════════ INITIALISATION D'UN DOSAGE ═════════ */
+function choisirScenario(sc){
+  stopBalayage();
+  S.sc=sc; S.Vm=sc.Vm.slice(); S.err=sc.Vm.map(()=>0.015*(2*Math.random()-1));
+  S.reel=(sc.id==='dakin'?sc.ref:sc.Pref)*(1+0.035*(2*Math.random()-1));
+  S.F=100; S.cuve='eau'; S.lam=LAMBDAS[1]; S.ref={}; S.refN={}; S.mes={}; S.lamT=null; S.resultats=false;
+  $('resultats').hidden=true; $('b_res').textContent='Afficher les résultats';
+  $('voirDroite').checked=false; $('voirInc').checked=false;
+  $('msgM').textContent=''; $('msgC').textContent='';
+  document.querySelectorAll('#scenarios .esp').forEach(b=>b.classList.toggle('on',b.dataset.id===sc.id));
+  majPrepa(); construireCuves(); majMesure(); majCourbe();
+}
+
+/* ═════════ ONGLET 1 ═════════ */
+function majPrepa(){
+  const sc=S.sc;
+  $('prepa_txt').innerHTML=sc.mere+'. Chaque tube contient V<sub>fille</sub> = '+fmt(sc.Vf,1)+
+    ' mL de solution fille : on y verse à la burette le volume V<sub>mère</sub> de solution mère, puis l\'eau distillée.';
+  const voir=$('voirCalc').checked;
+  let h='<thead><tr><th style="text-align:left">Tube</th>'+S.Vm.map((v,i)=>'<th>S'+(i+1)+'</th>').join('')+'</tr></thead><tbody>';
+  h+='<tr><td>V<sub>mère</sub> (mL)</td>'+S.Vm.map((v,i)=>'<td><input type="number" min="0.5" max="'+sc.Vf+'" step="0.5" value="'+v+'" data-i="'+i+'" aria-label="Volume de solution mère du tube S'+(i+1)+'"></td>').join('')+'</tr>';
+  h+='<tr><td>V<sub>eau</sub> (mL)</td>'+S.Vm.map(v=>'<td>'+fmt(sc.Vf-v,1)+'</td>').join('')+'</tr>';
+  h+='<tr><td>V<sub>fille</sub> (mL)</td>'+S.Vm.map(()=>'<td>'+fmt(sc.Vf,1)+'</td>').join('')+'</tr>';
+  h+='<tr><td>Facteur de dilution F</td>'+S.Vm.map(v=>'<td>'+(voir?fmtF(sc.Vf/v):'<span class="cache">…</span>')+'</td>').join('')+'</tr>';
+  h+='<tr><td>'+sc.sym+' ('+sc.unite+')</td>'+S.Vm.map((v,i)=>'<td>'+(voir?fmt(Cnominal(i),sc.dec):'<span class="cache">…</span>')+'</td>').join('')+'</tr>';
+  h+='</tbody>';
+  $('tabPrepa').innerHTML=h;
+  $('tabPrepa').querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{
+    let v=parseFloat(String(inp.value).replace(',','.'));
+    if(!isFinite(v)||v<=0) v=S.Vm[+inp.dataset.i];
+    v=Math.min(sc.Vf,Math.max(0.1,Math.round(v*10)/10));
+    const i=+inp.dataset.i; S.Vm[i]=v;
+    LAMBDAS.forEach(l=>delete S.mes['S'+(i+1)+'@'+l]);
+    majPrepa(); construireCuves(); majMesure(); majCourbe();
+  }));
+  $('blocDilution').hidden=sc.id!=='betadine';
+  if(sc.id==='betadine') majDilution();
+  dessinerTubes();
+}
+function fmtF(F){return Math.abs(F-Math.round(F))<1e-9?fmt(F,0):fmt(F,2);}
+function majDilution(){
+  const d=$('dilutions'); d.innerHTML='';
+  DILUTIONS.forEach(F=>{
+    const b=document.createElement('button');b.type='button';b.className='btn'+(F===S.F?' on':'');
+    b.textContent='F = '+F; b.addEventListener('click',()=>{S.F=F;
+      LAMBDAS.forEach(l=>delete S.mes['inc@'+l]);
+      majDilution();dessinerTubes();construireCuves();majMesure();majCourbe();});
+    d.appendChild(b);
+  });
+  $('dil_txt').innerHTML='Protocole : prélever V = 200,0 / '+S.F+' = <b>'+fmt(200/S.F,1)+' mL</b> de Bétadine avec une pipette jaugée, '+
+    'les verser dans la fiole jaugée de 200,0 mL, compléter avec de l\'eau distillée jusqu\'au trait de jauge et homogénéiser.';
+}
+
+/* dessin : solution mère, tubes de l'échelle de teintes, solution à doser */
+function couleurPour(c,ep=1.4){return rgbStr(couleurSolution(l=>ep*Asol(c,l)));}
+function dessinerTubes(){
+  const sc=S.sc, voir=$('voirCalc').checked;
+  let s='<rect x="10" y="10" width="980" height="280" rx="6" fill="#ede7d3" stroke="rgba(28,18,8,.12)"/>';
+  /* bécher de solution mère */
+  const cm=couleurPour(sc.C0,2.5);
+  s+='<g><path d="M44 96 H150 V236 q0 10 -10 10 H54 q-10 0 -10 -10 Z" fill="#fffdf6" stroke="#5f4e33" stroke-width="1.5"/>'+
+     '<path d="M46 132 H148 V236 q0 8 -8 8 H54 q-8 0 -8 -8 Z" fill="'+cm+'" fill-opacity=".9"/>'+
+     '<path d="M40 96 h8 M146 96 h8" stroke="#5f4e33" stroke-width="1.5"/>'+
+     '<text x="97" y="72" text-anchor="middle" font-size="15" font-weight="700" fill="#1c1208">S0</text>'+
+     '<text x="97" y="268" text-anchor="middle" font-size="12.5" fill="#5f4e33">solution mère</text>'+
+     '<text x="97" y="283" text-anchor="middle" font-size="12" fill="#87704c">'+fmt(sc.C0,sc.id==='dakin'?3:1)+' '+sc.unite+'</text></g>';
+  /* portoir */
+  const x0=210, dx=82;
+  s+='<rect x="'+(x0-24)+'" y="150" width="'+(dx*S.Vm.length+8)+'" height="12" rx="2" fill="#c9b48a" stroke="#87704c"/>';
+  s+='<rect x="'+(x0-24)+'" y="232" width="'+(dx*S.Vm.length+8)+'" height="10" rx="2" fill="#c9b48a" stroke="#87704c"/>';
+  S.Vm.forEach((v,i)=>{
+    const x=x0+i*dx, col=couleurPour(Creel(i));
+    s+='<g><path d="M'+x+' 60 V214 a'+((dx-38)/2)+' '+((dx-38)/2)+' 0 0 0 '+(dx-38)+' 0 V60" fill="#fffdf6" stroke="#5f4e33" stroke-width="1.5"/>'+
+      '<path d="M'+(x+1.5)+' 112 V214 a'+((dx-41)/2)+' '+((dx-41)/2)+' 0 0 0 '+(dx-41)+' 0 V112 Z" fill="'+col+'" fill-opacity=".92"/>'+
+      '<rect x="'+(x+1.5)+'" y="112" width="'+(dx-41)+'" height="2" fill="#fff" fill-opacity=".5"/>'+
+      '<text x="'+(x+(dx-38)/2)+'" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#1c1208">S'+(i+1)+'</text>'+
+      '<text x="'+(x+(dx-38)/2)+'" y="262" text-anchor="middle" font-size="12" fill="#5f4e33">'+fmt(v,1)+' mL</text>'+
+      '<text x="'+(x+(dx-38)/2)+'" y="278" text-anchor="middle" font-size="11.5" fill="#87704c">'+(voir?fmt(Cnominal(i),sc.dec):'')+'</text></g>';
+  });
+  s+='<text x="'+(x0+dx*S.Vm.length/2-20)+'" y="24" text-anchor="middle" font-size="12.5" fill="#87704c">échelle de teintes</text>';
+  /* solutions à doser */
+  const xi=x0+dx*S.Vm.length+40;
+  s+='<line x1="'+(xi-22)+'" y1="30" x2="'+(xi-22)+'" y2="270" stroke="rgba(28,18,8,.18)" stroke-dasharray="4 4"/>';
+  const flacon=(x,c,titre,sous,ep)=>{
+    const col=couleurPour(c,ep);
+    return '<g><path d="M'+(x+22)+' 70 h28 v26 q24 12 24 34 V236 q0 10 -10 10 H'+(x+8)+' q-10 0 -10 -10 V130 q0 -22 24 -34 Z" fill="#fffdf6" stroke="#5f4e33" stroke-width="1.5"/>'+
+      '<path d="M'+(x+0.5)+' 140 H'+(x+71.5)+' V236 q0 8 -8 8 H'+(x+8.5)+' q-8 0 -8 -8 Z" fill="'+col+'" fill-opacity=".92"/>'+
+      '<rect x="'+(x+19)+'" y="60" width="34" height="12" rx="2" fill="#87704c"/>'+
+      '<text x="'+(x+36)+'" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1208">'+titre+'</text>'+
+      '<text x="'+(x+36)+'" y="268" text-anchor="middle" font-size="12" fill="#5f4e33">'+sous+'</text></g>';
+  };
+  if(sc.id==='dakin') s+=flacon(xi+20,S.reel,'Dakin','solution à doser',2.5);
+  else{
+    s+=flacon(xi-8,Ccommerciale(),'Bétadine','commerciale',2.5);
+    s+='<path d="M'+(xi+76)+' 160 h22 m-7 -6 l7 6 l-7 6" stroke="#87704c" stroke-width="1.6" fill="none"/>'+
+       '<text x="'+(xi+87)+'" y="148" text-anchor="middle" font-size="12" fill="#87704c">÷ '+S.F+'</text>';
+    /* fiole jaugée */
+    const xf=xi+108, cf=couleurPour(Ccommerciale()/S.F,2.5);
+    s+='<g><path d="M'+(xf+28)+' 60 h16 V150 q36 20 36 52 q0 44 -44 44 h-0 q-44 0 -44 -44 q0 -32 36 -52 Z" fill="#fffdf6" stroke="#5f4e33" stroke-width="1.5"/>'+
+       '<path d="M'+(xf+29)+' 96 h14 V150.6 q35 20 35 51.4 q0 42 -42 42 q-42 0 -42 -42 q0 -31.4 35 -51.4 Z" fill="'+cf+'" fill-opacity=".92"/>'+
+       '<line x1="'+(xf+24)+'" y1="96" x2="'+(xf+48)+'" y2="96" stroke="#1c1208" stroke-width="1.5"/>'+
+       '<text x="'+(xf+36)+'" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1208">diluée</text>'+
+       '<text x="'+(xf+36)+'" y="268" text-anchor="middle" font-size="12" fill="#5f4e33">à doser</text></g>';
+  }
+  $('svgTubes').innerHTML=s;
+}
+
+/* ═════════ ONGLET 2 : COLORIMÈTRE ═════════ */
+function construireCuves(){
+  const d=$('cuves'); d.innerHTML='';
+  if(!cuves().some(c=>c.id===S.cuve)) S.cuve='eau';
+  cuves().forEach(cv=>{
+    const b=document.createElement('button');b.type='button';b.className='esp'+(cv.id===S.cuve?' on':'');b.dataset.id=cv.id;
+    const deja=S.mes[cv.id+'@'+S.lam]!==undefined;
+    b.innerHTML='<i class="flacon" style="background:'+couleurPour(cv.c)+'"></i><span>'+cv.nom+'<small>'+cv.sous+
+      (deja?' <span class="mesure">✓ noté</span>':'')+'</small></span>';
+    b.addEventListener('click',()=>{stopBalayage();placerCuve(cv.id);});
+    d.appendChild(b);
+  });
+}
+function placerCuve(id){
+  S.cuve=id; $('msgM').textContent='';
+  const liq=$('liquide'); liq.style.transition='none'; liq.style.transform='scaleY(0)';
+  void liq.getBoundingClientRect();
+  liq.style.transition=''; requestAnimationFrame(()=>{liq.style.transform='scaleY(1)';});
+  construireCuves(); majMesure();
+}
+function majMesure(){
+  const l=S.lam, cv=cuveCour(), L=lecture(cv,l);
+  const T=Math.pow(10,-brute(cv,l));
+  const cs=rgbStr(lambdaRGB(l));
+  $('f1').setAttribute('fill',cs); $('f1g').setAttribute('fill',cs);
+  $('f2').setAttribute('fill',cs); $('f2').setAttribute('opacity',Math.max(.03,T).toFixed(3));
+  $('f2g').setAttribute('fill',cs); $('f2g').setAttribute('opacity',(.4*T).toFixed(3));
+  $('gc0').setAttribute('stop-color',cs); $('gc1').setAttribute('stop-color',cs);
+  $('gc1').setAttribute('stop-opacity',Math.max(.03,T).toFixed(3));
+  const sol=couleurSolution(x=>Asol(cv.c,x));
+  $('liquide').setAttribute('fill',cv.id==='eau'?'#eef6fb':rgbStr(sol)); $('liquide').setAttribute('fill-opacity','.9');
+  $('t_cuve').textContent=cv.id==='inc'?(S.sc.id==='dakin'?'Dakin':'Bétadine diluée'):cv.id==='com'?'Bétadine':cv.id==='eau'?'eau distillée':cv.nom;
+  const tl=$('t_lam'); tl.textContent='λ = '+l+' nm'; tl.setAttribute('fill',rgbStr(lambdaRGB(l).map(v=>Math.round(v*.62))));
+  $('t_trans').textContent='transmise : '+pct(T);
+  $('lcdA').textContent=L.sat?'SAT':fmtA(L.A);
+  $('lcdL').textContent=l+' nm';
+  const blanc=S.ref[l]!==undefined;
+  $('led').setAttribute('fill',blanc?'#3fae52':'#e08a1e');
+  $('ledTxt').textContent=blanc?'blanc fait à '+l+' nm':'faire le blanc !';
+  dessinerFiltres();
+  document.querySelectorAll('.filtre').forEach(b=>{const lb=+b.dataset.l, on=lb===l;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);
+    b.querySelector('.zero').textContent=S.ref[lb]!==undefined?'✓ 0':'';});
+  /* indicateurs */
+  $('s_cuve').textContent=cv.nom; $('s_cp').style.background=couleurPour(cv.c);
+  $('s_l').innerHTML=l+'<span class="u">nm · '+nomRadiation(l)+'</span>';
+  $('s_a').textContent=L.sat?'saturé':fmtA(L.A);
+  $('s_blanc').textContent=blanc?'fait':'à refaire';
+  $('s_blanc_box').classList.toggle('alerte',!blanc);
+  majTablesMesure();
+}
+const fmtA=a=>(a<0?'−':'')+fmt(Math.abs(a),3);
+function pct(T){const p=100*T; return (p>=10?fmt(p,0):p>=1?fmt(p,1):fmt(p,2))+' %';}
+function dessinerFiltres(){
+  const gB=$('barillet');
+  if(!gB.childElementCount){
+    let s='';
+    LAMBDAS.forEach((l,i)=>{s+='<rect x="230" y="'+(163+i*22)+'" width="20" height="14" rx="2" fill="'+rgbStr(lambdaRGB(l))+
+      '" stroke="#5f4e33" stroke-width="1"/>';});
+    s+='<rect x="228" y="158" width="24" height="'+(LAMBDAS.length*22+2)+'" rx="3" fill="none" stroke="#87704c" stroke-width="1.5" stroke-dasharray="2 2"/>';
+    gB.innerHTML=s;
+  }
+  gB.style.transform='translateY('+(-22*LAMBDAS.indexOf(S.lam))+'px)';
+}
+
+function faireBlanc(){
+  const cv=cuveCour(), b=brute(cv,S.lam);
+  if(b>SAT){msg('msgM','Impossible : la solution absorbe trop, l\'appareil sature.',true);return;}
+  S.ref[S.lam]=b; S.refN[S.lam]=(S.refN[S.lam]||0)+1;
+  if(cv.id==='eau') msg('msgM','Blanc fait à '+S.lam+' nm avec l\'eau distillée : l\'absorbance affichée est 0.');
+  else msg('msgM','Attention : le blanc a été fait avec « '+cv.nom+' » et non avec l\'eau distillée. Les mesures seront fausses !',true);
+  majMesure();
+}
+function noter(){
+  const cv=cuveCour(), L=lecture(cv,S.lam);
+  if(cv.id==='eau'){msg('msgM','La cuve contient l\'eau distillée : elle sert à faire le blanc, inutile de la noter.',true);return false;}
+  if(L.sat){msg('msgM','Mesure impossible : l\'absorbance dépasse la limite de l\'appareil (SAT). Il faut diluer.',true);return false;}
+  S.mes[cv.id+'@'+S.lam]=L.A;
+  if(cv.etalon!==undefined) S.lamT=S.lam;
+  const pref=S.ref[S.lam]===undefined?' — mais le blanc n\'a pas été fait à cette longueur d\'onde !':'';
+  msg('msgM',cv.nom+' : A = '+fmtA(L.A)+' notée à '+S.lam+' nm'+pref,!!pref);
+  construireCuves(); majTablesMesure(); majCourbe();
+  return true;
+}
+function msg(id,t,err){const m=$(id);m.textContent=t;m.classList.toggle('err',!!err);}
+
+function majTablesMesure(){
+  /* spectre de la solution à doser */
+  let h='<thead><tr><th>λ (nm)</th><th>Couleur</th><th>A</th></tr></thead><tbody>';
+  const vals=LAMBDAS.map(l=>S.mes['inc@'+l]);
+  const def=vals.filter(v=>v!==undefined), mx=def.length?Math.max(...def):null;
+  LAMBDAS.forEach((l,i)=>{const v=vals[i];
+    h+='<tr'+(l===S.lam?' class="courant"':'')+'><td>'+l+'</td><td style="text-align:left"><i class="pastille" style="background:'+rgbStr(lambdaRGB(l))+
+      ';width:11px;height:11px;vertical-align:-1px"></i> '+nomRadiation(l)+'</td><td'+(v===undefined?' class="vide">—':(v===mx&&def.length>1?' style="font-weight:800">':'>')+fmtA(v))+'</td></tr>';});
+  $('tabSpectre').innerHTML=h+'</tbody>';
+  /* mesures à la λ courante */
+  $('tabMes_l').textContent='à λ = '+S.lam+' nm';
+  h='<thead><tr><th>Solution</th><th>'+S.sc.sym+' ('+S.sc.unite+')</th><th>A</th></tr></thead><tbody>';
+  cuves().filter(c=>c.id!=='eau').forEach(cv=>{
+    const v=S.mes[cv.id+'@'+S.lam];
+    h+='<tr class="'+(cv.id===S.cuve?'courant':'')+(cv.id==='inc'?' inc':'')+'"><td>'+cv.nom+'</td><td>'+(cv.etalon!==undefined?fmt(Cnominal(cv.etalon),S.sc.dec):'?')+
+      '</td><td'+(v===undefined?' class="vide">—':'>'+fmtA(v))+'</td></tr>';});
+  $('tabMes').innerHTML=h+'</tbody>';
+}
+
+/* balayage animé : pour chaque λ, blanc avec l'eau puis mesure de la solution à doser */
+function stopBalayage(){
+  if(S.anim){clearTimeout(S.anim);S.anim=null;}
+  const b=$('b_balayer');b.classList.remove('on');b.textContent='Spectre de la solution à doser (7 λ, blanc refait)';
+}
+function balayer(){
+  if(S.anim){stopBalayage();return;}
+  const b=$('b_balayer');b.classList.add('on');b.textContent='Arrêter';
+  let i=0;
+  const etape=()=>{
+    if(i>=LAMBDAS.length){S.anim=null;stopBalayage();msg('msgM','Spectre terminé : repérer la longueur d\'onde où A est la plus grande.');return;}
+    S.lam=LAMBDAS[i++]; placerCuve('eau');
+    S.anim=setTimeout(()=>{faireBlanc();
+      S.anim=setTimeout(()=>{placerCuve('inc');
+        S.anim=setTimeout(()=>{noter();S.anim=setTimeout(etape,450);},650);},450);},550);
+  };
+  etape();
+}
+
+/* ═════════ ONGLET 3 : COURBE ═════════ */
+function lamTravail(){return S.lamT||S.lam;}
+function pointsEtalons(l){
+  const P=[];
+  S.Vm.forEach((v,i)=>{const a=S.mes['S'+(i+1)+'@'+l]; if(a!==undefined) P.push({nom:'S'+(i+1),C:Cnominal(i),A:a});});
+  return P;
+}
+function modele(P){
+  let sCA=0,sCC=0; P.forEach(p=>{sCA+=p.C*p.A;sCC+=p.C*p.C;});
+  return sCC>0?sCA/sCC:null;
+}
+function majCourbe(){
+  const sc=S.sc, l=lamTravail();
+  /* liste des λ */
+  const sel=$('selL'); sel.innerHTML='';
+  LAMBDAS.forEach(x=>{const n=pointsEtalons(x).length;const o=document.createElement('option');o.value=x;
+    o.textContent=x+' nm — '+n+' étalon'+(n>1?'s':'')+' mesuré'+(n>1?'s':'');if(x===l)o.selected=true;sel.appendChild(o);});
+  $('courbe_txt').innerHTML='Dosage : <b>'+sc.nom+'</b> — on cherche la '+sc.grandeur+' '+sc.sym+' de la solution à doser. '+
+    'Les points sont ceux mesurés à λ = '+l+' nm.';
+  $('g_titre').innerHTML='A = f('+sc.sym+') à λ = '+l+' nm';
+  const P=pointsEtalons(l), Ainc=S.mes['inc@'+l];
+  let h='<thead><tr><th>Solution</th><th>'+sc.sym+' ('+sc.unite+')</th><th>A</th></tr></thead><tbody>';
+  S.Vm.forEach((v,i)=>{const a=S.mes['S'+(i+1)+'@'+l];
+    h+='<tr><td>S'+(i+1)+'</td><td>'+fmt(Cnominal(i),sc.dec)+'</td><td'+(a===undefined?' class="vide">—':'>'+fmtA(a))+'</td></tr>';});
+  h+='<tr class="inc"><td>'+(sc.id==='dakin'?'Dakin':'Bétadine diluée')+'</td><td>?</td><td'+(Ainc===undefined?' class="vide">—':'>'+fmtA(Ainc))+'</td></tr>';
+  $('tabCourbe').innerHTML=h+'</tbody>';
+  /* alertes */
+  const al=[];
+  if(!P.length) al.push('Aucune solution étalon mesurée à '+l+' nm : faire les mesures dans l\'onglet 2.');
+  else if(P.length<S.Vm.length) al.push('Il manque '+(S.Vm.length-P.length)+' solution(s) étalon(s) à cette longueur d\'onde.');
+  if(P.length && Ainc===undefined) al.push('La solution à doser n\'a pas été mesurée à '+l+' nm.');
+  if(P.length && S.ref[l]===undefined) al.push('Le blanc n\'a jamais été fait à '+l+' nm : les absorbances sont décalées.');
+  if(P.length && Ainc!==undefined){
+    const amin=Math.min(...P.map(p=>p.A)), amax=Math.max(...P.map(p=>p.A));
+    if(Ainc>amax*1.02) al.push('A de la solution à doser est plus grande que celle de tous les étalons : elle sort de l\'échelle de teintes.');
+    else if(Ainc<amin*0.98) al.push('A de la solution à doser est plus petite que celle de tous les étalons : la lecture se fait hors de l\'échelle de teintes, elle est moins précise.');
+  }
+  const meilleur=LAMBDAS.reduce((a,x)=>{const v=S.mes['inc@'+x];return v!==undefined&&(a===null||v>S.mes['inc@'+a])?x:a;},null);
+  if(meilleur!==null && meilleur!==l && P.length) al.push('D\'après le spectre noté, la longueur d\'onde de travail devrait être '+meilleur+' nm.');
+  $('alertes').innerHTML=al.map(t=>'• '+t).join('<br>');
+  dessinerCourbe();
+  if(S.resultats) majResultats();
+}
+
+const G={L:70,T:28,R:24,B:58};
+function pasJoli(max,n=6){
+  const raw=max/n, p=Math.pow(10,Math.floor(Math.log10(raw)));
+  for(const m of [1,2,2.5,5,10]) if(m*p>=raw-1e-12) return m*p;
+  return 10*p;
+}
+function decPas(st){let d=Math.max(0,-Math.floor(Math.log10(st)+1e-9));
+  if(Math.abs(st*Math.pow(10,d)-Math.round(st*Math.pow(10,d)))>1e-6) d++; return d;}
+let survol=null;
+function dessinerCourbe(){
+  const cv=$('cvC'); if(!cv.offsetParent && !survol){/* onglet caché : dessin au prochain affichage */}
+  const {ctx,w,h}=hidpi(cv), sc=S.sc, l=lamTravail();
+  ctx.clearRect(0,0,w,h);
+  const P=pointsEtalons(l), Ainc=S.mes['inc@'+l], k=modele(P);
+  let cmax=sc.C0*Math.max(...S.Vm)/sc.Vf, amax=0.2;
+  P.forEach(p=>{amax=Math.max(amax,p.A);});
+  if(Ainc!==undefined){amax=Math.max(amax,Ainc); if(k&&$('voirInc').checked) cmax=Math.max(cmax,Ainc/k);}
+  if(k) amax=Math.max(amax,k*cmax*1.05);
+  const pC=pasJoli(cmax*1.1), pA=pasJoli(amax*1.08);
+  const XM=Math.ceil(cmax*1.1/pC)*pC, YM=Math.ceil(amax*1.08/pA)*pA;
+  const L=G.L,T=G.T,W=w-G.L-G.R,H=h-G.T-G.B;
+  const X=c=>L+W*c/XM, Y=a=>T+H-H*a/YM;
+  S.geo={X,Y,L,T,W,H,XM,YM};
+  ctx.font='13px '+FONT; ctx.lineWidth=1;
+  const dC=decPas(pC), dA=decPas(pA);
+  for(let a=0;a<=YM+1e-9;a+=pA){const y=Y(a);ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
+    ctx.strokeStyle=a===0?C.ink:C.grid;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(fmt(a,dA),L-8,y);}
+  for(let c=0;c<=XM+1e-12;c+=pC){const x=X(c);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+H);
+    ctx.strokeStyle=c===0?C.ink:C.grid2;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(fmt(c,dC),x,T+H+7);}
+  ctx.fillStyle=C.faded;ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText('A',L-4,T-8);
+  ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText(sc.symTxt+' ('+sc.unite+')',L+W,T+H+28);
+  /* droite */
+  if(k && $('voirDroite').checked){
+    ctx.strokeStyle=C.blue;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(X(0),Y(0));
+    const cf=Math.min(XM,YM/k);ctx.lineTo(X(cf),Y(k*cf));ctx.stroke();
+    const eq='A = '+fmtK(k)+' × '+sc.symTxt; ctx.font='600 14px '+FONT;
+    const tw=ctx.measureText(eq).width;
+    ctx.fillStyle='rgba(255,253,246,.95)';ctx.fillRect(L+10,T+6,tw+14,24);
+    ctx.strokeStyle=C.blue;ctx.lineWidth=1;ctx.strokeRect(L+10,T+6,tw+14,24);
+    ctx.fillStyle=C.blue;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(eq,L+17,T+18.5);
+  }
+  /* solution à doser */
+  if(Ainc!==undefined && $('voirInc').checked){
+    const y=Y(Ainc);
+    ctx.save();ctx.setLineDash([6,4]);ctx.strokeStyle=C.red;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(L,y);
+    if(k){const ci=Ainc/k,x=X(ci);ctx.lineTo(x,y);ctx.lineTo(x,T+H);ctx.stroke();ctx.restore();
+      ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=C.red;ctx.fill();
+      ctx.beginPath();ctx.moveTo(x,T+H);ctx.lineTo(x-5,T+H-9);ctx.lineTo(x+5,T+H-9);ctx.closePath();ctx.fill();
+      ctx.font='600 13px '+FONT;ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText(sc.symTxt+' ?',x+6,T+H-4);
+    } else {ctx.lineTo(L+W,y);ctx.stroke();ctx.restore();}
+    ctx.font='600 13px '+FONT;ctx.fillStyle=C.red;ctx.textAlign='left';ctx.textBaseline='bottom';
+    ctx.fillText('A = '+fmtA(Ainc),L+6,y-4);
+  }
+  /* points */
+  P.forEach(p=>{ctx.beginPath();ctx.arc(X(p.C),Y(p.A),5.5,0,7);ctx.fillStyle='#fff';ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle=C.ink;ctx.stroke();
+    ctx.font='12px '+FONT;ctx.fillStyle=C.faded;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(p.nom,X(p.C)+7,Y(p.A)+3);});
+  if(!P.length){ctx.font='15px '+FONT;ctx.fillStyle=C.faded2;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('Aucune mesure à '+l+' nm',L+W/2,T+H/2);}
+  /* lecture des coordonnées */
+  if(survol){
+    const {c,a}=survol; if(c>=0&&a>=0&&c<=XM&&a<=YM){
+      const x=X(c),y=Y(a);
+      ctx.save();ctx.setLineDash([2,3]);ctx.strokeStyle=C.faded2;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(x,y);ctx.lineTo(x,T+H);ctx.stroke();ctx.restore();
+      const lab=sc.symTxt+' = '+fmt(c,sc.dec+1)+' ; A = '+fmt(a,3);
+      ctx.font='600 13px '+FONT;const tw=ctx.measureText(lab).width;
+      const bx=L+W-tw-16, by=T+6;
+      ctx.fillStyle='rgba(255,253,246,.95)';ctx.fillRect(bx,by,tw+12,22);ctx.strokeStyle=C.rule||'#c9bfa8';ctx.strokeRect(bx,by,tw+12,22);
+      ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(lab,bx+6,by+11.5);
+    }
+  }
+}
+function fmtK(k){const d=k>=10?1:k>=1?2:4;return fmt(k,d);}
+
+function majResultats(){
+  const sc=S.sc, l=lamTravail(), P=pointsEtalons(l), k=modele(P), Ainc=S.mes['inc@'+l];
+  const r=$('resultats');
+  if(!k){r.innerHTML='<p class="alerte-txt">Mesurer d\'abord les solutions étalons.</p>';return;}
+  let h='<dl>';
+  h+='<dt>Coefficient directeur</dt><dd>k = '+fmtK(k)+' '+sc.kUnite+' <span class="formule">(droite passant par l\'origine, au plus près des points)</span></dd>';
+  h+='<dt>Équation</dt><dd>A = '+fmtK(k)+' × '+sc.sym+'</dd>';
+  if(Ainc===undefined){h+='</dl><p class="alerte-txt">Mesurer la solution à doser à '+l+' nm pour terminer.</p>';r.innerHTML=h;return;}
+  const c=Ainc/k;
+  h+='<dt>Absorbance mesurée</dt><dd>A = '+fmtA(Ainc)+'</dd>';
+  if(sc.id==='dakin'){
+    const e=Math.abs(c-sc.ref)/sc.ref*100;
+    h+='<dt>Concentration du Dakin</dt><dd class="gros">C<sub>m</sub> = A / k = '+fmt(c,4)+' g·L⁻¹</dd>';
+    h+='<dt>Valeur de référence</dt><dd>'+fmt(sc.ref,3)+' g·L⁻¹ <span class="formule">('+sc.refTxt+')</span></dd>';
+    h+='<dt>Écart relatif</dt><dd class="gros">'+fmt(e,1)+' % <span class="formule">= |C<sub>exp</sub> − C<sub>réf</sub>| / C<sub>réf</sub></span></dd>';
+  } else {
+    const cc=c*S.F, cm=cc/1000*sc.M, rho=sc.d*1000, p=cm/rho*100, e=Math.abs(p-sc.Pref)/sc.Pref*100;
+    h+='<dt>Bétadine diluée</dt><dd>C<sub>dil</sub> = A / k = '+fmt(c,2)+' mmol·L⁻¹</dd>';
+    h+='<dt>Bétadine commerciale</dt><dd>C = F × C<sub>dil</sub> = '+S.F+' × '+fmt(c,2)+' = '+fmt(cc,0)+' mmol·L⁻¹ = '+fmt(cc/1000,3)+' mol·L⁻¹</dd>';
+    h+='<dt>Concentration en masse</dt><dd>C<sub>m</sub> = C × M = '+fmt(cc/1000,3)+' × '+fmt(sc.M,1)+' = '+fmt(cm,1)+' g·L⁻¹</dd>';
+    h+='<dt>Pourcentage massique</dt><dd class="gros">P = C<sub>m</sub> / ρ = '+fmt(cm,1)+' / '+fmt(rho,0)+' = '+fmt(p,1)+' % <span class="formule">(ρ = d × 1000 g·L⁻¹)</span></dd>';
+    h+='<dt>Valeur de référence</dt><dd>'+sc.Pref+' % <span class="formule">('+sc.refTxt+')</span></dd>';
+    h+='<dt>Écart relatif</dt><dd class="gros">'+fmt(e,1)+' % <span class="formule">= |P<sub>exp</sub> − P<sub>réf</sub>| / P<sub>réf</sub></span></dd>';
+  }
+  h+='</dl>';
+  r.innerHTML=h;
+}
+
+function copier(){
+  const sc=S.sc,l=lamTravail(),P=pointsEtalons(l);
+  if(!P.length){msg('msgC','Aucune mesure à copier.',true);return;}
+  const txt=sc.symTxt+' ('+sc.uniteTxt+')\tA\n'+P.map(p=>fmt(p.C,sc.dec)+'\t'+fmt(p.A,3)).join('\n');
+  const ok=()=>msg('msgC',P.length+' point(s) copié(s) : à coller dans le tableur-grapheur.');
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,()=>secours(txt,ok));
+  else secours(txt,ok);
+}
+function secours(txt,ok){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');ok();}catch(e){msg('msgC','Copie impossible.',true);}
+  ta.remove();
+}
+
+/* ═════════ ÉVÉNEMENTS ═════════ */
+SCENARIOS.forEach(sc=>{
+  const b=document.createElement('button');b.type='button';b.className='esp';b.dataset.id=sc.id;
+  const col=rgbStr(couleurSolution(l=>2.5*sc.k*(sc.id==='dakin'?sc.ref:40)*sc.forme(l)/sc.forme(sc.lref)));
+  b.innerHTML='<i class="flacon" style="background:'+col+'"></i><span>'+sc.nom+'<small>'+sc.sous+'</small></span>';
+  b.addEventListener('click',()=>{if(S.sc!==sc) choisirScenario(sc);});
+  $('scenarios').appendChild(b);
+});
+LAMBDAS.forEach(l=>{
+  const b=document.createElement('button');b.type='button';b.className='filtre';b.dataset.l=l;b.setAttribute('role','radio');
+  b.innerHTML='<span class="zero"></span><i class="sw" style="background:'+rgbStr(lambdaRGB(l))+'"></i><b>'+l+'</b><small>nm · '+nomRadiation(l)+'</small>';
+  b.addEventListener('click',()=>{stopBalayage();S.lam=l;$('msgM').textContent='';construireCuves();majMesure();});
+  $('filtres').appendChild(b);
+});
+$('voirCalc').addEventListener('change',majPrepa);
+$('b_blanc').addEventListener('click',()=>{stopBalayage();faireBlanc();});
+$('btnZero').addEventListener('click',()=>{stopBalayage();faireBlanc();});
+$('b_noter').addEventListener('click',()=>{stopBalayage();noter();});
+$('b_balayer').addEventListener('click',balayer);
+$('b_effacerM').addEventListener('click',()=>{stopBalayage();S.mes={};S.lamT=null;msg('msgM','Mesures effacées.');construireCuves();majMesure();majCourbe();});
+$('selL').addEventListener('change',e=>{S.lamT=+e.target.value;majCourbe();});
+$('voirDroite').addEventListener('change',dessinerCourbe);
+$('voirInc').addEventListener('change',dessinerCourbe);
+$('b_copier').addEventListener('click',copier);
+$('b_res').addEventListener('click',()=>{S.resultats=!S.resultats;$('resultats').hidden=!S.resultats;
+  $('b_res').textContent=S.resultats?'Masquer les résultats':'Afficher les résultats';if(S.resultats)majResultats();});
+const cvC=$('cvC');
+cvC.addEventListener('pointermove',ev=>{
+  if(!S.geo) return; const r=cvC.getBoundingClientRect(), w=+cvC.dataset.w, h=+cvC.dataset.h;
+  const x=(ev.clientX-r.left)*w/r.width, y=(ev.clientY-r.top)*h/r.height, G2=S.geo;
+  survol={c:(x-G2.L)/G2.W*G2.XM, a:(G2.T+G2.H-y)/G2.H*G2.YM}; dessinerCourbe();
+});
+cvC.addEventListener('pointerleave',()=>{survol=null;dessinerCourbe();});
+window.addEventListener('resize',dessinerCourbe);
+
+document.querySelectorAll('.onglet').forEach(o=>o.addEventListener('click',()=>{
+  document.querySelectorAll('.onglet').forEach(x=>{x.classList.remove('actif');x.setAttribute('aria-selected','false');});
+  document.querySelectorAll('.panneau').forEach(p=>p.hidden=true);
+  o.classList.add('actif'); o.setAttribute('aria-selected','true');
+  $(o.dataset.cible).hidden=false;
+  if(o.dataset.cible!=='p-mesure') stopBalayage();
+  if(o.dataset.cible==='p-courbe') majCourbe();
+}));
+
+choisirScenario(SCENARIOS[0]);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{dessinerCourbe();});
+</script>
+</body>
+</html>
