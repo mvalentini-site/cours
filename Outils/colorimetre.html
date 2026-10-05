@@ -237,22 +237,13 @@ table.tab td.x button:hover{color:var(--red);}
       <h3>Spectre d'absorption A = f(λ) <span id="g_titre" style="font-weight:400;color:var(--faded);font-size:14px"></span></h3>
       <canvas id="cvG" width="860" height="420"></canvas>
       <div class="legende">
-        <span><i class="pastille" style="background:#1c3d6e;width:12px;height:12px;border:none"></i> mesure en cours</span>
-        <span><span class="croix">+</span> mesures notées</span>
-        <span><i class="trait" style="background:#9fb3d1"></i> spectre complet (option)</span>
+        <span><i class="trait" style="background:#1c3d6e"></i> spectre d'absorption</span>
+        <span><i class="pastille" style="background:#fff;width:12px;height:12px;border:2px solid #1c1208"></i> mesures notées</span>
         <span style="margin-left:auto">cliquer sur le graphique choisit la λ la plus proche</span>
       </div>
     </div>
     <div class="carte clair">
-      <h3>Affichage du spectre</h3>
-      <div class="champ">
-        <select id="mode">
-          <option value="points" selected>points notés seulement</option>
-          <option value="relies">points notés reliés</option>
-          <option value="complet">points + spectre complet</option>
-        </select>
-      </div>
-      <h3 style="margin-top:14px">Mesures notées</h3>
+      <h3>Mesures notées</h3>
       <div class="tab-wrap"><table class="tab" id="tab">
         <thead><tr><th>λ (nm)</th><th>A</th><th></th></tr></thead><tbody></tbody>
       </table></div>
@@ -276,7 +267,7 @@ table.tab td.x button:hover{color:var(--red);}
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const LMIN=400, LMAX=700;
+const LMIN=400, LMAX=900;
 const LAMBDAS=[470,525,570,590,605,626,660];
 const C={ink:'#1c1208',faded:'#5f4e33',faded2:'#87704c',blue:'#1c3d6e',red:'#a63020',grid:'#e3dcc8',grid2:'#efe8d6'};
 const FONT="'Bricolage Grotesque',system-ui,sans-serif";
@@ -382,7 +373,7 @@ function nomTeinte(rgb){
 }
 
 /* ═════════ ÉTAT ═════════ */
-const S={esp:ESPECES[4],k:1,lam:525,notes:[],anim:null,mode:'points'};
+const S={esp:ESPECES[4],k:1,lam:525,notes:[],anim:null};
 const Aact=l=>S.k*S.esp.A(l);
 
 function nouvelleSolution(){
@@ -472,7 +463,9 @@ function dessinerGraphe(){
   ctx.font='13px '+FONT; ctx.lineWidth=1;
   /* zone visible */
   ctx.fillStyle='rgba(28,18,8,.035)';
-  ctx.fillRect(L,T,X(400)-L,H); ctx.fillRect(X(750),T,X(LMAX)-X(750),H);
+  ctx.fillStyle='rgba(28,18,8,.05)'; ctx.fillRect(X(750),T,X(LMAX)-X(750),H);
+  ctx.fillStyle=C.faded2;ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('invisible pour l\'œil',(X(750)+X(LMAX))/2,T+6);
   /* grille */
   for(let a=0;a<=ey.max+1e-9;a+=ey.pas){
     const y=Y(a); ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
@@ -490,9 +483,9 @@ function dessinerGraphe(){
   ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText('λ (nm)',L+W,T+H+24);
   /* bande du spectre visible */
   const yb=T+H+44, hb=14;
-  for(let px=0;px<W;px++){const l=LMIN+(LMAX-LMIN)*px/W;ctx.fillStyle=rgbStr(lambdaRGB(l));ctx.fillRect(L+px,yb,1.5,hb);}
+  for(let px=0;px<W;px++){const l=LMIN+(LMAX-LMIN)*px/W;ctx.fillStyle=l>750?'#d9d0bd':rgbStr(lambdaRGB(l));ctx.fillRect(L+px,yb,1.5,hb);}
   ctx.strokeStyle=C.rule||'#c9bfa8';ctx.strokeRect(L,yb,W,hb);
-  const zones=[[400,440,'violet'],[440,510,'bleu'],[510,570,'vert'],[570,590,'J'],[590,610,'O'],[610,700,'rouge']];
+  const zones=[[400,440,'violet'],[440,510,'bleu'],[510,570,'vert'],[570,590,'J'],[590,610,'O'],[610,750,'rouge'],[750,LMAX,'infrarouges']];
   ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='top';
   zones.forEach(([a,b,n])=>{ctx.fillStyle=C.faded;ctx.fillText(n,(X(a)+X(b))/2,yb+hb+5);
     if(a>LMIN){ctx.beginPath();ctx.moveTo(X(a),yb+hb);ctx.lineTo(X(a),yb+hb+4);ctx.strokeStyle=C.faded2;ctx.stroke();}});
@@ -500,19 +493,12 @@ function dessinerGraphe(){
   /* longueurs d'onde disponibles */
   ctx.save();ctx.setLineDash([2,4]);ctx.strokeStyle='rgba(28,18,8,.18)';ctx.lineWidth=1;
   LAMBDAS.forEach(l=>{ctx.beginPath();ctx.moveTo(X(l),T);ctx.lineTo(X(l),T+H);ctx.stroke();});ctx.restore();
-  if(S.mode==='complet'){
-    ctx.strokeStyle='#9fb3d1';ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();
-    for(let l=LMIN;l<=LMAX;l++){const x=X(l),y=Y(Aact(l)); l===LMIN?ctx.moveTo(x,y):ctx.lineTo(x,y);}
-    ctx.stroke();
-  }
-  if(S.mode==='relies'&&S.notes.length>1){
-    ctx.strokeStyle=C.blue;ctx.lineWidth=1.6;ctx.beginPath();
-    S.notes.forEach((p,i)=>{i?ctx.lineTo(X(p.l),Y(p.A)):ctx.moveTo(X(p.l),Y(p.A));});ctx.stroke();
-  }
-  /* points notés */
-  ctx.strokeStyle=C.ink;ctx.lineWidth=2;
-  S.notes.forEach(p=>{const x=X(p.l),y=Y(p.A);
-    ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();});
+  ctx.strokeStyle=C.blue;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.beginPath();
+  for(let l=LMIN;l<=LMAX;l++){const x=X(l),y=Y(Aact(l)); l===LMIN?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.stroke();
+  /* points notés : posés sur le spectre */
+  S.notes.forEach(p=>{ctx.beginPath();ctx.arc(X(p.l),Y(p.A),5.5,0,7);
+    ctx.fillStyle=rgbStr(lambdaRGB(p.l));ctx.fill();ctx.lineWidth=1.8;ctx.strokeStyle=C.ink;ctx.stroke();});
   /* mesure en cours */
   const l=S.lam,A=Aact(l),x=X(l),y=Y(A);
   ctx.save();ctx.setLineDash([5,4]);ctx.lineWidth=1.3;ctx.strokeStyle=C.faded2;
@@ -590,7 +576,6 @@ $('cvG').addEventListener('pointerup',()=>glisse=false);
 $('cvG').addEventListener('pointercancel',()=>glisse=false);
 
 $('conc').addEventListener('input',e=>{S.k=+e.target.value;stopBalayage();nouvelleSolution();majTableau();majConc();maj();});
-$('mode').addEventListener('change',e=>{S.mode=e.target.value;dessinerGraphe();});
 $('b_noter').addEventListener('click',noter);
 $('b_balayer').addEventListener('click',balayer);
 $('b_effacer').addEventListener('click',()=>{S.notes=[];majTableau();dessinerGraphe();$('msg').textContent='';});
