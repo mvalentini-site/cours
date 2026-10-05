@@ -267,7 +267,7 @@ table.tab td.x button:hover{color:var(--red);}
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const LMIN=400, LMAX=900;
+const LMIN=300, LMAX=900;
 const LAMBDAS=[470,525,570,590,605,626,660];
 const C={ink:'#1c1208',faded:'#5f4e33',faded2:'#87704c',blue:'#1c3d6e',red:'#a63020',grid:'#e3dcc8',grid2:'#efe8d6'};
 const FONT="'Bricolage Grotesque',system-ui,sans-serif";
@@ -290,7 +290,7 @@ function hidpi(cv){
 const g=(l,mu,s1,s2=s1)=>{const s=l<mu?s1:s2;const u=(l-mu)/s;return Math.exp(-.5*u*u);};
 
 /* E102 : mesures du doc. 6 de l'activité, prolongées sous 400 nm, interpolation monotone */
-const E102_PTS=[[380,.62],[390,.76],[400,.90],[410,1.06],[420,1.17],[430,1.19],[440,1.12],[450,.97],[460,.80],
+const E102_PTS=[[300,.42],[315,.27],[330,.20],[345,.24],[360,.36],[370,.48],[380,.62],[390,.76],[400,.90],[410,1.06],[420,1.17],[430,1.19],[440,1.12],[450,.97],[460,.80],
   [470,.58],[480,.41],[490,.27],[500,.15],[510,.08],[520,.05],[540,.02],[560,.01],[600,.005],[650,0],[700,0],[750,0],[800,0]];
 const monotone=(pts)=>{
   const n=pts.length,x=pts.map(p=>p[0]),y=pts.map(p=>p[1]),d=[],m=new Array(n);
@@ -307,9 +307,9 @@ const monotone=(pts)=>{
   };
 };
 const A102=monotone(E102_PTS);
-const A131raw=l=>g(l,638,19,23)+0.24*g(l,594,22)+0.09*g(l,412,22)+0.03*g(l,540,40);
+const A131raw=l=>g(l,638,19,23)+0.24*g(l,594,22)+0.09*g(l,412,22)+0.03*g(l,540,40)+0.16*g(l,310,16)+0.05*g(l,360,20);
 const KMNraw=l=>0.33*g(l,490,13)+0.62*g(l,507,10)+0.95*g(l,526,11)+0.92*g(l,546,11)+0.50*g(l,566,10)
-  +0.13*g(l,586,12)+0.18*g(l,530,42)+0.05*g(l,380,14);
+  +0.13*g(l,586,12)+0.18*g(l,530,42)+0.62*g(l,311,13)+0.58*g(l,347,16);
 const CUraw=l=>g(l,808,108,140);
 function normalise(f,amax){let m=0;for(let l=LMIN;l<=1000;l++)m=Math.max(m,f(l));return l=>amax*f(l)/m;}
 const A131=normalise(A131raw,1.06), AKMN=normalise(KMNraw,0.96), ACU=normalise(CUraw,1.20);
@@ -463,9 +463,9 @@ function dessinerGraphe(){
   ctx.font='13px '+FONT; ctx.lineWidth=1;
   /* zone visible */
   ctx.fillStyle='rgba(28,18,8,.035)';
-  ctx.fillStyle='rgba(28,18,8,.05)'; ctx.fillRect(X(750),T,X(LMAX)-X(750),H);
+  ctx.fillStyle='rgba(28,18,8,.05)'; ctx.fillRect(X(750),T,X(LMAX)-X(750),H); ctx.fillRect(L,T,X(400)-L,H);
   ctx.fillStyle=C.faded2;ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='top';
-  ctx.fillText('invisible pour l\'œil',(X(750)+X(LMAX))/2,T+6);
+  ctx.fillText('invisible pour l\'œil',(X(750)+X(LMAX))/2,T+6); ctx.fillText('invisible pour l\'œil',(L+X(400))/2,T+6);
   /* grille */
   for(let a=0;a<=ey.max+1e-9;a+=ey.pas){
     const y=Y(a); ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
@@ -473,7 +473,7 @@ function dessinerGraphe(){
     ctx.fillStyle=C.faded;ctx.textAlign='right';ctx.textBaseline='middle';
     ctx.fillText(fmt(a,1),L-8,y);
   }
-  for(let l=400;l<=LMAX;l+=50){
+  for(let l=LMIN;l<=LMAX;l+=50){
     const x=X(l); ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+H);
     ctx.strokeStyle=C.grid2;ctx.stroke();
     ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(l,x,T+H+6);
@@ -483,9 +483,9 @@ function dessinerGraphe(){
   ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText('λ (nm)',L+W,T+H+24);
   /* bande du spectre visible */
   const yb=T+H+44, hb=14;
-  for(let px=0;px<W;px++){const l=LMIN+(LMAX-LMIN)*px/W;ctx.fillStyle=l>750?'#d9d0bd':rgbStr(lambdaRGB(l));ctx.fillRect(L+px,yb,1.5,hb);}
+  for(let px=0;px<W;px++){const l=LMIN+(LMAX-LMIN)*px/W;ctx.fillStyle=(l>750||l<400)?'#d9d0bd':rgbStr(lambdaRGB(l));ctx.fillRect(L+px,yb,1.5,hb);}
   ctx.strokeStyle=C.rule||'#c9bfa8';ctx.strokeRect(L,yb,W,hb);
-  const zones=[[400,440,'violet'],[440,510,'bleu'],[510,570,'vert'],[570,590,'J'],[590,610,'O'],[610,750,'rouge'],[750,LMAX,'infrarouges']];
+  const zones=[[LMIN,400,'ultraviolets'],[400,440,'violet'],[440,510,'bleu'],[510,570,'vert'],[570,590,'J'],[590,610,'O'],[610,750,'rouge'],[750,LMAX,'infrarouges']];
   ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='top';
   zones.forEach(([a,b,n])=>{ctx.fillStyle=C.faded;ctx.fillText(n,(X(a)+X(b))/2,yb+hb+5);
     if(a>LMIN){ctx.beginPath();ctx.moveTo(X(a),yb+hb);ctx.lineTo(X(a),yb+hb+4);ctx.strokeStyle=C.faded2;ctx.stroke();}});
