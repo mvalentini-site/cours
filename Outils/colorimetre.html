@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colorimètre – absorbance et spectre d'absorption</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css?v=4">
+<style>
+body{--accent:var(--blue);--crumb:#a9c4ea;}
+main{min-width:0}
+.panneau h2{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.015em;line-height:1.15;margin-bottom:8px;}
+.panneau p{font-size:16px;max-width:76ch;margin-bottom:12px;color:var(--ink);}
+.panneau h3{font-size:17px;font-weight:600;margin-bottom:10px;}
+
+.grille{display:grid;gap:16px;margin:16px 0;align-items:start;}
+.grille.deux{grid-template-columns:1.5fr .5fr;}
+.grille.reglages{grid-template-columns:1.35fr .65fr;}
+@media(max-width:900px){.grille.deux,.grille.reglages{grid-template-columns:1fr;}}
+.carte{background:var(--paper);border:1px solid var(--rule);padding:16px 18px;}
+.carte.clair{background:#fffdf6;}
+
+/* choix de l'espèce */
+.especes{display:flex;flex-wrap:wrap;gap:8px;}
+.esp{display:flex;align-items:center;gap:9px;font:inherit;font-size:15px;padding:7px 13px 7px 8px;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left;line-height:1.2;}
+.esp:hover,.esp:focus-visible{border-color:var(--ink);outline:none;}
+.esp .flacon{width:16px;height:22px;border:1.5px solid rgba(28,18,8,.45);border-top-width:4px;border-radius:2px 2px 5px 5px;flex-shrink:0;}
+.esp small{display:block;font-size:12px;color:var(--faded);}
+.esp.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.esp.on small{color:#c9bfa8;}
+.esp.on .flacon{border-color:rgba(246,241,228,.7);}
+
+.champ{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);margin-bottom:12px;}
+.champ .haut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
+.champ .haut b{color:var(--ink);font-weight:600;font-size:14px;}
+.champ input[type=range]{width:100%;accent-color:var(--accent);}
+.champ select{font:inherit;font-size:15px;color:var(--ink);padding:6px 9px;border:1px solid rgba(28,18,8,.22);background:#fff;border-radius:3px;width:100%;}
+
+/* l'appareil */
+.appareil{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:0;overflow:hidden;}
+.appareil svg{display:block;width:100%;height:auto;}
+
+/* réglage de λ */
+.lambda-bloc{margin-top:16px;}
+.filtres{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+@media(max-width:620px){.filtres{grid-template-columns:repeat(4,1fr);}}
+.filtre{font:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 4px 8px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--rule);border-radius:4px;color:var(--ink);}
+.filtre .sw{width:100%;max-width:64px;height:10px;border-radius:2px;}
+.filtre b{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1;}
+.filtre small{font-size:12px;color:var(--faded);}
+.filtre:hover,.filtre:focus-visible{border-color:var(--ink);outline:none;}
+.filtre.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.filtre.on small{color:#c9bfa8;}
+
+.boutons{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+.btn{font:inherit;font-size:15px;padding:8px 16px;border:1px solid var(--rule);background:var(--surface);
+  color:var(--ink);cursor:pointer;border-radius:4px;}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--ink);outline:none;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn.plein{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600;}
+.btn.plein:hover:not(:disabled){filter:brightness(1.15);}
+.btn.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px;}
+.stat{background:var(--surface);border:1px solid var(--rule);padding:9px 12px;}
+.stat .k{font-size:12px;color:var(--faded);line-height:1.3;}
+.stat .v{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:2px;display:flex;align-items:center;gap:8px;}
+.stat .u{font-size:12px;color:var(--faded);font-weight:400;}
+.pastille{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(28,18,8,.3);flex-shrink:0;}
+
+canvas{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid var(--rule);touch-action:none;cursor:crosshair;}
+.legende{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--faded);margin-top:10px;}
+.legende span{display:flex;align-items:center;gap:6px;}
+.trait{width:18px;height:3px;border-radius:2px;display:inline-block;}
+.croix{font-weight:800;color:var(--ink);font-size:15px;line-height:1;}
+
+.tab-wrap{overflow:auto;max-height:300px;border:1px solid var(--rule);background:#fff;}
+table.tab{border-collapse:collapse;font-size:14.5px;width:100%;font-variant-numeric:tabular-nums;}
+table.tab th,table.tab td{border:1px solid var(--rule);padding:5px 10px;text-align:right;}
+table.tab th{background:var(--paper2);font-weight:600;position:sticky;top:0;font-size:13px;}
+table.tab td.x{width:28px;text-align:center;padding:0;}
+table.tab td.x button{font:inherit;border:none;background:none;color:var(--faded2);cursor:pointer;font-size:15px;padding:4px 6px;}
+table.tab td.x button:hover{color:var(--red);}
+.petit{font-size:13px;color:var(--faded);margin-top:8px;}
+.astuce{margin:14px 0 0;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;max-width:80ch;}
+.astuce b{font-weight:600;}
+.msg{font-size:13px;color:var(--green);min-height:18px;margin-top:6px;}
+
+@media print{
+  .topbar,.boutons,.lambda-bloc,.especes{display:none!important;}
+  .layout{padding-top:12px;}
+}
+</style>
+</head>
+<body class="une-colonne en-onglets">
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Colorimètre</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Outil · Couleur et absorbance · 1re Spé</div>
+    <h1>Colorimètre</h1>
+    <div class="meta">Choisir une solution, sélectionner une longueur d'onde λ et lire l'absorbance A :
+      chaque mesure donne un point du spectre d'absorption A = f(λ).<br>
+      Activité 1F — Pourquoi le sirop de menthe est-il vert ?</div>
+  </aside>
+
+<main>
+<section class="panneau">
+
+  <div class="grille reglages" style="margin-top:0">
+    <div>
+      <h3>Solution placée dans la cuve</h3>
+      <div class="especes" id="especes"></div>
+    </div>
+    <div class="carte clair">
+      <div class="champ" style="margin-bottom:0">
+        <div class="haut"><span id="c_lib">Concentration</span><b id="c_val">—</b></div>
+        <input type="range" id="conc" min="0" max="2" step="0.05" value="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════ L'APPAREIL ═════════ -->
+  <div class="appareil">
+  <svg id="svg" viewBox="0 0 1000 300" role="img" aria-label="Schéma du colorimètre : source, filtre coloré, cuve, détecteur et affichage de l'absorbance"
+       font-family="'Bricolage Grotesque',system-ui,sans-serif">
+    <defs>
+      <radialGradient id="gLampe"><stop offset="0" stop-color="#fff6c8"/><stop offset=".4" stop-color="#ffe58a" stop-opacity=".75"/>
+        <stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="gCuve" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" id="gc0" stop-color="#0f0"/><stop offset="1" id="gc1" stop-color="#0f0"/></linearGradient>
+      <linearGradient id="gVerre" x1="0" x2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".25" stop-color="#fff" stop-opacity=".1"/>
+        <stop offset=".8" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".5"/></linearGradient>
+      <filter id="flou" x="-10%" y="-300%" width="120%" height="700%"><feGaussianBlur stdDeviation="4"/></filter>
+      <clipPath id="clipMono"><rect x="172" y="112" width="136" height="116"/></clipPath>
+    </defs>
+
+    <text x="26" y="34" fill="#1c1208" font-size="16" font-weight="600">Colorimètre</text>
+    <text x="26" y="52" fill="#87704c" font-size="12.5">vue en coupe : le trajet de la lumière</text>
+
+    <!-- banc optique -->
+    <rect x="18" y="64" width="676" height="220" rx="6" fill="#ede7d3" stroke="rgba(28,18,8,.16)"/>
+    <line x1="40" y1="232" x2="672" y2="232" stroke="rgba(28,18,8,.12)" stroke-width="1"/>
+
+    <!-- source -->
+    <circle cx="70" cy="170" r="36" fill="url(#gLampe)"/>
+    <circle cx="70" cy="170" r="12" fill="#fffbe8" stroke="#c9a640" stroke-width="1.5"/>
+    <path d="M64 170 q3 -6 6 0 t6 0" stroke="#c08a10" stroke-width="1.5" fill="none"/>
+    <rect x="92" y="165" width="84" height="10" fill="#fffdf2" stroke="#d6c58e" stroke-width="1"/>
+
+    <!-- barillet de filtres -->
+    <rect x="170" y="110" width="140" height="120" rx="4" fill="#fffdf6" stroke="#87704c" stroke-width="1.5"/>
+    <rect x="172" y="166" width="58" height="8" fill="#fffdf2" stroke="#d6c58e" stroke-width="1"/>
+    <g clip-path="url(#clipMono)"><g id="barillet" style="transition:transform .35s ease"></g></g>
+
+    <!-- faisceau monochromatique -->
+    <rect id="f1g" x="250" y="163" width="154" height="14" filter="url(#flou)" opacity=".4"/>
+    <rect id="f1" x="250" y="166" width="154" height="8"/>
+    <text id="t_lam" x="352" y="150" text-anchor="middle" font-size="14" font-weight="600">λ = 525 nm</text>
+
+    <!-- cuve -->
+    <rect id="liquide" x="410" y="132" width="52" height="102" fill="#888"/>
+    <rect x="404" y="166" width="64" height="8" fill="url(#gCuve)"/>
+    <rect x="404" y="104" width="64" height="134" rx="2" fill="url(#gVerre)" stroke="#5f4e33" stroke-opacity=".7" stroke-width="1.5"/>
+    <line x1="410" y1="132" x2="462" y2="132" stroke="#fff" stroke-opacity=".6"/>
+
+    <!-- faisceau transmis -->
+    <rect id="f2g" x="468" y="163" width="122" height="14" filter="url(#flou)"/>
+    <rect id="f2" x="468" y="166" width="122" height="8"/>
+    <rect x="468" y="166" width="122" height="8" fill="none" stroke="rgba(28,18,8,.12)" stroke-dasharray="3 3"/>
+    <text id="t_trans" x="529" y="150" text-anchor="middle" font-size="13.5" fill="#5f4e33">transmise : 100 %</text>
+
+    <!-- détecteur -->
+    <rect x="590" y="138" width="36" height="64" rx="3" fill="#e3dcc8" stroke="#87704c" stroke-width="1.5"/>
+    <rect x="588" y="158" width="7" height="24" fill="#4d6275"/>
+    <path d="M626 170 H 712" stroke="#87704c" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+
+    <!-- légendes -->
+    <g fill="#5f4e33" font-size="12.5" text-anchor="middle">
+      <text x="70" y="254">source de</text><text x="70" y="269">lumière blanche</text>
+      <text x="240" y="254">filtre coloré</text><text x="240" y="269">(choix de λ)</text>
+      <text x="436" y="258">cuve</text>
+      <text x="608" y="254">détecteur</text>
+    </g>
+
+    <!-- affichage -->
+    <rect x="712" y="64" width="270" height="220" rx="8" fill="#fdfaf0" stroke="rgba(28,18,8,.22)" stroke-width="1.5"/>
+    <rect x="726" y="80" width="242" height="110" rx="4" fill="#c9d4b4" stroke="#9aa685"/>
+    <text x="738" y="102" font-size="13" font-weight="600" fill="#4a5640">ABSORBANCE</text>
+    <text id="lcdA" x="956" y="172" text-anchor="end" font-size="60" font-weight="600" fill="#1b2416"
+          font-family="ui-monospace,Consolas,'Courier New',monospace">0,000</text>
+    <rect x="726" y="198" width="242" height="38" rx="4" fill="#c9d4b4" stroke="#9aa685"/>
+    <text x="738" y="223" font-size="15" font-weight="600" fill="#4a5640">λ</text>
+    <text id="lcdL" x="956" y="225" text-anchor="end" font-size="22" font-weight="600" fill="#1b2416"
+          font-family="ui-monospace,Consolas,'Courier New',monospace">525 nm</text>
+    <circle id="led" cx="736" cy="261" r="5" fill="#3fae52"/>
+    <text x="748" y="265" font-size="12" fill="#87704c">mesure en cours</text>
+  </svg>
+  </div>
+
+  <!-- choix de la longueur d'onde -->
+  <div class="lambda-bloc">
+    <div class="champ" style="margin-bottom:6px"><span>Longueur d'onde du colorimètre</span></div>
+    <div class="filtres" id="filtres" role="radiogroup" aria-label="Longueur d'onde"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Longueur d'onde</div><div class="v" id="s_l">—</div></div>
+    <div class="stat"><div class="k">Radiation</div><div class="v"><i class="pastille" id="s_cp"></i><span id="s_c">—</span></div></div>
+    <div class="stat"><div class="k">Absorbance A</div><div class="v" id="s_a">—</div></div>
+    <div class="stat"><div class="k">Lumière transmise</div><div class="v" id="s_t">—</div></div>
+    <div class="stat"><div class="k">Couleur de la solution</div><div class="v"><i class="pastille" id="s_sp"></i><span id="s_s" style="font-size:15px;font-weight:600">—</span></div></div>
+  </div>
+
+  <div class="boutons">
+    <button class="btn plein" id="b_noter" type="button">Noter la mesure</button>
+    <button class="btn" id="b_balayer" type="button">Mesurer les 7 longueurs d'onde</button>
+  </div>
+
+  <!-- ═════════ LE SPECTRE ═════════ -->
+  <div class="grille deux">
+    <div class="carte">
+      <h3>Spectre d'absorption A = f(λ) <span id="g_titre" style="font-weight:400;color:var(--faded);font-size:14px"></span></h3>
+      <canvas id="cvG" width="860" height="420"></canvas>
+      <div class="legende">
+        <span><i class="pastille" style="background:#1c3d6e;width:12px;height:12px;border:none"></i> mesure en cours</span>
+        <span><span class="croix">+</span> mesures notées</span>
+        <span><i class="trait" style="background:#9fb3d1"></i> spectre complet (option)</span>
+        <span style="margin-left:auto">cliquer sur le graphique choisit la λ la plus proche</span>
+      </div>
+    </div>
+    <div class="carte clair">
+      <h3>Affichage du spectre</h3>
+      <div class="champ">
+        <select id="mode">
+          <option value="points" selected>points notés seulement</option>
+          <option value="relies">points notés reliés</option>
+          <option value="complet">points + spectre complet</option>
+        </select>
+      </div>
+      <h3 style="margin-top:14px">Mesures notées</h3>
+      <div class="tab-wrap"><table class="tab" id="tab">
+        <thead><tr><th>λ (nm)</th><th>A</th><th></th></tr></thead><tbody></tbody>
+      </table></div>
+      <div class="boutons" style="margin-top:10px">
+        <button class="btn" id="b_copier" type="button">Copier</button>
+        <button class="btn" id="b_effacer" type="button">Effacer</button>
+      </div>
+      <div class="msg" id="msg"></div>
+      <p class="petit">« Copier » met le tableau dans le presse-papiers, à coller dans le tableur-grapheur ou un tableur.</p>
+    </div>
+  </div>
+
+  <div class="astuce">Le colorimètre ne propose que <b>7 longueurs d'onde</b> : on obtient seulement quelques points du
+    spectre d'absorption A = f(λ). Pour un dosage, on règle l'appareil sur la longueur d'onde disponible où l'absorbance est
+    la plus grande, la plus proche de <b>λ<sub>max</sub></b>. L'eau distillée sert de <b>blanc</b> : son absorbance est nulle.</div>
+
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const LMIN=400, LMAX=700;
+const LAMBDAS=[470,525,570,590,605,626,660];
+const C={ink:'#1c1208',faded:'#5f4e33',faded2:'#87704c',blue:'#1c3d6e',red:'#a63020',grid:'#e3dcc8',grid2:'#efe8d6'};
+const FONT="'Bricolage Grotesque',system-ui,sans-serif";
+const fmt=(x,d=0)=>x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
+function sci(x,d=1){
+  if(x===0) return '0';
+  const e=Math.floor(Math.log10(x)+1e-9), m=x/Math.pow(10,e);
+  return e===0?fmt(x,d+1):fmt(m,d)+' × 10'+sup(e);
+}
+function hidpi(cv){
+  const r=window.devicePixelRatio||1;
+  if(cv.dataset.hd!=='1'){cv.dataset.w=cv.width;cv.dataset.h=cv.height;cv.width*=r;cv.height*=r;cv.dataset.hd='1';}
+  const ctx=cv.getContext('2d');ctx.setTransform(r,0,0,r,0,0);
+  return {ctx,w:+cv.dataset.w,h:+cv.dataset.h};
+}
+
+/* ═════════ MODÈLES DE SPECTRES (absorbance à la concentration de référence, cuve de 1 cm) ═════════ */
+const g=(l,mu,s1,s2=s1)=>{const s=l<mu?s1:s2;const u=(l-mu)/s;return Math.exp(-.5*u*u);};
+
+/* E102 : mesures du doc. 6 de l'activité, prolongées sous 400 nm, interpolation monotone */
+const E102_PTS=[[380,.62],[390,.76],[400,.90],[410,1.06],[420,1.17],[430,1.19],[440,1.12],[450,.97],[460,.80],
+  [470,.58],[480,.41],[490,.27],[500,.15],[510,.08],[520,.05],[540,.02],[560,.01],[600,.005],[650,0],[700,0],[750,0],[800,0]];
+const monotone=(pts)=>{
+  const n=pts.length,x=pts.map(p=>p[0]),y=pts.map(p=>p[1]),d=[],m=new Array(n);
+  for(let i=0;i<n-1;i++) d.push((y[i+1]-y[i])/(x[i+1]-x[i]));
+  m[0]=d[0];m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++) m[i]=(d[i-1]*d[i]<=0)?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){ if(d[i]===0){m[i]=m[i+1]=0;continue;}
+    const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b; if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i];} }
+  return l=>{
+    if(l<=x[0]) return y[0]; if(l>=x[n-1]) return y[n-1];
+    let i=0; while(l>x[i+1]) i++;
+    const h=x[i+1]-x[i],t=(l-x[i])/h,t2=t*t,t3=t2*t;
+    return Math.max(0,(2*t3-3*t2+1)*y[i]+(t3-2*t2+t)*h*m[i]+(-2*t3+3*t2)*y[i+1]+(t3-t2)*h*m[i+1]);
+  };
+};
+const A102=monotone(E102_PTS);
+const A131raw=l=>g(l,638,19,23)+0.24*g(l,594,22)+0.09*g(l,412,22)+0.03*g(l,540,40);
+const KMNraw=l=>0.33*g(l,490,13)+0.62*g(l,507,10)+0.95*g(l,526,11)+0.92*g(l,546,11)+0.50*g(l,566,10)
+  +0.13*g(l,586,12)+0.18*g(l,530,42)+0.05*g(l,380,14);
+const CUraw=l=>g(l,808,108,140);
+function normalise(f,amax){let m=0;for(let l=LMIN;l<=1000;l++)m=Math.max(m,f(l));return l=>amax*f(l)/m;}
+const A131=normalise(A131raw,1.06), AKMN=normalise(KMNraw,0.96), ACU=normalise(CUraw,1.20);
+
+const ESPECES=[
+  {id:'eau',  nom:'Eau distillée', sous:'le « blanc »',          A:()=>0},
+  {id:'e131', nom:'Bleu patenté V', sous:'colorant E131',         A:A131,  cref:1.0e-5, unite:'mol/L'},
+  {id:'e102', nom:'Tartrazine',     sous:'colorant E102',         A:A102,  cref:4.4e-5, unite:'mol/L'},
+  {id:'menthe',nom:'Sirop de menthe',sous:'E102 + E131, dilué',   A:l=>0.55*A131(l)+0.72*A102(l), relatif:true},
+  {id:'kmno4',nom:'Permanganate de potassium',sous:'K⁺ + MnO₄⁻',  A:AKMN,  cref:4.0e-4, unite:'mol/L'},
+  {id:'cuso4',nom:'Sulfate de cuivre', sous:'Cu²⁺ + SO₄²⁻',       A:ACU,   cref:0.10,  unite:'mol/L'}
+];
+
+/* ═════════ COULEURS ═════════ */
+function lambdaRGB(l){
+  let r=0,gg=0,b=0;
+  if(l<440){r=-(l-440)/60;b=1;}
+  else if(l<490){gg=(l-440)/50;b=1;}
+  else if(l<510){gg=1;b=-(l-510)/20;}
+  else if(l<580){r=(l-510)/70;gg=1;}
+  else if(l<645){r=1;gg=-(l-645)/65;}
+  else r=1;
+  let f=1;
+  if(l<420) f=.35+.65*(l-380)/40;
+  else if(l>700) f=Math.max(.18,.35+.65*(780-l)/80);
+  const c=v=>Math.round(255*Math.pow(Math.max(0,v*f),.8));
+  return [c(r),c(gg),c(b)];
+}
+const rgbStr=a=>'rgb('+a[0]+','+a[1]+','+a[2]+')';
+function nomRadiation(l){
+  if(l<400) return 'ultraviolet';
+  if(l<440) return 'violet'; if(l<510) return 'bleu'; if(l<570) return 'vert';
+  if(l<=590) return 'jaune';  if(l<610) return 'orange'; if(l<=750) return 'rouge';
+  return 'infrarouge';
+}
+/* couleur perçue de la solution : lumière blanche transmise, fonctions colorimétriques CIE 1931 (approx. Wyman et al.) */
+const xb=l=>1.056*g(l,599.8,37.9,31.0)+0.362*g(l,442.0,16.0,26.7)-0.065*g(l,501.1,20.4,26.2);
+const yb=l=>0.821*g(l,568.8,46.9,40.5)+0.286*g(l,530.9,16.3,31.1);
+const zb=l=>1.217*g(l,437.0,11.8,36.0)+0.681*g(l,459.0,26.0,13.8);
+function linRGB(Tf){
+  let X=0,Y=0,Z=0;
+  for(let l=380;l<=780;l+=2){const t=Tf(l);X+=t*xb(l);Y+=t*yb(l);Z+=t*zb(l);}
+  return [3.2406*X-1.5372*Y-.4986*Z, -.9689*X+1.8758*Y+.0415*Z, .0557*X-.2040*Y+1.0570*Z];
+}
+const BLANC=linRGB(()=>1);
+function couleurSolution(Afn){
+  const v=linRGB(l=>Math.pow(10,-Afn(l)));
+  return v.map((x,i)=>{let c=Math.min(1,Math.max(0,x/BLANC[i]));
+    c=c<=.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-.055; return Math.round(255*c);});
+}
+function nomTeinte(rgb){
+  const [r,gg,b]=rgb.map(x=>x/255),mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
+  if(mx-mn<.08) return mx>.85?'incolore':'grise';
+  let h; const d=mx-mn;
+  if(mx===r) h=60*(((gg-b)/d)%6); else if(mx===gg) h=60*((b-r)/d+2); else h=60*((r-gg)/d+4);
+  if(h<0) h+=360;
+  const pale=(mx-mn)<.25?' pâle':'';
+  const noms=[[15,'rouge'],[40,'orange'],[70,'jaune'],[160,'verte'],[180,'cyan'],[255,'bleue'],[290,'violette'],[340,'magenta'],[360,'rouge']];
+  for(const [lim,n] of noms) if(h<lim) return n+pale;
+  return 'rouge';
+}
+
+/* ═════════ ÉTAT ═════════ */
+const S={esp:ESPECES[4],k:1,lam:525,notes:[],anim:null,mode:'points'};
+const Aact=l=>S.k*S.esp.A(l);
+
+function nouvelleSolution(){
+  S.notes=[];
+  $('msg').textContent='';
+}
+
+/* ═════════ INTERFACE ═════════ */
+function construireEspeces(){
+  $('especes').innerHTML='';
+  ESPECES.forEach(e=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='esp'+(e===S.esp?' on':'');
+    const col=rgbStr(couleurSolution(e.A));
+    b.innerHTML='<i class="flacon" style="background:'+col+'"></i><span>'+e.nom+'<small>'+e.sous+'</small></span>';
+    b.addEventListener('click',()=>{S.esp=e;stopBalayage();nouvelleSolution();majTableau();
+      document.querySelectorAll('.esp').forEach(x=>x.classList.remove('on'));b.classList.add('on');majConc();maj();});
+    $('especes').appendChild(b);
+  });
+}
+function majConc(){
+  const e=S.esp, inp=$('conc');
+  inp.disabled=(e.id==='eau');
+  if(e.id==='eau'){$('c_lib').textContent='Concentration';$('c_val').textContent='—';return;}
+  if(e.relatif){$('c_lib').textContent='Concentration (par rapport à la dilution de référence)';
+    $('c_val').textContent=fmt(S.k*100,0)+' %';}
+  else{$('c_lib').textContent='Concentration en soluté apporté';
+    $('c_val').textContent='c = '+sci(S.k*e.cref,1)+' '+e.unite;}
+}
+
+function maj(){
+  const l=S.lam, A=Aact(l), T=Math.pow(10,-A);
+  const col=lambdaRGB(l), cs=rgbStr(col);
+  const sol=couleurSolution(Aact);
+  /* appareil */
+  $('f1').setAttribute('fill',cs); $('f1g').setAttribute('fill',cs);
+  $('f2').setAttribute('fill',cs); $('f2').setAttribute('opacity',Math.max(.03,T).toFixed(3));
+  $('f2g').setAttribute('fill',cs); $('f2g').setAttribute('opacity',(.4*T).toFixed(3));
+  $('gc0').setAttribute('stop-color',cs); $('gc1').setAttribute('stop-color',cs);
+  $('gc1').setAttribute('stop-opacity',Math.max(.03,T).toFixed(3));
+  $('liquide').setAttribute('fill',rgbStr(sol)); $('liquide').setAttribute('fill-opacity','.88');
+  const tl=$('t_lam'); tl.textContent='λ = '+l+' nm'; tl.setAttribute('fill',rgbStr(lambdaRGB(l).map(v=>Math.round(v*.62))));
+  $('t_trans').textContent='transmise : '+pct(T);
+  $('lcdA').textContent=A>3?'SAT':fmt(A,3);
+  $('lcdL').textContent=l+' nm';
+  dessinerFiltres();
+  /* indicateurs */
+  $('s_l').innerHTML=l+'<span class="u">nm</span>';
+  $('s_c').textContent=nomRadiation(l); $('s_cp').style.background=cs;
+  $('s_a').textContent=A>3?'> 3':fmt(A,3);
+  $('s_t').textContent=pct(T);
+  $('s_sp').style.background=rgbStr(sol); $('s_s').textContent=nomTeinte(sol);
+  document.querySelectorAll('.filtre').forEach(b=>{const on=+b.dataset.l===l;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
+  $('g_titre').textContent='— '+S.esp.nom.toLowerCase();
+  dessinerGraphe();
+}
+function pct(T){const p=100*T; return (p>=10?fmt(p,0):p>=1?fmt(p,1):fmt(p,2))+' %';}
+
+/* barillet de filtres : le filtre choisi se place sur le trajet de la lumière */
+function dessinerFiltres(){
+  const g=$('barillet');
+  if(!g.childElementCount){
+    let s='';
+    LAMBDAS.forEach((l,i)=>{s+='<rect x="230" y="'+(163+i*22)+'" width="20" height="14" rx="2" fill="'+rgbStr(lambdaRGB(l))+
+      '" stroke="#5f4e33" stroke-width="1"/>';});
+    s+='<rect x="228" y="158" width="24" height="'+(LAMBDAS.length*22+2)+'" rx="3" fill="none" stroke="#87704c" stroke-width="1.5" stroke-dasharray="2 2"/>';
+    g.innerHTML=s;
+  }
+  g.style.transform='translateY('+(-22*LAMBDAS.indexOf(S.lam))+'px)';
+}
+
+/* ═════════ GRAPHE ═════════ */
+const G={L:62,T:36,R:20,B:96};
+function echelleY(){
+  let m=0; for(let l=LMIN;l<=LMAX;l+=2) m=Math.max(m,Aact(l));
+  S.notes.forEach(p=>m=Math.max(m,p.A));
+  m=Math.max(m*1.12,.2);
+  const pas=m<=.6?.1:m<=1.6?.2:.5;
+  return {max:Math.ceil(m/pas)*pas,pas};
+}
+function dessinerGraphe(){
+  const cv=$('cvG'); const {ctx,w,h}=hidpi(cv);
+  ctx.clearRect(0,0,w,h);
+  const L=G.L,T=G.T,W=w-G.L-G.R,H=h-G.T-G.B;
+  const ey=echelleY();
+  const X=l=>L+W*(l-LMIN)/(LMAX-LMIN), Y=a=>T+H-H*Math.min(a,ey.max*1.02)/ey.max;
+  ctx.font='13px '+FONT; ctx.lineWidth=1;
+  /* zone visible */
+  ctx.fillStyle='rgba(28,18,8,.035)';
+  ctx.fillRect(L,T,X(400)-L,H); ctx.fillRect(X(750),T,X(LMAX)-X(750),H);
+  /* grille */
+  for(let a=0;a<=ey.max+1e-9;a+=ey.pas){
+    const y=Y(a); ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(L+W,y);
+    ctx.strokeStyle=a===0?C.ink:C.grid;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(fmt(a,1),L-8,y);
+  }
+  for(let l=400;l<=LMAX;l+=50){
+    const x=X(l); ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+H);
+    ctx.strokeStyle=C.grid2;ctx.stroke();
+    ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(l,x,T+H+6);
+  }
+  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,T+H);ctx.strokeStyle=C.ink;ctx.stroke();
+  ctx.fillStyle=C.faded;ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText('A',L,T-12);
+  ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText('λ (nm)',L+W,T+H+24);
+  /* bande du spectre visible */
+  const yb=T+H+44, hb=14;
+  for(let px=0;px<W;px++){const l=LMIN+(LMAX-LMIN)*px/W;ctx.fillStyle=rgbStr(lambdaRGB(l));ctx.fillRect(L+px,yb,1.5,hb);}
+  ctx.strokeStyle=C.rule||'#c9bfa8';ctx.strokeRect(L,yb,W,hb);
+  const zones=[[400,440,'violet'],[440,510,'bleu'],[510,570,'vert'],[570,590,'J'],[590,610,'O'],[610,700,'rouge']];
+  ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='top';
+  zones.forEach(([a,b,n])=>{ctx.fillStyle=C.faded;ctx.fillText(n,(X(a)+X(b))/2,yb+hb+5);
+    if(a>LMIN){ctx.beginPath();ctx.moveTo(X(a),yb+hb);ctx.lineTo(X(a),yb+hb+4);ctx.strokeStyle=C.faded2;ctx.stroke();}});
+  /* courbe */
+  /* longueurs d'onde disponibles */
+  ctx.save();ctx.setLineDash([2,4]);ctx.strokeStyle='rgba(28,18,8,.18)';ctx.lineWidth=1;
+  LAMBDAS.forEach(l=>{ctx.beginPath();ctx.moveTo(X(l),T);ctx.lineTo(X(l),T+H);ctx.stroke();});ctx.restore();
+  if(S.mode==='complet'){
+    ctx.strokeStyle='#9fb3d1';ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();
+    for(let l=LMIN;l<=LMAX;l++){const x=X(l),y=Y(Aact(l)); l===LMIN?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+  }
+  if(S.mode==='relies'&&S.notes.length>1){
+    ctx.strokeStyle=C.blue;ctx.lineWidth=1.6;ctx.beginPath();
+    S.notes.forEach((p,i)=>{i?ctx.lineTo(X(p.l),Y(p.A)):ctx.moveTo(X(p.l),Y(p.A));});ctx.stroke();
+  }
+  /* points notés */
+  ctx.strokeStyle=C.ink;ctx.lineWidth=2;
+  S.notes.forEach(p=>{const x=X(p.l),y=Y(p.A);
+    ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();});
+  /* mesure en cours */
+  const l=S.lam,A=Aact(l),x=X(l),y=Y(A);
+  ctx.save();ctx.setLineDash([5,4]);ctx.lineWidth=1.3;ctx.strokeStyle=C.faded2;
+  ctx.beginPath();ctx.moveTo(x,T+H);ctx.lineTo(x,y);ctx.lineTo(L,y);ctx.stroke();ctx.restore();
+  ctx.fillStyle=rgbStr(lambdaRGB(l));ctx.strokeStyle=C.ink;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(x,y,7,0,7);ctx.fill();ctx.stroke();
+  /* curseur sur la bande */
+  ctx.beginPath();ctx.moveTo(x,yb-2);ctx.lineTo(x-6,yb-9);ctx.lineTo(x+6,yb-9);ctx.closePath();ctx.fillStyle=C.ink;ctx.fill();
+  /* étiquette */
+  const lab='A = '+(A>3?'> 3':fmt(A,3)); ctx.font='600 14px '+FONT;
+  const tw=ctx.measureText(lab).width, droite=x<L+W*.78;
+  let lx=droite?x+12:x-12-tw-10, ly=y-30; if(ly<T+2) ly=y+12;
+  ctx.fillStyle='rgba(255,253,246,.94)';ctx.fillRect(lx,ly,tw+10,22);
+  ctx.strokeStyle=C.ink;ctx.lineWidth=1;ctx.strokeRect(lx,ly,tw+10,22);
+  ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(lab,lx+5,ly+11.5);
+}
+
+/* ═════════ ACTIONS ═════════ */
+function reglerLambda(l){
+  S.lam=LAMBDAS.reduce((a,b)=>Math.abs(b-l)<Math.abs(a-l)?b:a); maj();
+}
+function noter(){
+  const A=Math.round(Aact(S.lam)*1000)/1000;
+  const i=S.notes.findIndex(p=>p.l===S.lam);
+  if(i>=0) S.notes[i].A=A; else S.notes.push({l:S.lam,A});
+  S.notes.sort((a,b)=>a.l-b.l);
+  majTableau(); dessinerGraphe();
+}
+function majTableau(){
+  const tb=$('tab').querySelector('tbody');
+  if(!S.notes.length){tb.innerHTML='<tr><td colspan="3" style="text-align:left;color:var(--faded)">aucune mesure notée</td></tr>';return;}
+  tb.innerHTML=S.notes.map((p,i)=>'<tr><td>'+p.l+'</td><td>'+fmt(p.A,3)+'</td><td class="x"><button type="button" data-i="'+i+'" title="Supprimer">×</button></td></tr>').join('');
+  tb.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{S.notes.splice(+b.dataset.i,1);majTableau();dessinerGraphe();}));
+}
+function copier(){
+  if(!S.notes.length){$('msg').textContent='Aucune mesure à copier.';return;}
+  const txt='λ (nm)\tA\n'+S.notes.map(p=>p.l+'\t'+fmt(p.A,3)).join('\n');
+  const ok=()=>{$('msg').textContent=S.notes.length+' mesure(s) copiée(s).';};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,()=>secours(txt,ok));
+  else secours(txt,ok);
+}
+function secours(txt,ok){
+  const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');ok();}catch(e){$('msg').textContent='Copie impossible.';}
+  ta.remove();
+}
+
+/* balayage animé */
+function stopBalayage(){
+  if(S.anim){clearTimeout(S.anim);S.anim=null;}
+  const b=$('b_balayer');b.classList.remove('on');b.textContent='Mesurer les 7 longueurs d\'onde';
+}
+function balayer(){
+  if(S.anim){stopBalayage();return;}
+  const b=$('b_balayer');b.classList.add('on');b.textContent='Arrêter';
+  let i=0;
+  const pas=()=>{
+    if(i>=LAMBDAS.length){S.anim=null;stopBalayage();return;}
+    S.lam=LAMBDAS[i++]; maj();
+    S.anim=setTimeout(()=>{noter(); S.anim=setTimeout(pas,350);},550);
+  };
+  pas();
+}
+
+/* clic / glisser sur le graphique */
+function lambdaDepuisPointeur(ev){
+  const cv=$('cvG'),r=cv.getBoundingClientRect(),w=+cv.dataset.w;
+  const xc=(ev.clientX-r.left)*w/r.width;
+  return LMIN+(xc-G.L)*(LMAX-LMIN)/(w-G.L-G.R);
+}
+let glisse=false;
+$('cvG').addEventListener('pointerdown',ev=>{stopBalayage();glisse=true;$('cvG').setPointerCapture(ev.pointerId);reglerLambda(lambdaDepuisPointeur(ev));});
+$('cvG').addEventListener('pointermove',ev=>{if(glisse) reglerLambda(lambdaDepuisPointeur(ev));});
+$('cvG').addEventListener('pointerup',()=>glisse=false);
+$('cvG').addEventListener('pointercancel',()=>glisse=false);
+
+$('conc').addEventListener('input',e=>{S.k=+e.target.value;stopBalayage();nouvelleSolution();majTableau();majConc();maj();});
+$('mode').addEventListener('change',e=>{S.mode=e.target.value;dessinerGraphe();});
+$('b_noter').addEventListener('click',noter);
+$('b_balayer').addEventListener('click',balayer);
+$('b_effacer').addEventListener('click',()=>{S.notes=[];majTableau();dessinerGraphe();$('msg').textContent='';});
+$('b_copier').addEventListener('click',copier);
+window.addEventListener('resize',dessinerGraphe);
+
+/* boutons des longueurs d'onde */
+LAMBDAS.forEach(l=>{
+  const b=document.createElement('button');b.type='button';b.className='filtre';b.dataset.l=l;b.setAttribute('role','radio');
+  b.innerHTML='<i class="sw" style="background:'+rgbStr(lambdaRGB(l))+'"></i><b>'+l+'</b><small>nm · '+nomRadiation(l)+'</small>';
+  b.addEventListener('click',()=>{stopBalayage();S.lam=l;maj();});
+  $('filtres').appendChild(b);
+});
+
+construireEspeces(); nouvelleSolution(); majConc(); majTableau(); maj();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(dessinerGraphe);
+</script>
+</body>
+</html>
