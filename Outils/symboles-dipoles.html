@@ -12,7 +12,7 @@ main{min-width:0}
 .panneau p{font-size:16px;max-width:76ch;margin-bottom:12px;color:var(--ink);}
 .panneau h3{font-size:16px;font-weight:600;margin-bottom:8px;}
 
-.consigne{list-style:none;counter-reset:c;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:15px;color:var(--faded);margin:0 0 14px;}
+.consigne{max-width:none;list-style:none;counter-reset:c;display:flex;flex-wrap:wrap;gap:4px 22px;font-size:15px;color:var(--faded);margin:0 0 12px;}
 .consigne li{counter-increment:c;display:flex;gap:7px;align-items:baseline;}
 .consigne li::before{content:counter(c);font-weight:800;color:var(--accent);}
 
@@ -22,8 +22,20 @@ main{min-width:0}
 .titre-circuit{font-size:14px;color:var(--faded);}
 .titre-circuit b{color:var(--ink);font-weight:600;}
 
-.jeu{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start;}
-@media(max-width:900px){.jeu{grid-template-columns:1fr;}}
+.jeu{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(210px,.7fr) minmax(230px,.75fr);gap:14px;align-items:stretch;}
+@media(max-width:1150px){.jeu{grid-template-columns:1fr 1fr;} .jeu .schema{grid-column:1/-1;}}
+@media(max-width:700px){.jeu{grid-template-columns:1fr;}}
+.schema{display:flex;align-items:center;}
+.col-rep,.col-noms{display:flex;flex-direction:column;}
+.col-noms .boutons{margin-top:auto;}
+
+/* mise en page compacte : tout doit tenir sur un écran paysage sans défiler */
+body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bottom:40px;gap:12px;}
+.une-colonne aside{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;}
+.une-colonne aside .kicker{flex-basis:100%;margin-bottom:0;}
+.une-colonne aside h1{font-size:clamp(26px,2.6vw,34px);margin-bottom:0;}
+.une-colonne aside .meta{margin-bottom:0;padding-bottom:0;}
+.en-onglets .panneau{padding:16px clamp(14px,2vw,24px) 16px;}
 .carte{background:var(--paper);border:1px solid var(--rule);padding:14px 16px;}
 .schema{background:#fffdf6;border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
 .schema svg{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;}
@@ -57,8 +69,8 @@ main{min-width:0}
 .comp.ko .etiq text{fill:var(--ink);}
 
 /* réponses */
-.reponses{list-style:none;margin-bottom:14px;}
-.reponses li{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid transparent;border-radius:4px;cursor:pointer;font-size:15px;}
+.reponses{list-style:none;margin-bottom:8px;}
+.reponses li{display:flex;align-items:center;gap:10px;padding:3px 8px;border:1px solid transparent;border-radius:4px;cursor:pointer;font-size:15px;}
 .reponses li:hover{background:var(--surface);}
 .reponses li.sel{border-color:var(--accent);background:var(--surface);}
 .reponses .n{width:24px;height:24px;border-radius:50%;border:1.6px solid var(--ink);display:flex;align-items:center;justify-content:center;
@@ -87,7 +99,7 @@ main{min-width:0}
 .btn.plein{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600;}
 .btn.plein:hover:not(:disabled){filter:brightness(1.15);}
 
-.resultat{margin-top:14px;padding:12px 16px;background:var(--surface);border-left:3px solid var(--accent);font-size:15px;}
+.resultat{margin-top:auto;padding:10px 14px;background:var(--surface);border-left:3px solid var(--accent);font-size:15px;}
 .resultat .score{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
 .resultat .score small{font-size:15px;font-weight:400;color:var(--faded);}
 .resultat.parfait{border-left-color:var(--green);}
@@ -101,7 +113,7 @@ details.reglages input{accent-color:var(--accent);}
 .petit{font-size:13px;color:var(--faded);}
 
 /* niveaux + chrono */
-.niveaux{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:14px;}
+.niveaux{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:12px;}
 .niv{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 16px;min-width:150px;
   border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left;}
 .niv b{font-size:16px;font-weight:700;}
@@ -110,7 +122,8 @@ details.reglages input{accent-color:var(--accent);}
 .niv.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
 .niv.on small{color:#c9bfa8;}
 .lancer{font-size:17px;padding:10px 26px;}
-.entete-carte{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--rule);}
+.entete-carte{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
+.entete-carte h3{margin:0;}
 .entete-carte .titre-circuit{font-size:14px;}
 .compteur{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;min-width:150px;padding:4px 14px;
   border:1px solid var(--rule);background:var(--surface);border-radius:4px;}
@@ -126,7 +139,7 @@ details.reglages input{accent-color:var(--accent);}
 .resultat.zero{border-left-color:var(--red);}
 .resultat.zero .score{color:var(--red);font-size:22px;}
 .record{display:inline-block;margin-left:8px;font-size:13px;font-weight:600;color:var(--green);background:rgba(42,92,58,.1);padding:2px 8px;border-radius:3px;vertical-align:middle;}
-.records{font-size:13px;color:var(--faded);margin-top:10px;}
+.records{font-size:13px;color:var(--faded);align-self:center;margin-left:auto;text-align:right;max-width:260px;}
 .records b{color:var(--ink);font-weight:600;}
 
 /* mémo */
@@ -173,11 +186,10 @@ details.reglages input{accent-color:var(--accent);}
 
   <!-- ══════════════ ONGLET 1 : EXERCICE ══════════════ -->
   <section class="panneau" id="p-jeu" role="tabpanel">
-    <h2>Quel est ce dipôle ?</h2>
     <ol class="consigne">
-      <li>Choisis un niveau et clique sur « Lancer » : le compteur de points commence à descendre.</li>
+      <li>Choisis un niveau et clique sur « Lancer ».</li>
       <li>Clique sur un composant, puis sur son nom.</li>
-      <li>Valide vite ! Sans aucune erreur, tu gagnes les points du compteur. Avec une erreur, tu ne marques rien.</li>
+      <li>Valide vite : sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
     </ol>
 
     <div class="niveaux" id="niveaux">
@@ -186,16 +198,20 @@ details.reglages input{accent-color:var(--accent);}
       <button class="niv" data-niv="difficile"><b>Difficile</b><small>7 dipôles · 3000 pts</small></button>
       <button class="btn plein lancer" id="b_new">Lancer</button>
       <div class="compteur attente" id="compteur" aria-live="off"><span class="val" id="cpt">1000</span><small id="cpt_lib">pts à gagner</small></div>
+      <div class="records" id="records"></div>
     </div>
 
     <div class="jeu" id="jeu">
       <div class="schema"><svg id="svg" viewBox="60 0 800 440" role="img" aria-label="Schéma électrique à compléter"
         font-family="'Bricolage Grotesque',system-ui,sans-serif"></svg></div>
 
-      <div class="carte">
-        <div class="entete-carte"><span class="titre-circuit" id="titre">Aucun circuit</span></div>
-        <h3>Mes réponses</h3>
+      <div class="carte col-rep">
+        <div class="entete-carte"><h3>Mes réponses</h3><span class="titre-circuit" id="titre">Aucun circuit</span></div>
         <ul class="reponses" id="reponses"></ul>
+        <div class="resultat" id="resultat" hidden></div>
+      </div>
+
+      <div class="carte col-noms">
         <h3>Noms des dipôles</h3>
         <div class="noms" id="noms"></div>
         <div class="aide" id="aide"></div>
@@ -204,8 +220,6 @@ details.reglages input{accent-color:var(--accent);}
           <button class="btn" id="b_effacer">Effacer</button>
           <button class="btn plein" id="b_suivant" hidden>Nouveau circuit</button>
         </div>
-        <div class="resultat" id="resultat" hidden></div>
-        <div class="records" id="records"></div>
       </div>
     </div>
 
@@ -512,12 +526,12 @@ function valider(){
     if(rec){records[C.niv]=pts;sauverRecords();}
     R.className='resultat parfait';
     R.innerHTML=`<div class="score">${pts} <small>pts</small>${rec?'<span class="record">Nouveau record</span>':''}</div>`+
-      `<div class="detail">Aucune erreur · ${s} s · niveau ${N.nom.toLowerCase()}</div>`;
+      `<div class="detail">Sans erreur · ${s} s</div>`;
   }else{
     R.className='resultat zero';
     afficherCompteur(0,'perdu','pas de score');
     R.innerHTML=`<div class="score">Pas de score</div>`+
-      `<div class="detail">${err} erreur${err>1?'s':''} sur ${n} dipôles (en ${s} s). Regarde les corrections en rouge, puis relance un circuit.</div>`;
+      `<div class="detail">${err} erreur${err>1?'s':''} sur ${n}. Regarde les corrections en rouge.</div>`;
   }
   R.hidden=false;
   majRecords();
