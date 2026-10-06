@@ -71,6 +71,7 @@ main{min-width:0}
 .reponses .barre-rep{text-decoration:line-through;color:var(--red);}
 .reponses .bonne{color:var(--green);font-weight:600;}
 .corrige .reponses li{cursor:default;}
+.reponses li.attente{cursor:default;}
 .corrige .reponses li:hover{background:none;}
 
 .noms{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;}
@@ -98,6 +99,27 @@ details.reglages .cases{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px
 details.reglages label{display:flex;gap:6px;align-items:center;color:var(--ink);}
 details.reglages input{accent-color:var(--accent);}
 .petit{font-size:13px;color:var(--faded);}
+
+/* niveaux + chrono */
+.niveaux{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:14px;}
+.niv{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 16px;min-width:150px;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left;}
+.niv b{font-size:16px;font-weight:700;}
+.niv small{font-size:13px;color:var(--faded);}
+.niv:hover,.niv:focus-visible{border-color:var(--ink);outline:none;}
+.niv.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.niv.on small{color:#c9bfa8;}
+.lancer{font-size:17px;padding:10px 26px;}
+.entete-carte{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--rule);}
+.entete-carte .titre-circuit{font-size:14px;}
+.chrono{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;}
+.chrono.arret{color:var(--faded);}
+.resultat .detail{font-size:14px;color:var(--faded);margin-top:2px;}
+.resultat.zero{border-left-color:var(--red);}
+.resultat.zero .score{color:var(--red);font-size:22px;}
+.record{display:inline-block;margin-left:8px;font-size:13px;font-weight:600;color:var(--green);background:rgba(42,92,58,.1);padding:2px 8px;border-radius:3px;vertical-align:middle;}
+.records{font-size:13px;color:var(--faded);margin-top:10px;}
+.records b{color:var(--ink);font-weight:600;}
 
 /* mémo */
 .memo{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:8px;}
@@ -145,21 +167,16 @@ details.reglages input{accent-color:var(--accent);}
   <section class="panneau" id="p-jeu" role="tabpanel">
     <h2>Quel est ce dipôle ?</h2>
     <ol class="consigne">
-      <li>Clique sur un composant du schéma.</li>
-      <li>Clique sur son nom dans la liste.</li>
-      <li>Quand tout est rempli, clique sur « Valider ».</li>
+      <li>Choisis un niveau et clique sur « Lancer » : le chrono démarre.</li>
+      <li>Clique sur un composant, puis sur son nom.</li>
+      <li>Valide. Sans aucune erreur, tu marques les points du niveau moins le nombre de secondes.</li>
     </ol>
 
-    <div class="barre">
-      <span class="titre-circuit" id="titre">Circuit 1</span>
-      <span class="sep"></span>
-      <button class="btn" id="b_c1">Circuit 1</button>
-      <select id="topo" aria-label="Type de circuit">
-        <option value="serie">En série</option>
-        <option value="deriv">Avec dérivation</option>
-        <option value="mix">Au hasard</option>
-      </select>
-      <button class="btn plein" id="b_new">Nouveau circuit</button>
+    <div class="niveaux" id="niveaux">
+      <button class="niv on" data-niv="facile"><b>Facile</b><small>3 dipôles · 1000 pts</small></button>
+      <button class="niv" data-niv="moyen"><b>Moyen</b><small>5 dipôles · 2000 pts</small></button>
+      <button class="niv" data-niv="difficile"><b>Difficile</b><small>7 dipôles · 3000 pts</small></button>
+      <button class="btn plein lancer" id="b_new">Lancer</button>
     </div>
 
     <div class="jeu" id="jeu">
@@ -167,6 +184,7 @@ details.reglages input{accent-color:var(--accent);}
         font-family="'Bricolage Grotesque',system-ui,sans-serif"></svg></div>
 
       <div class="carte">
+        <div class="entete-carte"><span class="titre-circuit" id="titre">Aucun circuit</span><span class="chrono arret" id="chrono">0:00</span></div>
         <h3>Mes réponses</h3>
         <ul class="reponses" id="reponses"></ul>
         <h3>Noms des dipôles</h3>
@@ -175,10 +193,10 @@ details.reglages input{accent-color:var(--accent);}
         <div class="boutons">
           <button class="btn plein" id="b_valider" disabled>Valider</button>
           <button class="btn" id="b_effacer">Effacer</button>
-          <button class="btn" id="b_refaire" hidden>Recommencer ce circuit</button>
+          <button class="btn plein" id="b_suivant" hidden>Nouveau circuit</button>
         </div>
         <div class="resultat" id="resultat" hidden></div>
-        <div class="bilan" id="bilan"></div>
+        <div class="records" id="records"></div>
       </div>
     </div>
 
@@ -262,58 +280,86 @@ const SLOTS={
 };
 
 /* ══════════ CIRCUITS ══════════ */
-const CIRCUIT1={titre:'Circuit 1',topo:'serie',comps:[
-  {type:'lampe',slot:'T2',flip:0},
-  {type:'pile',slot:'L',flip:0},
-  {type:'moteur',slot:'R',flip:0},
-  {type:'del',slot:'B2',flip:1},
-  {type:'intOuvert',slot:'T1',flip:0},
-]};
-
+const NIVEAUX={
+  facile:   {nom:'Facile',   n:3, pts:1000},
+  moyen:    {nom:'Moyen',    n:5, pts:2000},
+  difficile:{nom:'Difficile',n:7, pts:3000},
+};
 const rnd=n=>Math.floor(Math.random()*n);
 function melange(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
 function tirer(liste,k){return melange(liste).slice(0,k);}
 
-let numHasard=0;
-function circuitHasard(topo){
-  if(topo==='mix') topo=Math.random()<.5?'serie':'deriv';
+// n = nombre total de dipôles, pile comprise. Série : 6 au maximum ; dérivation : 7 au maximum.
+function circuitNiveau(niv){
+  const n=NIVEAUX[niv].n, k=n-1;                          // k dipôles en plus de la pile
+  const topos=[]; if(k<=5) topos.push('serie'); if(k<=6) topos.push('deriv');
+  const topo=topos[rnd(topos.length)];
   const types=ORDRE.filter(t=>t!=='pile'&&DIPOLES[t].on);
   if(!types.length) types.push('lampe');
   const compte={};
   const pioche=()=>{
-    const dispo=types.filter(t=>(compte[t]||0)<2);
-    // on privilégie les types pas encore utilisés
-    const neufs=dispo.filter(t=>!compte[t]);
+    let dispo=types.filter(t=>(compte[t]||0)<2); if(!dispo.length) dispo=types;
+    const neufs=dispo.filter(t=>!compte[t]);              // on privilégie les dipôles pas encore utilisés
     const src=(neufs.length&&Math.random()<.75)?neufs:dispo;
     const t=src[rnd(src.length)]; compte[t]=(compte[t]||0)+1; return t;
   };
   let slots;
-  if(topo==='serie'){
-    slots=tirer(['T1','T2','R','B1','B2'],2+rnd(3));       // 2 à 4 dipôles + la pile
-  }else{
-    slots=['M',...tirer(['T2','R','B2'],1+rnd(2)),...tirer(['T1','B1'],rnd(2))];
+  if(topo==='serie') slots=tirer(['T1','T2','R','B1','B2'],k);
+  else{
+    // branche du milieu (1) + branche de droite (1 à 3) + branche principale (0 à 2)
+    const choix=[];
+    for(let d=1;d<=3;d++){const m=k-1-d; if(m>=0&&m<=2) choix.push([d,m]);}
+    const [d,m]=choix[rnd(choix.length)];
+    slots=['M',...tirer(['T2','R','B2'],d),...tirer(['T1','B1'],m)];
   }
   const comps=[{type:'pile',slot:'L',flip:rnd(2)},...slots.map(s=>({type:pioche(),slot:s,flip:rnd(2)}))];
-  numHasard++;
-  return {titre:'Circuit au hasard n° '+numHasard+(topo==='serie'?' — en série':' — avec dérivation'),topo,comps:melange(comps)};
+  return {niv,topo,comps:melange(comps)};
 }
 
 /* ══════════ ÉTAT ══════════ */
-let C=null;          // circuit courant
+let C=null;          // circuit courant (null = écran d'accueil)
 let rep=[];          // réponses (type ou null), indexées comme C.comps
-let sel=0;           // composant sélectionné (index) ou -1
+let sel=-1;          // composant sélectionné (index) ou -1
 let corrige=false;
-const bilan={circuits:0,bons:0,total:0};
+let niveau='facile';
+
+/* ══════════ CHRONO ══════════ */
+let t0=0, tFin=0, minuteur=null;
+const secondes=()=>Math.floor(((tFin||performance.now())-t0)/1000);
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function majChrono(){$('chrono').textContent=C?fmt(secondes()):'0:00';}
+function demarrer(){t0=performance.now();tFin=0;clearInterval(minuteur);minuteur=setInterval(majChrono,250);$('chrono').classList.remove('arret');majChrono();}
+function arreter(){tFin=performance.now();clearInterval(minuteur);$('chrono').classList.add('arret');majChrono();}
+
+/* ══════════ RECORDS (gardés dans ce navigateur) ══════════ */
+const CLE='dipoles_records_v1';
+let records={};
+try{records=JSON.parse(localStorage.getItem(CLE)||'{}')||{};}catch(e){records={};}
+function sauverRecords(){try{localStorage.setItem(CLE,JSON.stringify(records));}catch(e){}}
+function majRecords(){
+  const l=Object.keys(NIVEAUX).filter(k=>records[k]!=null).map(k=>NIVEAUX[k].nom+' <b>'+records[k]+' pts</b>');
+  $('records').innerHTML=l.length?'Mes records : '+l.join(' · '):'';
+}
 
 function charger(c){
   C=c; rep=c.comps.map(()=>null); sel=0; corrige=false;
-  $('titre').innerHTML='<b>'+c.titre+'</b> · '+c.comps.length+' dipôles';
+  $('titre').innerHTML='<b>'+NIVEAUX[c.niv].nom+'</b> · '+c.comps.length+' dipôles';
+  $('resultat').hidden=true;
+  demarrer();
   majTout();
 }
 
 /* ══════════ DESSIN DU SCHÉMA ══════════ */
 function largeurTexte(s){return s.length*8.6+20;}
+function dessinerVide(){
+  $('svg').innerHTML=
+    `<rect x="200" y="80" width="400" height="280" fill="none" stroke="rgba(28,18,8,.18)" stroke-width="2.4" stroke-dasharray="10 8"/>`+
+    `<text x="400" y="200" text-anchor="middle" font-size="64" font-weight="800" fill="rgba(28,18,8,.16)">?</text>`+
+    `<text x="400" y="262" text-anchor="middle" font-size="21" font-weight="600" fill="#5f4e33">Choisis un niveau,</text>`+
+    `<text x="400" y="290" text-anchor="middle" font-size="21" font-weight="600" fill="#5f4e33">puis clique sur « Lancer ».</text>`;
+}
 function dessiner(){
+  if(!C) return dessinerVide();
   const S=SLOTS[C.topo];
   let h='';
   // fils
@@ -378,6 +424,7 @@ function dessiner(){
 /* ══════════ PANNEAU DE RÉPONSES ══════════ */
 function listeReponses(){
   const ul=$('reponses');
+  if(!C){ul.innerHTML='<li class="attente"><span class="vide">Lance un circuit pour commencer.</span></li>';return;}
   ul.innerHTML=C.comps.map((c,i)=>{
     const r=rep[i], cls=[];
     if(r) cls.push('rempli');
@@ -392,34 +439,36 @@ function listeReponses(){
 }
 
 function listeNoms(){
-  const presents=new Set(C.comps.map(c=>c.type));
+  const presents=new Set(C?C.comps.map(c=>c.type):[]);
   const types=ORDRE.filter(t=>DIPOLES[t].on||presents.has(t));
-  $('noms').innerHTML=types.map(t=>`<button class="nom" data-t="${t}" ${corrige?'disabled':''}>${DIPOLES[t].nom}</button>`).join('');
+  const off=!C||corrige;
+  $('noms').innerHTML=types.map(t=>`<button class="nom" data-t="${t}" ${off?'disabled':''}>${DIPOLES[t].nom}</button>`).join('');
   $('noms').querySelectorAll('.nom').forEach(b=>b.addEventListener('click',()=>attribuer(b.dataset.t)));
 }
 
 function majBoutons(){
-  const manque=rep.filter(r=>!r).length;
-  $('b_valider').disabled=corrige||manque>0;
+  const manque=C?rep.filter(r=>!r).length:1;
+  $('b_valider').disabled=!C||corrige||manque>0;
   $('b_valider').hidden=corrige;
   $('b_effacer').hidden=corrige;
-  $('b_refaire').hidden=!corrige;
+  $('b_effacer').disabled=!C;
+  $('b_suivant').hidden=!corrige;
   let a='';
-  if(!corrige){
+  if(C&&!corrige){
     if(sel>=0) a='Composant '+(sel+1)+' sélectionné : clique sur son nom.';
     else if(manque) a='Clique sur un composant du schéma.';
     if(!manque) a='Tout est rempli : tu peux valider (ou cliquer sur un composant pour changer sa réponse).';
   }
   $('aide').textContent=a;
-  $('jeu').classList.toggle('corrige',corrige);
+  $('jeu').classList.toggle('corrige',corrige||!C);
 }
 
-function majTout(){dessiner();listeReponses();listeNoms();majBoutons();if(!corrige)$('resultat').hidden=true;}
+function majTout(){dessiner();listeReponses();listeNoms();majBoutons();}
 
 /* ══════════ ACTIONS ══════════ */
-function choisir(i){if(corrige)return;sel=(sel===i?-1:i);majTout();}
+function choisir(i){if(!C||corrige)return;sel=(sel===i?-1:i);majTout();}
 function attribuer(t){
-  if(corrige)return;
+  if(!C||corrige)return;
   if(sel<0){sel=rep.findIndex(r=>!r);if(sel<0)return;}
   rep[sel]=t;
   // passe au suivant sans réponse
@@ -430,25 +479,38 @@ function attribuer(t){
   majTout();
 }
 function valider(){
+  arreter();
   corrige=true; sel=-1;
-  const n=C.comps.length, bons=C.comps.filter((c,i)=>rep[i]===c.type).length;
-  bilan.circuits++; bilan.bons+=bons; bilan.total+=n;
-  const msg=bons===n?'Parfait, tous les symboles sont reconnus !':
-    bons>=n-1?'Presque ! Regarde bien le composant en rouge.':
-    'Regarde les corrections en rouge, puis va voir le mémo des symboles.';
+  const n=C.comps.length, err=C.comps.filter((c,i)=>rep[i]!==c.type).length;
+  const s=secondes(), N=NIVEAUX[C.niv];
   const R=$('resultat');
-  R.className='resultat'+(bons===n?' parfait':'');
-  R.innerHTML=`<div class="score">${bons} <small>/ ${n} bonnes réponses</small></div>${msg}`;
+  if(err===0){
+    const pts=Math.max(0,N.pts-s);
+    const rec=records[C.niv]==null||pts>records[C.niv];
+    if(rec){records[C.niv]=pts;sauverRecords();}
+    R.className='resultat parfait';
+    R.innerHTML=`<div class="score">${pts} <small>pts</small>${rec?'<span class="record">Nouveau record</span>':''}</div>`+
+      `<div class="detail">Aucune erreur · ${N.pts} − ${s} s · niveau ${N.nom.toLowerCase()}</div>`;
+  }else{
+    R.className='resultat zero';
+    R.innerHTML=`<div class="score">Pas de score</div>`+
+      `<div class="detail">${err} erreur${err>1?'s':''} sur ${n} dipôles (temps : ${fmt(s)}). Regarde les corrections en rouge, puis relance un circuit.</div>`;
+  }
   R.hidden=false;
-  $('bilan').textContent=bilan.circuits>1?`Depuis le début : ${bilan.circuits} circuits, ${bilan.bons} / ${bilan.total} bonnes réponses.`:'';
+  majRecords();
   majTout();
 }
 
+function lancer(){charger(circuitNiveau(niveau));}
+
 $('b_valider').addEventListener('click',valider);
-$('b_effacer').addEventListener('click',()=>{rep=rep.map(()=>null);sel=0;majTout();});
-$('b_refaire').addEventListener('click',()=>{corrige=false;rep=rep.map(()=>null);sel=0;majTout();});
-$('b_c1').addEventListener('click',()=>charger(CIRCUIT1));
-$('b_new').addEventListener('click',()=>charger(circuitHasard($('topo').value)));
+$('b_effacer').addEventListener('click',()=>{if(!C)return;rep=rep.map(()=>null);sel=0;majTout();});
+$('b_suivant').addEventListener('click',lancer);
+$('b_new').addEventListener('click',lancer);
+document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{
+  niveau=b.dataset.niv;
+  document.querySelectorAll('.niv').forEach(x=>x.classList.toggle('on',x===b));
+}));
 
 /* ══════════ RÉGLAGES ══════════ */
 $('cases').innerHTML=ORDRE.map(t=>`<label><input type="checkbox" data-t="${t}" ${DIPOLES[t].on?'checked':''} ${t==='pile'?'disabled':''}> ${DIPOLES[t].nom}</label>`).join('');
@@ -470,7 +532,8 @@ document.querySelectorAll('.onglet').forEach(o=>o.addEventListener('click',()=>{
   $(o.dataset.cible).hidden=false;
 }));
 
-charger(CIRCUIT1);
+majTout();
+majRecords();
 </script>
 </body>
 </html>
