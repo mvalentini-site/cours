@@ -106,11 +106,6 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
 .resultat.parfait{border-left-color:var(--green);}
 .bilan{font-size:13px;color:var(--faded);margin-top:8px;}
 
-details.reglages{margin-top:18px;font-size:14px;color:var(--faded);}
-details.reglages summary{cursor:pointer;}
-details.reglages .cases{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;}
-details.reglages label{display:flex;gap:6px;align-items:center;color:var(--ink);}
-details.reglages input{accent-color:var(--accent);}
 .petit{font-size:13px;color:var(--faded);}
 
 /* niveaux + chrono */
@@ -151,8 +146,7 @@ details.reglages input{accent-color:var(--accent);}
 .fiche span{font-size:14px;color:var(--faded);}
 
 @media print{
-  .topbar,.onglets,.barre,.boutons,.noms,.aide,details.reglages,.consigne{display:none!important;}
-  .panneau[hidden]{display:block!important;}
+  .topbar,.onglets,.barre,.boutons,.noms,.aide,  .panneau[hidden]{display:block!important;}
 }
 </style>
 </head>
@@ -223,11 +217,6 @@ details.reglages input{accent-color:var(--accent);}
       </div>
     </div>
 
-    <details class="reglages">
-      <summary>Réglages (professeur) — dipôles proposés</summary>
-      <div class="cases" id="cases"></div>
-      <div class="petit" style="margin-top:6px">Les dipôles décochés n'apparaissent plus dans les nouveaux circuits ni dans la liste des noms. La pile est toujours présente.</div>
-    </details>
   </section>
 
   <!-- ══════════════ ONGLET 2 : MÉMO ══════════════ -->
@@ -252,7 +241,7 @@ const DIPOLES={
   diode:     {nom:'Diode',               desc:'Elle ne laisse passer le courant que dans un seul sens.', on:true},
   intOuvert: {nom:'Interrupteur ouvert', desc:'Le circuit est coupé : le courant ne passe pas.', on:true},
   intFerme:  {nom:'Interrupteur fermé',  desc:'Le circuit est fermé : le courant peut passer.', on:true},
-  resistance:{nom:'Résistance',          desc:'Elle limite le courant dans le circuit (vue en 4ème).', on:false},
+  resistance:{nom:'Résistance',          desc:'Elle limite le courant dans le circuit.', on:true},
 };
 const ORDRE=Object.keys(DIPOLES);
 
@@ -546,12 +535,6 @@ document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{
   niveau=b.dataset.niv;
   document.querySelectorAll('.niv').forEach(x=>x.classList.toggle('on',x===b));
   if(!C||corrige) compteurAttente();
-}));
-
-/* ══════════ RÉGLAGES ══════════ */
-$('cases').innerHTML=ORDRE.map(t=>`<label><input type="checkbox" data-t="${t}" ${DIPOLES[t].on?'checked':''} ${t==='pile'?'disabled':''}> ${DIPOLES[t].nom}</label>`).join('');
-$('cases').querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
-  DIPOLES[cb.dataset.t].on=cb.checked; listeNoms();
 }));
 
 /* ══════════ MÉMO ══════════ */
