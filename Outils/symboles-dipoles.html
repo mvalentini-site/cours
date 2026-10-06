@@ -112,8 +112,16 @@ details.reglages input{accent-color:var(--accent);}
 .lancer{font-size:17px;padding:10px 26px;}
 .entete-carte{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--rule);}
 .entete-carte .titre-circuit{font-size:14px;}
-.chrono{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;}
-.chrono.arret{color:var(--faded);}
+.compteur{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;min-width:150px;padding:4px 14px;
+  border:1px solid var(--rule);background:var(--surface);border-radius:4px;}
+.compteur .val{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;}
+.compteur small{font-size:13px;color:var(--faded);}
+.compteur.attente .val{color:var(--faded2);}
+.compteur.marche{border-color:var(--accent);}
+.compteur.marche .val{color:var(--accent);}
+.compteur.gagne{border-color:var(--green);} .compteur.gagne .val{color:var(--green);}
+.compteur.perdu{border-color:var(--red);} .compteur.perdu .val{color:var(--red);}
+.compteur.bas .val{color:var(--red);}
 .resultat .detail{font-size:14px;color:var(--faded);margin-top:2px;}
 .resultat.zero{border-left-color:var(--red);}
 .resultat.zero .score{color:var(--red);font-size:22px;}
@@ -167,9 +175,9 @@ details.reglages input{accent-color:var(--accent);}
   <section class="panneau" id="p-jeu" role="tabpanel">
     <h2>Quel est ce dipôle ?</h2>
     <ol class="consigne">
-      <li>Choisis un niveau et clique sur « Lancer » : le chrono démarre.</li>
+      <li>Choisis un niveau et clique sur « Lancer » : le compteur de points commence à descendre.</li>
       <li>Clique sur un composant, puis sur son nom.</li>
-      <li>Valide. Sans aucune erreur, tu marques les points du niveau moins le nombre de secondes.</li>
+      <li>Valide vite ! Sans aucune erreur, tu gagnes les points du compteur. Avec une erreur, tu ne marques rien.</li>
     </ol>
 
     <div class="niveaux" id="niveaux">
@@ -177,6 +185,7 @@ details.reglages input{accent-color:var(--accent);}
       <button class="niv" data-niv="moyen"><b>Moyen</b><small>5 dipôles · 2000 pts</small></button>
       <button class="niv" data-niv="difficile"><b>Difficile</b><small>7 dipôles · 3000 pts</small></button>
       <button class="btn plein lancer" id="b_new">Lancer</button>
+      <div class="compteur attente" id="compteur" aria-live="off"><span class="val" id="cpt">1000</span><small id="cpt_lib">pts à gagner</small></div>
     </div>
 
     <div class="jeu" id="jeu">
@@ -184,7 +193,7 @@ details.reglages input{accent-color:var(--accent);}
         font-family="'Bricolage Grotesque',system-ui,sans-serif"></svg></div>
 
       <div class="carte">
-        <div class="entete-carte"><span class="titre-circuit" id="titre">Aucun circuit</span><span class="chrono arret" id="chrono">0:00</span></div>
+        <div class="entete-carte"><span class="titre-circuit" id="titre">Aucun circuit</span></div>
         <h3>Mes réponses</h3>
         <ul class="reponses" id="reponses"></ul>
         <h3>Noms des dipôles</h3>
@@ -323,13 +332,25 @@ let sel=-1;          // composant sélectionné (index) ou -1
 let corrige=false;
 let niveau='facile';
 
-/* ══════════ CHRONO ══════════ */
+/* ══════════ COMPTEUR DE POINTS ══════════ */
+// Le compteur part des points du niveau et descend jusqu'à 0 en DUREE secondes
+// (difficile : 3000 pts, −500 pts toutes les 30 s). Réduire DUREE pour accélérer.
+const DUREE=180;
 let t0=0, tFin=0, minuteur=null;
-const secondes=()=>Math.floor(((tFin||performance.now())-t0)/1000);
-const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-function majChrono(){$('chrono').textContent=C?fmt(secondes()):'0:00';}
-function demarrer(){t0=performance.now();tFin=0;clearInterval(minuteur);minuteur=setInterval(majChrono,250);$('chrono').classList.remove('arret');majChrono();}
-function arreter(){tFin=performance.now();clearInterval(minuteur);$('chrono').classList.add('arret');majChrono();}
+const secondes=()=>((tFin||performance.now())-t0)/1000;
+const ptsActuels=()=>{const N=NIVEAUX[C.niv];return Math.max(0,Math.round(N.pts*(1-secondes()/DUREE)));};
+function afficherCompteur(val,etat,lib){
+  const b=$('compteur'); b.className='compteur '+etat;
+  $('cpt').textContent=val; $('cpt_lib').textContent=lib;
+}
+function majCompteur(){
+  if(!C||corrige) return;
+  const v=ptsActuels(), N=NIVEAUX[C.niv];
+  afficherCompteur(v,'marche'+(v<N.pts*.2?' bas':''),'pts à gagner');
+}
+function compteurAttente(){afficherCompteur(NIVEAUX[niveau].pts,'attente','pts à gagner');}
+function demarrer(){t0=performance.now();tFin=0;clearInterval(minuteur);minuteur=setInterval(majCompteur,50);majCompteur();}
+function arreter(){tFin=performance.now();clearInterval(minuteur);}
 
 /* ══════════ RECORDS (gardés dans ce navigateur) ══════════ */
 const CLE='dipoles_records_v1';
@@ -482,19 +503,21 @@ function valider(){
   arreter();
   corrige=true; sel=-1;
   const n=C.comps.length, err=C.comps.filter((c,i)=>rep[i]!==c.type).length;
-  const s=secondes(), N=NIVEAUX[C.niv];
+  const s=Math.round(secondes()), N=NIVEAUX[C.niv];
   const R=$('resultat');
   if(err===0){
-    const pts=Math.max(0,N.pts-s);
+    const pts=ptsActuels();
+    afficherCompteur(pts,'gagne','pts gagnés');
     const rec=records[C.niv]==null||pts>records[C.niv];
     if(rec){records[C.niv]=pts;sauverRecords();}
     R.className='resultat parfait';
     R.innerHTML=`<div class="score">${pts} <small>pts</small>${rec?'<span class="record">Nouveau record</span>':''}</div>`+
-      `<div class="detail">Aucune erreur · ${N.pts} − ${s} s · niveau ${N.nom.toLowerCase()}</div>`;
+      `<div class="detail">Aucune erreur · ${s} s · niveau ${N.nom.toLowerCase()}</div>`;
   }else{
     R.className='resultat zero';
+    afficherCompteur(0,'perdu','pas de score');
     R.innerHTML=`<div class="score">Pas de score</div>`+
-      `<div class="detail">${err} erreur${err>1?'s':''} sur ${n} dipôles (temps : ${fmt(s)}). Regarde les corrections en rouge, puis relance un circuit.</div>`;
+      `<div class="detail">${err} erreur${err>1?'s':''} sur ${n} dipôles (en ${s} s). Regarde les corrections en rouge, puis relance un circuit.</div>`;
   }
   R.hidden=false;
   majRecords();
@@ -510,6 +533,7 @@ $('b_new').addEventListener('click',lancer);
 document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{
   niveau=b.dataset.niv;
   document.querySelectorAll('.niv').forEach(x=>x.classList.toggle('on',x===b));
+  if(!C||corrige) compteurAttente();
 }));
 
 /* ══════════ RÉGLAGES ══════════ */
@@ -534,6 +558,7 @@ document.querySelectorAll('.onglet').forEach(o=>o.addEventListener('click',()=>{
 
 majTout();
 majRecords();
+compteurAttente();
 </script>
 </body>
 </html>
