@@ -27,7 +27,8 @@ main{min-width:0}
 @media(max-width:700px){.jeu{grid-template-columns:1fr;}}
 .schema{display:flex;align-items:center;}
 .col-rep,.col-noms{display:flex;flex-direction:column;}
-.col-noms .boutons{margin-top:auto;}
+.col-noms .lancer{width:100%;margin-bottom:14px;}
+.col-noms .boutons{margin-top:4px;}
 
 /* mise en page compacte : tout doit tenir sur un écran paysage sans défiler */
 body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bottom:40px;gap:12px;}
@@ -90,7 +91,7 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
 .nom{font:inherit;font-size:15px;padding:7px 13px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer;}
 .nom:hover:not(:disabled),.nom:focus-visible{border-color:var(--ink);outline:none;}
 .nom:disabled{opacity:.4;cursor:default;}
-.aide{font-size:13px;color:var(--faded);min-height:18px;margin-bottom:10px;}
+.aide{font-size:13px;color:var(--faded);min-height:37px;margin-bottom:6px;line-height:1.4;}
 
 .boutons{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
 .btn{font:inherit;font-size:15px;padding:8px 16px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:4px;}
@@ -121,7 +122,7 @@ details.reglages input{accent-color:var(--accent);}
 .niv:hover,.niv:focus-visible{border-color:var(--ink);outline:none;}
 .niv.on{background:var(--ink);border-color:var(--ink);color:var(--paper);}
 .niv.on small{color:#c9bfa8;}
-.lancer{font-size:17px;padding:10px 26px;}
+.lancer{font-size:18px;padding:11px 26px;}
 .entete-carte{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
 .entete-carte h3{margin:0;}
 .entete-carte .titre-circuit{font-size:14px;}
@@ -187,7 +188,7 @@ details.reglages input{accent-color:var(--accent);}
   <!-- ══════════════ ONGLET 1 : EXERCICE ══════════════ -->
   <section class="panneau" id="p-jeu" role="tabpanel">
     <ol class="consigne">
-      <li>Choisis un niveau et clique sur « Lancer ».</li>
+      <li>Choisis un niveau, puis clique sur « Lancer » (à droite).</li>
       <li>Clique sur un composant, puis sur son nom.</li>
       <li>Valide vite : sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
     </ol>
@@ -196,7 +197,6 @@ details.reglages input{accent-color:var(--accent);}
       <button class="niv on" data-niv="facile"><b>Facile</b><small>3 dipôles · 1000 pts</small></button>
       <button class="niv" data-niv="moyen"><b>Moyen</b><small>5 dipôles · 2000 pts</small></button>
       <button class="niv" data-niv="difficile"><b>Difficile</b><small>7 dipôles · 3000 pts</small></button>
-      <button class="btn plein lancer" id="b_new">Lancer</button>
       <div class="compteur attente" id="compteur" aria-live="off"><span class="val" id="cpt">1000</span><small id="cpt_lib">pts à gagner</small></div>
       <div class="records" id="records"></div>
     </div>
@@ -212,13 +212,13 @@ details.reglages input{accent-color:var(--accent);}
       </div>
 
       <div class="carte col-noms">
+        <button class="btn plein lancer" id="b_new">Lancer</button>
         <h3>Noms des dipôles</h3>
         <div class="noms" id="noms"></div>
         <div class="aide" id="aide"></div>
         <div class="boutons">
           <button class="btn plein" id="b_valider" disabled>Valider</button>
           <button class="btn" id="b_effacer">Effacer</button>
-          <button class="btn plein" id="b_suivant" hidden>Nouveau circuit</button>
         </div>
       </div>
     </div>
@@ -487,7 +487,6 @@ function majBoutons(){
   $('b_valider').hidden=corrige;
   $('b_effacer').hidden=corrige;
   $('b_effacer').disabled=!C;
-  $('b_suivant').hidden=!corrige;
   let a='';
   if(C&&!corrige){
     if(sel>=0) a='Composant '+(sel+1)+' sélectionné : clique sur son nom.';
@@ -542,7 +541,6 @@ function lancer(){charger(circuitNiveau(niveau));}
 
 $('b_valider').addEventListener('click',valider);
 $('b_effacer').addEventListener('click',()=>{if(!C)return;rep=rep.map(()=>null);sel=0;majTout();});
-$('b_suivant').addEventListener('click',lancer);
 $('b_new').addEventListener('click',lancer);
 document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{
   niveau=b.dataset.niv;
