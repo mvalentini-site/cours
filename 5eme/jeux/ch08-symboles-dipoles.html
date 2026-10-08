@@ -184,7 +184,7 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
     <ol class="consigne">
       <li>Choisis un niveau, puis clique sur « Lancer » (à droite).</li>
       <li>Clique sur un composant, puis sur son nom.</li>
-      <li>Valide vite : sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
+      <li>Va vite : dès que tout est rempli, la partie s'arrête et se corrige. Sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
     </ol>
 
     <div class="niveaux" id="niveaux">
@@ -211,7 +211,6 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
         <div class="noms" id="noms"></div>
         <div class="aide" id="aide"></div>
         <div class="boutons">
-          <button class="btn plein" id="b_valider" disabled>Valider</button>
           <button class="btn" id="b_effacer">Effacer</button>
         </div>
       </div>
@@ -472,15 +471,12 @@ function listeNoms(){
 
 function majBoutons(){
   const manque=C?rep.filter(r=>!r).length:1;
-  $('b_valider').disabled=!C||corrige||manque>0;
-  $('b_valider').hidden=corrige;
   $('b_effacer').hidden=corrige;
   $('b_effacer').disabled=!C;
   let a='';
   if(C&&!corrige){
     if(sel>=0) a='Composant '+(sel+1)+' sélectionné : clique sur son nom.';
     else if(manque) a='Clique sur un composant du schéma.';
-    if(!manque) a='Tout est rempli : tu peux valider (ou cliquer sur un composant pour changer sa réponse).';
   }
   $('aide').textContent=a;
   $('jeu').classList.toggle('corrige',corrige||!C);
@@ -499,6 +495,7 @@ function attribuer(t){
   let suiv=-1;
   for(let k=1;k<=n;k++){const j=(sel+k)%n;if(!rep[j]){suiv=j;break;}}
   sel=suiv;
+  if(suiv<0) return valider();   // tout est rempli : la partie s'arrête et se corrige
   majTout();
 }
 function valider(){
@@ -528,7 +525,6 @@ function valider(){
 
 function lancer(){charger(circuitNiveau(niveau));}
 
-$('b_valider').addEventListener('click',valider);
 $('b_effacer').addEventListener('click',()=>{if(!C)return;rep=rep.map(()=>null);sel=0;majTout();});
 $('b_new').addEventListener('click',lancer);
 document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{

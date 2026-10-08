@@ -179,7 +179,7 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
     <ol class="consigne">
       <li>Choisis un niveau, puis clique sur « Lancer » (à droite).</li>
       <li>Clique sur une carte, puis sur son état : solide, liquide ou gaz.</li>
-      <li>Valide vite : sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
+      <li>Va vite : dès que tout est rempli, la partie s'arrête et se corrige. Sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li>
     </ol>
 
     <div class="niveaux" id="niveaux">
@@ -205,7 +205,6 @@ body.en-onglets.une-colonne .layout{max-width:1520px;padding-top:16px;padding-bo
         <div class="etats" id="etats"></div>
         <div class="aide" id="aide"></div>
         <div class="boutons">
-          <button class="btn plein" id="b_valider" disabled>Valider</button>
           <button class="btn" id="b_effacer">Effacer</button>
         </div>
       </div>
@@ -397,15 +396,12 @@ function listeEtats(){
 
 function majBoutons(){
   const manque=P?rep.filter(r=>!r).length:1;
-  $('b_valider').disabled=!P||corrige||manque>0;
-  $('b_valider').hidden=corrige;
   $('b_effacer').hidden=corrige;
   $('b_effacer').disabled=!P;
   let a='';
   if(P&&!corrige){
     if(sel>=0) a='Carte '+(sel+1)+' sélectionnée : clique sur son état (ou tape S, L ou G).';
     else if(manque) a='Clique sur une carte du plateau.';
-    if(!manque) a='Tout est rempli : tu peux valider (ou cliquer sur une carte pour changer sa réponse).';
   }
   $('aide').textContent=a;
   $('jeu').classList.toggle('corrige',corrige||!P);
@@ -424,6 +420,7 @@ function attribuer(e){
   let suiv=-1;
   for(let k=1;k<=n;k++){const j=(sel+k)%n;if(!rep[j]){suiv=j;break;}}
   sel=suiv;
+  if(suiv<0) return valider();   // tout est rempli : la partie s'arrête et se corrige
   majTout();
 }
 function valider(){
@@ -453,7 +450,6 @@ function valider(){
 
 function lancer(){charger(partieNiveau(niveau));}
 
-$('b_valider').addEventListener('click',valider);
 $('b_effacer').addEventListener('click',()=>{if(!P)return;rep=rep.map(()=>null);sel=0;majTout();});
 $('b_new').addEventListener('click',lancer);
 document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{

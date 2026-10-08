@@ -56,7 +56,7 @@ function demarrerJeu(JEU){
   $('p-jeu').innerHTML=
     `<ol class="consigne"><li>Choisis un niveau, puis clique sur « Lancer » (à droite).</li>`+
     `<li>Réponds à chaque défi (touche Entrée pour passer au suivant).</li>`+
-    `<li>Valide vite : sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li></ol>`+
+    `<li>Va vite : dès que tout est rempli, la partie s'arrête et se corrige. Sans erreur, tu gagnes les points du compteur ; une seule erreur et c'est 0.</li></ol>`+
     `<div class="niveaux" id="niveaux">`+NOMS.map((k,i)=>`<button class="niv${i?'':' on'}" data-niv="${k}"><b>${NIVEAUX[k].nom}</b>`+
       `<small>${nbDefis(k)} défis${NIVEAUX[k].desc?' · '+NIVEAUX[k].desc:''} · ${NIVEAUX[k].pts} pts</small></button>`).join('')+
     `<div class="compteur attente" id="compteur" aria-live="off"><span class="val" id="cpt"></span><small id="cpt_lib">pts à gagner</small></div>`+
@@ -66,7 +66,7 @@ function demarrerJeu(JEU){
       `<ul class="reponses" id="reponses"></ul><div class="resultat" id="resultat" hidden></div></div>`+
     `<div class="carte col-saisie"><button class="btn plein lancer" id="b_new">Lancer</button><h3>Ma réponse</h3>`+
       `<div class="saisie" id="saisie"></div><div class="aide" id="aide"></div>`+
-      `<div class="boutons"><button class="btn plein" id="b_valider" disabled>Valider</button><button class="btn" id="b_effacer">Effacer</button></div></div></div>`;
+      `<div class="boutons"><button class="btn" id="b_effacer">Effacer</button></div></div></div>`;
 
   function partieNiveau(niv){
     const deja=new Set();
@@ -163,6 +163,7 @@ function demarrerJeu(JEU){
       const inp=$('champ');
       inp.addEventListener('input',()=>{rep[sel]=inp.value;listeReponses();majBoutons();});
       inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();suivant();}});
+      inp.addEventListener('change',()=>{if(!corrige&&rep.every(rempli)) valider();});   // champ quitté sans Entrée
     }else{
       z.innerHTML='<div class="choix">'+df.options.map((o,k)=>`<button class="opt ${rep[sel]===o?'on':''}" data-k="${k}" ${off}><span class="k">${k+1}</span><span>${o}</span></button>`).join('')+'</div>';
       z.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>choisirOption(+b.dataset.k)));
@@ -173,15 +174,12 @@ function demarrerJeu(JEU){
 
   function majBoutons(){
     const manque=P?rep.filter(r=>!rempli(r)).length:1;
-    $('b_valider').disabled=!P||corrige||manque>0;
-    $('b_valider').hidden=corrige;
     $('b_effacer').hidden=corrige;
     $('b_effacer').disabled=!P;
     let a='';
     if(P&&!corrige){
       const df=P.defis[sel];
       if(manque) a=df.type==='num'?'Tape ta réponse (une virgule pour les décimales), puis Entrée.':'Clique sur ta réponse (ou tape son numéro).';
-      else a='Tout est rempli : tu peux valider (ou revenir sur un défi pour changer ta réponse).';
     }
     if(P&&corrige) a='Clique sur un défi de la liste pour revoir sa correction.';
     $('aide').textContent=a;
@@ -192,15 +190,15 @@ function demarrerJeu(JEU){
   /* actions */
   function aller(i){if(!P||i<0||i>=P.defis.length)return;sel=i;majTout();focusSaisie();}
   function suivant(){
-    // passe au prochain défi sans réponse (ou au suivant si tout est rempli)
+    // dès que tout est rempli, la partie s'arrête et se corrige ; sinon, passe au prochain défi sans réponse
+    if(rep.every(rempli)) return valider();
     const n=P.defis.length;
     let suiv=-1;
     for(let k=1;k<=n;k++){const j=(sel+k)%n;if(!rempli(rep[j])){suiv=j;break;}}
-    if(suiv<0) suiv=Math.min(sel+1,n-1);
     aller(suiv);
-    if(rep.every(rempli)) $('b_valider').focus();
   }
   function valider(){
+    if(corrige) return;
     arreter();
     corrige=true;
     const n=P.defis.length, err=P.defis.filter((df,i)=>!juste(df,rep[i])).length;
@@ -222,7 +220,6 @@ function demarrerJeu(JEU){
     majRecords(); majTout();
   }
 
-  $('b_valider').addEventListener('click',valider);
   $('b_effacer').addEventListener('click',()=>{if(!P)return;rep=rep.map(()=>null);sel=0;majTout();focusSaisie();});
   $('b_new').addEventListener('click',()=>charger(partieNiveau(niveau)));
   document.querySelectorAll('.niv').forEach(b=>b.addEventListener('click',()=>{
