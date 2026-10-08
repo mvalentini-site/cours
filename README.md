@@ -17,7 +17,10 @@ Site GitHub Pages : https://mvalentini-site.github.io/cours/ (dépôt `mvalentin
 │   ├── ch01-mole/index.html
 │   └── ch11-fluides/index.html
 ├── 5eme/
-│   └── ch01-matiere/index.html
+│   ├── ch01-matiere/index.html
+│   └── documents/                ← tous les documents Drive des chapitres (hors évals)
+│       ├── index.html            ← généré, ne pas modifier à la main
+│       └── generer.py            ← `python generer.py` relit les « Liens de partage.md » de G:\Mon Drive\00 5ème
 └── Outils/                       ← outils interactifs (pointage vidéo, Mariotte, Melde…) et leurs vidéos
 ```
 

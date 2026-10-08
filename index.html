@@ -216,7 +216,16 @@ const SOMMAIRES = {
     { num:'12', title:'Mouvement d\'un système', file:'1ere-spe/ch12-mouvement/index.html' }
   ],
   '5eme': [
-    { num:'01', title:'La matière dans tous ses états', file:'5eme/ch01-matiere/index.html' }
+    { num:'01', title:'La matière dans tous ses états', file:'5eme/ch01-matiere/index.html' },
+    { num:'02', title:'Le volume et la masse', file:'5eme/documents/index.html#ch02' },
+    { num:'03', title:'Les changements d’état de la matière', file:'5eme/documents/index.html#ch03' },
+    { num:'04', title:'Les mélanges', file:'5eme/documents/index.html#ch04' },
+    { num:'05', title:'La matière à l’échelle microscopique', file:'5eme/documents/index.html#ch05' },
+    { num:'06', title:'La vitesse et les mouvements', file:'5eme/documents/index.html#ch06' },
+    { num:'07', title:'Les formes d’énergie', file:'5eme/documents/index.html#ch07' },
+    { num:'08', title:'Les circuits électriques', file:'5eme/documents/index.html#ch08' },
+    { num:'09', title:'Les ondes sonores', file:'5eme/documents/index.html#ch09' },
+    { num:'10', title:'Propagation de la lumière', file:'5eme/documents/index.html#ch10' }
   ],
   '4eme': [
     { num:'02', title:'La composition de l\'air', file:'4eme/ch02-composition-air/index.html' }
@@ -229,6 +238,7 @@ const PAGES = {
     { file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }
   ],
   '5eme': [
+    { file:'5eme/documents/index.html', title:'Documents des chapitres', sub:'Cours, activités, exercices et corrigés · liens Drive', tag:'Tous les chapitres', color:'#6b3a1c', bloc:'Documents' },
     { file:'5eme/jeux/ch08-symboles-dipoles.html', title:'Symboles des dipôles', sub:'3 niveaux · compteur de points · circuits au hasard', tag:'Ch. 8 · Circuits électriques', color:'#6b3a1c' }
   ],
   'outils': [
@@ -317,9 +327,12 @@ function renderSection(ti){
     +'<h1><em>'+escH(ti.title)+'</em></h1>'
     +'<p class="lead">'+countLabel(chaps,pages)+'</p></div>'
     +'<section class="bloc" style="--c:'+ti.color+'"><div class="grid">'+items+'</div></section>'
-    +(hasChaps && pages.length   // chapitres + pages (ex. jeux de 5ème) : les pages vont dans un second bloc
-      ? '<section class="bloc" style="--c:'+ti.color+'"><div class="bloc-head"><h2>Jeux</h2><span class="nb">'+pages.length+' jeu'+(pages.length>1?'x':'')+'</span></div>'
-        +'<div class="grid">'+pages.map(cardHTML).join('')+'</div></section>'
+    +(hasChaps && pages.length   // chapitres + pages : un bloc par valeur de « bloc » (Jeux par défaut)
+      ? [...new Set(pages.map(p=>p.bloc||'Jeux'))].map(b=>{
+          const ps=pages.filter(p=>(p.bloc||'Jeux')===b);
+          return '<section class="bloc" style="--c:'+ti.color+'"><div class="bloc-head"><h2>'+escH(b)+'</h2></div>'
+            +'<div class="grid">'+ps.map(cardHTML).join('')+'</div></section>';
+        }).join('')
       : '');
 }
 
