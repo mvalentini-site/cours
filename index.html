@@ -228,6 +228,9 @@ const PAGES = {
     { file:'Outils/generateur-prompt.html', title:'Prompt d\'évaluation', sub:'Nouveau sujet · variante · version adaptée', tag:'IA', color:'#2f4a5c' },
     { file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }
   ],
+  '5eme': [
+    { file:'5eme/jeux/ch08-symboles-dipoles.html', title:'Symboles des dipôles', sub:'3 niveaux · compteur de points · circuits au hasard', tag:'Ch. 8 · Circuits électriques', color:'#6b3a1c' }
+  ],
   'outils': [
     { file:'Outils/pointage-mouvement.html', title:'Pointage vidéo', sub:'Image par image · vecteurs v et a · énergies', tag:'Cinématique', color:'#3a1c6b' },
     { file:'Outils/pointage-mouvement-v2.html', title:'Pointage vidéo — version 2', sub:'Même outil · étapes en onglets, tout sur un écran', tag:'Cinématique', color:'#3a1c6b' },
@@ -236,7 +239,6 @@ const PAGES = {
     { file:'Outils/desintegration-radioactive.html', title:'Désintégration radioactive', sub:'Lancer de dés · demi-vie · datation au carbone 14', tag:'Radioactivité', color:'#2a5c3a' },
     { file:'Outils/colorimetre.html', title:'Colorimètre', sub:'Absorbance · 7 longueurs d\'onde · spectre d\'absorption', tag:'Spectrophotométrie', color:'#1c3d6e' },
     { file:'Outils/dosage-etalonnage.html', title:'Dosage par étalonnage', sub:'Échelle de teintes · blanc · droite A = f(C) · Dakin, Bétadine', tag:'Dosages', color:'#1c3d6e' },
-    { file:'Outils/symboles-dipoles.html', title:'Symboles des dipôles', sub:'3 niveaux · compteur de points · circuits au hasard', tag:'Électricité · 5ème', color:'#6b3a1c' },
     // --- outils désactivés : retirer les // pour les réafficher ---
     // { file:'Outils/oscillateur-labo-a3.html', title:'Oscillateur harmonique', sub:'Masse-ressort · fréquence · énergie', tag:'Mécanique', color:'#1c3d6e' },
     // { file:'Outils/masse-volumique-labo.html', title:'Masse volumique', sub:'ρ × V = m · visualisation à l\'échelle', tag:'Matière', color:'#2a5c3a' },
@@ -314,7 +316,11 @@ function renderSection(ti){
   return '<div class="hero" style="--c:'+ti.color+'"><div class="kicker">'+(hasChaps?'Liste des chapitres':'Physique-chimie')+'</div>'
     +'<h1><em>'+escH(ti.title)+'</em></h1>'
     +'<p class="lead">'+countLabel(chaps,pages)+'</p></div>'
-    +'<section class="bloc" style="--c:'+ti.color+'"><div class="grid">'+items+'</div></section>';
+    +'<section class="bloc" style="--c:'+ti.color+'"><div class="grid">'+items+'</div></section>'
+    +(hasChaps && pages.length   // chapitres + pages (ex. jeux de 5ème) : les pages vont dans un second bloc
+      ? '<section class="bloc" style="--c:'+ti.color+'"><div class="bloc-head"><h2>Jeux</h2><span class="nb">'+pages.length+' jeu'+(pages.length>1?'x':'')+'</span></div>'
+        +'<div class="grid">'+pages.map(cardHTML).join('')+'</div></section>'
+      : '');
 }
 
 function chapHTML(c, color){
