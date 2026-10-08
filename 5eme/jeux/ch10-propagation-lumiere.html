@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ombres et lumière</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Ombres et lumière</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 10 · Propagation de la lumière · 5ème</div>
+    <h1>Ombres et lumière</h1>
+    <div class="meta">Sources primaires et objets diffusants, principe de la vision, ombres propres et portées, taille des ombres.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo de la lumière</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>La propagation de la lumière</h2>
+    <p>Dans un milieu transparent et homogène comme l'air, la lumière se propage en ligne droite. On la représente par des rayons : des droites fléchées.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=2"></script>
+<script>
+const JAUNE='#f2c94c', ROUGE='#b4361f';
+
+/* ══════════ DESSINS ══════════ */
+// lampe ponctuelle, balle opaque, écran ; marque = zone désignée par « ? » (ou null) ; legendes = true pour le mémo
+const ZONES={propre:'L\'ombre propre', portee:'L\'ombre portée', cone:'Le cône d\'ombre', eclairee:'La partie éclairée'};
+function scene(marque,legendes){
+  const L=[40,120], B=[190,120], r=24, Xe=400;
+  const D=B[0]-L[0], a=Math.asin(r/D), tn=Math.tan(a);
+  const tx=B[0]-r*Math.sin(a), ty=r*Math.cos(a);          // points de tangence
+  const ye=(Xe-L[0])*tn;
+  let s=`<svg class="large" viewBox="0 0 440 240" role="img" aria-label="Lampe, balle et écran">`;
+  s+=`<polygon points="${tx},${120-ty} ${Xe},${120-ye} ${Xe},${120+ye} ${tx},${120+ty}" fill="rgba(28,18,8,.13)"/>`;
+  s+=`<line x1="${L[0]}" y1="120" x2="${Xe}" y2="${120-ye}" stroke="${JAUNE}" stroke-width="2"/><line x1="${L[0]}" y1="120" x2="${Xe}" y2="${120+ye}" stroke="${JAUNE}" stroke-width="2"/>`;
+  s+=`<circle cx="${B[0]}" cy="${B[1]}" r="${r}" fill="#fff6d6" stroke="${ENC}" stroke-width="2"/>`;
+  s+=`<path d="M${tx},${120-ty} A${r},${r} 0 0 1 ${tx},${120+ty} Z" fill="#6b5a45"/>`;
+  s+=`<line x1="${Xe}" y1="14" x2="${Xe}" y2="226" stroke="${ENC}" stroke-width="3"/><line x1="${Xe+1}" y1="${120-ye}" x2="${Xe+1}" y2="${120+ye}" stroke="#2c2216" stroke-width="8"/>`;
+  s+=`<circle cx="${L[0]}" cy="120" r="9" fill="${JAUNE}" stroke="${ENC}" stroke-width="1.6"/>`;
+  s+=`<text x="${L[0]}" y="96" text-anchor="middle" font-size="13" fill="${ENC}">lampe</text><text x="${B[0]}" y="76" text-anchor="middle" font-size="13" fill="${ENC}">balle</text><text x="${Xe}" y="236" text-anchor="middle" font-size="13" fill="${ENC}">écran</text>`;
+  const P={propre:[206,120,214,172], portee:[Xe+6,150,424,196], cone:[300,120,300,214], eclairee:[174,120,150,176]};
+  const etiq=(k,txt)=>{const [x,y,lx,ly]=P[k];return `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly-12}" stroke="${ROUGE}" stroke-width="1.8"/><circle cx="${x}" cy="${y}" r="3.5" fill="${ROUGE}"/>`+
+    `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${legendes?12:24}" font-weight="800" fill="${ROUGE}">${txt}</text>`;};
+  if(legendes) Object.keys(P).forEach(k=>{s+=etiq(k,ZONES[k].replace(/^L(a |e |')/,'').replace(/^./,c=>c.toUpperCase()));});
+  else if(marque) s+=etiq(marque,'?');
+  return s+'</svg>';
+}
+function vision(){
+  return `<svg class="large" viewBox="0 0 440 220" role="img" aria-label="Lampe, livre et œil">`+
+    `<path d="M40,30 L90,30 L104,70 L26,70 Z" fill="${JAUNE}" stroke="${ENC}" stroke-width="2"/><line x1="65" y1="70" x2="65" y2="200" stroke="${ENC}" stroke-width="3"/><rect x="35" y="198" width="60" height="8" fill="${ENC}"/>`+
+    `<text x="65" y="20" text-anchor="middle" font-size="13" fill="${ENC}">lampe (A)</text>`+
+    `<path d="M170,190 L230,178 L290,190 L290,200 L230,188 L170,200 Z" fill="#e9e2d2" stroke="${ENC}" stroke-width="2"/><text x="230" y="215" text-anchor="middle" font-size="13" fill="${ENC}">livre (B)</text>`+
+    `<path d="M360,90 Q385,70 410,90 Q385,110 360,90 Z" fill="#fff" stroke="${ENC}" stroke-width="2"/><circle cx="378" cy="90" r="7" fill="${ENC}"/><text x="386" y="64" text-anchor="middle" font-size="13" fill="${ENC}">œil de Lina (C)</text></svg>`;
+}
+
+/* ══════════ BANQUES ══════════ */
+const OBJETS=[
+  {n:'facile', q:'Le Soleil', ico:'☀️', r:'P'}, {n:'facile', q:'La flamme d\'une bougie', ico:'🕯️', r:'P'}, {n:'facile', q:'Une lampe allumée', ico:'💡', r:'P'},
+  {n:'facile', q:'Un livre', ico:'📕', r:'D'}, {n:'facile', q:'Une feuille de papier blanc', ico:'📄', r:'D', pq:'Elle ne produit pas de lumière : elle renvoie celle qu\'elle reçoit.'},
+  {n:'moyen', q:'La Lune', ico:'🌕', r:'D', pq:'La Lune ne produit pas de lumière : elle diffuse celle du Soleil.'},
+  {n:'moyen', q:'L\'écran allumé d\'un téléphone', ico:'📱', r:'P'}, {n:'moyen', q:'Un ver luisant', ico:'🐛', r:'P', pq:'Le ver luisant produit lui-même sa lumière.'},
+  {n:'moyen', q:'Une lampe éteinte', ico:'🔦', r:'D', pq:'Éteinte, elle ne produit plus de lumière : on la voit parce qu\'elle diffuse la lumière qu\'elle reçoit.'},
+  {n:'difficile', q:'La planète Vénus', ico:'🪐', r:'D', pq:'Une planète ne produit pas de lumière : elle diffuse celle du Soleil.'},
+  {n:'difficile', q:'Une étoile', ico:'⭐', r:'P', pq:'Une étoile (comme le Soleil) produit sa propre lumière.'},
+  {n:'difficile', q:'Les yeux d\'un chat dans le noir', ico:'🐈‍⬛', r:'D', pq:'Les yeux du chat renvoient la lumière qu\'ils reçoivent : ils n\'en produisent pas. Dans le noir complet, le chat ne voit rien.'},
+  {n:'difficile', q:'Un mur blanc éclairé par le Soleil', ico:'🧱', r:'D'},
+];
+const OPACITE=[
+  {n:'moyen', q:'Une vitre propre', r:'Transparent'}, {n:'moyen', q:'Une planche de bois', r:'Opaque'}, {n:'moyen', q:'Un carton', r:'Opaque'},
+  {n:'moyen', q:'L\'eau claire d\'un verre', r:'Transparent'}, {n:'difficile', q:'Une balle de tennis', r:'Opaque'}, {n:'difficile', q:'L\'air', r:'Transparent'},
+];
+const QCM=[
+  {n:'facile', q:'Une source primaire de lumière…', o:['produit sa propre lumière','renvoie la lumière qu\'elle reçoit','absorbe toute la lumière'], pq:'Source primaire : elle produit de la lumière.'},
+  {n:'facile', q:'Dans l\'air, la lumière se propage…', o:['en ligne droite','en zigzag','en cercle'], pq:'Dans un milieu transparent et homogène : propagation rectiligne.'},
+  {n:'facile', q:'Un objet opaque…', o:['ne laisse pas passer la lumière','laisse passer la lumière','produit de la lumière'], pq:'Un objet opaque arrête la lumière : il forme une ombre.'},
+  {n:'moyen', q:'Pour voir un objet, il faut que…', o:['la lumière venant de l\'objet entre dans l\'œil','l\'œil envoie de la lumière vers l\'objet','l\'objet soit une source primaire'], pq:'L\'œil est un récepteur de lumière.'},
+  {n:'moyen', q:'Dans une pièce totalement obscure, peut-on voir un livre ?', o:['Non, aucune lumière ne vient du livre','Oui, si on regarde bien','Oui, l\'œil éclaire le livre'], pq:'Sans lumière reçue par le livre, il n\'en renvoie pas vers l\'œil.'},
+  {n:'moyen', q:'Plus un objet est proche de la lampe, plus son ombre portée est…', o:['grande','petite','claire'], pq:'En rapprochant l\'objet de la lampe, les rayons s\'écartent plus : l\'ombre grandit.'},
+  {n:'difficile', q:'Lors d\'une éclipse de Soleil, les astres sont alignés dans l\'ordre…', o:['Soleil – Lune – Terre','Soleil – Terre – Lune','Lune – Soleil – Terre'], pq:'La Lune passe entre le Soleil et la Terre : son ombre portée tombe sur la Terre.'},
+  {n:'difficile', q:'Lors d\'une éclipse de Lune, les astres sont alignés dans l\'ordre…', o:['Soleil – Terre – Lune','Soleil – Lune – Terre','Terre – Soleil – Lune'], pq:'La Terre est entre le Soleil et la Lune : la Lune passe dans l\'ombre de la Terre.'},
+  {n:'difficile', q:'Quelle propriété de la lumière explique la forme d\'une ombre ?', o:['La lumière se propage en ligne droite','La lumière est jaune','La lumière est très rapide'], pq:'Les rayons rectilignes qui frôlent l\'objet délimitent l\'ombre.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  source(niv,deja){
+    const b=tirer(OBJETS,niv,deja);
+    return {titre:'Source ou objet diffusant ?', type:'choix', options:['Source primaire','Objet diffusant'], rep:b.r==='P'?'Source primaire':'Objet diffusant',
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Est-ce une source primaire de lumière ou un objet diffusant ?</span></div>`,
+      pq:b.pq||(b.r==='P'?'Il produit sa propre lumière : source primaire.':'Il ne produit pas de lumière, il renvoie celle qu\'il reçoit : objet diffusant.')};
+  },
+  vision(){
+    return {titre:'Comment voit-on ?', type:'choix', options:['A → B → C','C → B → A','A → C → B','C → A'], rep:'A → B → C',
+      html:vision()+`<div class="enonce">Lina lit un livre éclairé par une lampe.<span class="q">Quel est le trajet de la lumière qui lui permet de voir le livre ?</span></div>`,
+      pq:'La lumière part de la lampe (source), est diffusée par le livre, puis entre dans l\'œil de Lina : A → B → C.'};
+  },
+  ombre(niv,deja){
+    const zones=(niv==='facile'?['propre','portee']:Object.keys(ZONES)).filter(z=>!deja.has('z:'+z));
+    const z=pick(zones); deja.add('z:'+z);
+    return {titre:'Les ombres', type:'choix', options:Object.values(ZONES), rep:ZONES[z],
+      html:scene(z)+`<div class="enonce">Une lampe éclaire une balle opaque placée devant un écran.<span class="q">Comment s'appelle la zone indiquée par « ? » ?</span></div>`,
+      pq:{propre:'La partie de la balle qui n\'est pas éclairée : l\'ombre propre.',portee:'La zone sombre sur l\'écran : l\'ombre portée.',cone:'L\'espace non éclairé entre la balle et l\'écran : le cône d\'ombre.',eclairee:'Le côté de la balle tourné vers la lampe reçoit la lumière : partie éclairée.'}[z]};
+  },
+  opacite(niv,deja){
+    const b=tirer(OPACITE,niv,deja);
+    return {titre:'Opaque ou transparent ?', type:'choix', options:['Opaque','Transparent'], rep:b.r,
+      html:`<div class="enonce grand">${b.q}<span class="q">Cet objet est-il opaque ou transparent ?</span></div>`,
+      pq:b.r==='Opaque'?'Il ne laisse pas passer la lumière : opaque (il forme une ombre).':'Il laisse passer la lumière : transparent.'};
+  },
+  taille(niv,deja){
+    const t=pick(['regle','calcul'].filter(x=>!deja.has(x))); deja.add(t);
+    if(t==='regle') return {titre:'Taille de l\'ombre', type:'choix', options:['Rapprocher la marionnette de la lampe','Éloigner la marionnette de la lampe','Éteindre la lampe'], rep:'Rapprocher la marionnette de la lampe',
+      html:`<div class="enonce grand"><span class="ico">🎭</span>Pour un spectacle d'ombres, on veut une ombre très grande sur l'écran.<span class="q">Que faut-il faire ?</span></div>`,
+      pq:'Plus l\'objet est proche de la lampe, plus son ombre portée est grande.'};
+    const [d1,d2]=pick([[10,20],[20,40],[10,30],[30,60],[20,10],[40,20]]), k=360, h1=k/d1, h2=k/d2;
+    return {titre:'Taille de l\'ombre', type:'num', unite:'cm', rep:h2,
+      html:`<div class="enonce">Une figurine est éclairée par une lampe ; l'écran ne bouge pas. Quand la figurine est à ${d(d1+' cm')} de la lampe, son ombre mesure ${d(h1+' cm')}.<span class="q">Combien mesure l'ombre quand la figurine est à ${d(d2+' cm')} de la lampe ?</span><small>Aide : si la distance est multipliée par 2, la hauteur de l'ombre est divisée par 2.</small></div>`,
+      pq:`La distance est ${d2>d1?'multipliée':'divisée'} par ${fr(d2>d1?d2/d1:d1/d2)} : la hauteur de l'ombre est ${d2>d1?'divisée':'multipliée'} par ${fr(d2>d1?d2/d1:d1/d2)}, soit ${fr(h2)} cm.`};
+  },
+  arbre(){
+    const [b,a]=pick([[1.5,12],[2,10],[0.5,4],[1.5,9],[2,16],[0.8,4]]);
+    return {titre:'Mesurer un arbre', type:'num', unite:'m', rep:arr(a/b),
+      html:`<div class="enonce"><span class="ico">🌳</span>Yanis plante un bâton de ${d('1 m')} verticalement. Au même moment, l'ombre du bâton mesure ${d(fr(b)+' m')} et celle de l'arbre ${d(fr(a)+' m')}. Les rayons du Soleil sont parallèles.<span class="q">Quelle est la hauteur de l'arbre ?</span></div>`,
+      pq:`L'ombre de l'arbre est ${fr(a/b)} fois plus longue que celle du bâton (${fr(a)} ÷ ${fr(b)} = ${fr(a/b)}) : l'arbre est ${fr(a/b)} fois plus haut que le bâton, soit ${fr(a/b)} m.`};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, compo:['source','source','source','ombre','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'vision et ombres', compo:['source','source','opacite','vision','ombre','ombre','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'tailles d\'ombre, éclipses', compo:['source','ombre','ombre','taille','taille','arbre','vision','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Sources et objets diffusants',
+   li:['Une source primaire produit sa propre lumière : Soleil, étoile, flamme, lampe allumée, écran allumé.','Un objet diffusant renvoie dans toutes les directions la lumière qu\'il reçoit : Lune, planètes, livre, mur.']},
+  {t:'Comment voit-on un objet ?', svg:vision().replace('class="large" ',''),
+   li:['On voit un objet quand de la lumière venant de lui entre dans notre œil.','Trajet : source → objet diffusant → œil. L\'œil n\'envoie pas de lumière.','Dans le noir complet, on ne voit rien.']},
+  {t:'Ombre propre et ombre portée', svg:scene(null,true).replace('class="large" ',''),
+   li:['Ombre propre : partie de l\'objet opaque qui n\'est pas éclairée.','Ombre portée : zone sombre sur l\'écran.','Cône d\'ombre : espace non éclairé entre l\'objet et l\'écran.','Les rayons rectilignes qui frôlent l\'objet délimitent l\'ombre.']},
+  {t:'Taille des ombres et éclipses',
+   li:['Plus l\'objet est proche de la lampe, plus son ombre portée est grande.','Éclipse de Soleil : Soleil – Lune – Terre (l\'ombre de la Lune tombe sur la Terre).','Éclipse de Lune : Soleil – Terre – Lune (la Lune passe dans l\'ombre de la Terre).']},
+];
+
+demarrerJeu({cle:'lumiere_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>

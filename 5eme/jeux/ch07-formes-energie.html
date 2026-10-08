@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chasse à l'énergie</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Chasse à l'énergie</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 7 · Les formes d'énergie · 5ème</div>
+    <h1>Chasse à l'énergie</h1>
+    <div class="meta">Reconnaître les formes d'énergie, compléter des chaînes d'énergie et classer les sources renouvelables.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo des formes d'énergie</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Les formes d'énergie</h2>
+    <p>L'énergie existe sous plusieurs formes. Elle ne se crée pas et ne disparaît pas : elle se convertit d'une forme à une autre. Son unité internationale est le joule (J).</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=2"></script>
+<script>
+const FORMES={cin:'Cinétique',pos:'De position',the:'Thermique',lum:'Lumineuse',ele:'Électrique',chi:'Chimique',nuc:'Nucléaire'};
+// options : la bonne + 3 autres au hasard
+const optsForme=k=>melange([k,...melange(Object.keys(FORMES).filter(x=>x!==k)).slice(0,3)]).map(x=>FORMES[x]);
+
+/* ══════════ DESSIN : chaîne d'énergie ══════════ */
+function chaine(recue,conv,utile,perdue){
+  const boite=(x,txt,inc)=>`<rect x="${x}" y="70" width="120" height="56" rx="6" fill="${inc?'#f7e6e1':'#fffdf6'}" stroke="${inc?'#b4361f':ENC}" stroke-width="${inc?2.6:2}"/>`+
+    `<text x="${x+60}" y="${inc?98:90}" text-anchor="middle" dominant-baseline="central" font-size="${inc?30:14}" font-weight="700" fill="${inc?'#b4361f':ENC}">${inc?'?':'Énergie'}</text>`+
+    (inc?'':`<text x="${x+60}" y="108" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="${ENC}">${txt.toLowerCase()}</text>`);
+  const fl=(x1,x2)=>`<line x1="${x1}" y1="98" x2="${x2-10}" y2="98" stroke="${ENC}" stroke-width="2.4"/><path d="M${x2},98 l-12,-7 v14 z" fill="${ENC}"/>`;
+  let s=`<svg class="large" viewBox="0 0 440 190" role="img" aria-label="Chaîne d'énergie">`;
+  s+=boite(4,recue,recue==='?')+fl(126,160);
+  s+=`<ellipse cx="220" cy="98" rx="58" ry="34" fill="#efe8d8" stroke="${ENC}" stroke-width="2"/><text x="220" y="98" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="700" fill="${ENC}">${conv}</text>`;
+  s+=fl(280,314)+boite(316,utile,utile==='?');
+  if(perdue) s+=`<line x1="220" y1="134" x2="220" y2="160" stroke="${ENC}" stroke-width="2" stroke-dasharray="4 3"/><text x="220" y="178" text-anchor="middle" font-size="13" fill="#5f4e33">énergie thermique perdue</text>`;
+  s+=`<text x="64" y="58" text-anchor="middle" font-size="12" fill="#5f4e33">reçue</text><text x="376" y="58" text-anchor="middle" font-size="12" fill="#5f4e33">utile</text>`;
+  return s+'</svg>';
+}
+
+/* ══════════ BANQUES ══════════ */
+const SITUATIONS=[
+  {n:'facile', q:'Un cycliste qui roule', ico:'🚴', r:'cin'},
+  {n:'facile', q:'Une pile neuve', ico:'🔋', r:'chi'},
+  {n:'facile', q:'Un radiateur allumé', ico:'♨️', r:'the'},
+  {n:'facile', q:'Ce qu\'émet une lampe allumée', ico:'💡', r:'lum'},
+  {n:'facile', q:'Le courant fourni par une prise', ico:'🔌', r:'ele'},
+  {n:'facile', q:'Un ballon qui roule', ico:'⚽', r:'cin'},
+  {n:'facile', q:'Une tartine de confiture', ico:'🍞', r:'chi', pq:'Les aliments stockent de l\'énergie chimique, que notre corps utilise.'},
+  {n:'moyen', q:'Un pot de fleurs posé sur le rebord d\'une fenêtre', ico:'🪴', r:'pos', pq:'Un objet en hauteur possède de l\'énergie de position : s\'il tombe, elle se convertit en énergie cinétique.'},
+  {n:'moyen', q:'L\'uranium d\'une centrale', ico:'⚛️', r:'nuc'},
+  {n:'moyen', q:'L\'eau retenue en haut d\'un barrage', ico:'🏞️', r:'pos'},
+  {n:'moyen', q:'L\'essence dans le réservoir d\'une voiture', ico:'⛽', r:'chi'},
+  {n:'moyen', q:'Un skieur immobile en haut d\'une piste', ico:'⛷️', r:'pos', pq:'Il est immobile (pas d\'énergie cinétique), mais en hauteur : énergie de position.'},
+  {n:'difficile', q:'Le vent qui fait tourner une éolienne', ico:'🌬️', r:'cin', pq:'Le vent, c\'est de l\'air en mouvement : énergie cinétique.'},
+  {n:'difficile', q:'Une bûche de bois avant d\'être brûlée', ico:'🪵', r:'chi', pq:'Le bois stocke de l\'énergie chimique, libérée sous forme thermique et lumineuse quand il brûle.'},
+  {n:'difficile', q:'Les rayons du Soleil qui arrivent sur un panneau solaire', ico:'☀️', r:'lum'},
+];
+const CHAINES=[
+  {n:'facile', c:'Lampe', r:'ele', u:'lum', perdue:true},
+  {n:'facile', c:'Éolienne', r:'cin', u:'ele'},
+  {n:'facile', c:'Panneau solaire', r:'lum', u:'ele'},
+  {n:'moyen', c:'Moteur', r:'ele', u:'cin', perdue:true},
+  {n:'moyen', c:'Pile', r:'chi', u:'ele'},
+  {n:'moyen', c:'Radiateur', r:'ele', u:'the'},
+  {n:'moyen', c:'Muscles', r:'chi', u:'cin', perdue:true},
+  {n:'difficile', c:'Centrale nucléaire', r:'nuc', u:'ele', perdue:true},
+  {n:'difficile', c:'Dynamo de vélo', r:'cin', u:'ele'},
+  {n:'difficile', c:'Grille-pain', r:'ele', u:'the'},
+];
+const SOURCES=[
+  {n:'facile', q:'Le vent', ico:'🌬️', r:true}, {n:'facile', q:'Le Soleil', ico:'☀️', r:true}, {n:'facile', q:'Le pétrole', ico:'🛢️', r:false},
+  {n:'facile', q:'Le charbon', ico:'⚫', r:false}, {n:'moyen', q:'L\'uranium', ico:'⚛️', r:false}, {n:'moyen', q:'L\'eau des rivières (barrages)', ico:'🏞️', r:true},
+  {n:'moyen', q:'Le gaz naturel', ico:'🔥', r:false}, {n:'difficile', q:'Le bois des forêts gérées', ico:'🌲', r:true, pq:'Le bois repousse à l\'échelle humaine si les forêts sont replantées : source renouvelable.'},
+  {n:'difficile', q:'La chaleur de la Terre (géothermie)', ico:'🌋', r:true}, {n:'difficile', q:'Les marées', ico:'🌊', r:true},
+];
+const QCM=[
+  {n:'facile', q:'L\'unité d\'énergie du système international est…', o:['le joule (J)','le watt (W)','le kilogramme (kg)'], pq:'L\'énergie se mesure en joules.'},
+  {n:'facile', q:'Un objet en mouvement possède de l\'énergie…', o:['cinétique','nucléaire','lumineuse'], pq:'Énergie liée au mouvement : énergie cinétique.'},
+  {n:'facile', q:'Parmi ces sources, laquelle est renouvelable ?', o:['le vent','le pétrole','l\'uranium'], pq:'Le vent ne s\'épuise pas à l\'échelle humaine.'},
+  {n:'moyen', q:'Quand un objet tombe, son énergie de position…', o:['diminue','augmente','reste la même'], pq:'Plus il descend, moins il a d\'énergie de position : elle se convertit en énergie cinétique.'},
+  {n:'moyen', q:'Les frottements convertissent une partie de l\'énergie en énergie…', o:['thermique','chimique','nucléaire'], pq:'Les frottements chauffent : c\'est de l\'énergie thermique, souvent « perdue ».'},
+  {n:'moyen', q:'L\'énergie peut-elle disparaître ?', o:['Non, elle se convertit d\'une forme à une autre','Oui, quand une machine s\'arrête','Oui, quand on l\'utilise'], pq:'L\'énergie se conserve : elle change seulement de forme.'},
+  {n:'difficile', q:'1 kcal est égale à…', o:['4 200 J','4,2 J','1 J'], pq:'1 kcal = 4 200 J (environ) : les kcal des emballages sont de grandes quantités d\'énergie.'},
+  {n:'difficile', q:'Pourquoi, dans un grand huit, les bosses suivantes sont-elles moins hautes que la première ?', o:['À cause des frottements, le wagon perd de l\'énergie à chaque bosse','Pour que le wagon aille plus vite','Parce que le wagon devient plus léger'], pq:'Une partie de l\'énergie est convertie en énergie thermique par les frottements : le wagon ne peut pas remonter aussi haut.'},
+  {n:'difficile', q:'Quelles centrales émettent du dioxyde de carbone en produisant de l\'électricité ?', o:['Les centrales au gaz, au charbon et au fioul','Les éoliennes','Les centrales hydrauliques'], pq:'Brûler un combustible fossile libère du dioxyde de carbone.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  forme(niv,deja){
+    const b=tirer(SITUATIONS,niv,deja);
+    return {titre:'Quelle forme d\'énergie ?', type:'choix', options:optsForme(b.r), rep:FORMES[b.r],
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Quelle forme d'énergie est principalement mise en jeu ?</span></div>`,
+      pq:b.pq||`Il s'agit d'énergie ${FORMES[b.r].toLowerCase()}.`};
+  },
+  chaine(niv,deja){
+    const b=tirer(CHAINES,niv,deja,x=>x.c), cote=pick(['r','u']), k=b[cote];
+    return {titre:'Chaîne d\'énergie', type:'choix', options:optsForme(k), rep:FORMES[k],
+      html:chaine(cote==='r'?'?':FORMES[b.r],b.c,cote==='u'?'?':FORMES[b.u],b.perdue)+
+        `<div class="enonce">Voici la chaîne d'énergie : ${b.c.toLowerCase()}.<span class="q">Quelle est l'énergie ${cote==='r'?'reçue':'utile'} ?</span></div>`,
+      pq:b.pq||`${b.c} : énergie ${FORMES[b.r].toLowerCase()} → énergie ${FORMES[b.u].toLowerCase()}.`};
+  },
+  source(niv,deja){
+    const b=tirer(SOURCES,niv,deja);
+    return {titre:'Renouvelable ?', type:'choix', options:['Renouvelable','Non renouvelable'], rep:b.r?'Renouvelable':'Non renouvelable',
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Cette source d'énergie est-elle renouvelable ?</span></div>`,
+      pq:b.pq||(b.r?'Elle ne s\'épuise pas à l\'échelle humaine : renouvelable.':'Ses réserves s\'épuisent et ne se reconstituent pas à l\'échelle humaine : non renouvelable.')};
+  },
+  cinetique(niv,deja){
+    const t=pick(['masse','vitesse'].filter(x=>!deja.has('k:'+x))); deja.add('k:'+t);
+    if(t==='masse') return {titre:'Énergie cinétique', type:'choix', options:['Le camion','La voiture','Ils ont la même'], rep:'Le camion',
+      html:`<div class="enonce grand"><span class="ico">🚚 🚗</span>Un camion de 20 tonnes et une voiture de 1 tonne roulent tous les deux à 90 km/h.<span class="q">Lequel possède le plus d'énergie cinétique ?</span></div>`,
+      pq:'À même vitesse, plus la masse est grande, plus l\'énergie cinétique est grande.'};
+    return {titre:'Énergie cinétique', type:'choix', options:['À 90 km/h','À 50 km/h','C\'est pareil'], rep:'À 90 km/h',
+      html:`<div class="enonce grand"><span class="ico">🚗</span>Une voiture roule d'abord à 90 km/h, puis ralentit à 50 km/h.<span class="q">Quand son énergie cinétique est-elle la plus grande ?</span></div>`,
+      pq:'Plus la vitesse est grande, plus l\'énergie cinétique est grande : c\'est pourquoi un accident est plus grave à grande vitesse.'};
+  },
+  calcul(niv,deja){
+    const t=pick(['kcal','kj','renouv'].filter(x=>!deja.has(x))); deja.add(t);
+    if(t==='kcal'){const k=pick([100,150,250,400]);
+      return {titre:'Joules et calories', type:'num', unite:'J', rep:k*4200,
+        html:`<div class="enonce grand"><span class="ico">🍫</span>Une barre chocolatée apporte ${d(k+' kcal')}.<span class="q">Combien de joules cela représente-t-il ?</span><small>Donnée : 1 kcal = 4 200 J.</small></div>`,
+        pq:`${k} × 4 200 = ${fr(k*4200)} J : c'est beaucoup d'énergie !`};}
+    if(t==='kj'){const k=pick([2.5,12,0.5,150]);
+      return {titre:'Convertir', type:'num', unite:'J', rep:arr(k*1000),
+        html:`<div class="enonce grand">Convertis :<span class="q big">${fr(k)} kJ = … J</span><small>Aide : 1 kJ = 1 000 J.</small></div>`,
+        pq:`${fr(k)} × 1 000 = ${fr(k*1000)} J.`};}
+    const T={Nucléaire:65,Hydraulique:12,Éolien:9,Solaire:5,Gaz:6,Bioénergies:2,'Charbon, fioul':1};
+    return {titre:'Électricité en France', type:'num', unite:'%', rep:28,
+      html:`<div class="enonce">Production d'électricité en France (en %) :<small style="font-size:15px;color:var(--ink)">${Object.entries(T).map(([k,v])=>k+' : '+v).join(' · ')}</small><span class="q">Quelle part est produite à partir de sources renouvelables ?</span></div>`,
+      pq:'Hydraulique + éolien + solaire + bioénergies = 12 + 9 + 5 + 2 = 28 %. Le nucléaire, le gaz, le charbon et le fioul ne sont pas renouvelables.'};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, compo:['forme','forme','forme','source','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'chaînes d\'énergie', compo:['forme','forme','chaine','chaine','source','cinetique','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'calculs en joules', compo:['forme','chaine','chaine','source','cinetique','calcul','calcul','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Les formes d\'énergie',
+   tab:'<table><tr><td>Cinétique</td><td>objet en mouvement</td></tr><tr><td>De position</td><td>objet en hauteur</td></tr><tr><td>Thermique</td><td>chaleur</td></tr><tr><td>Lumineuse</td><td>lumière</td></tr><tr><td>Électrique</td><td>courant électrique</td></tr><tr><td>Chimique</td><td>aliments, piles, carburants</td></tr><tr><td>Nucléaire</td><td>uranium des centrales</td></tr></table>',
+   li:['L\'unité internationale de l\'énergie est le joule (J). 1 kJ = 1 000 J ; 1 kcal ≈ 4 200 J.']},
+  {t:'Les chaînes d\'énergie', svg:chaine('Électrique','Lampe','Lumineuse',true).replace('class="large" ',''),
+   li:['Un convertisseur reçoit de l\'énergie sous une forme et la restitue sous une autre forme (énergie utile).','Une partie est souvent « perdue », en général sous forme thermique.','L\'énergie ne disparaît pas : elle se convertit.']},
+  {t:'L\'énergie cinétique',
+   li:['Elle augmente avec la masse : à même vitesse, un camion en a plus qu\'une voiture.','Elle augmente avec la vitesse : un accident est plus grave à grande vitesse.','Quand un objet tombe, son énergie de position se convertit en énergie cinétique.']},
+  {t:'Les sources d\'énergie',
+   li:['Renouvelables (ne s\'épuisent pas à l\'échelle humaine) : Soleil, vent, eau, bois, géothermie, marées.','Non renouvelables (réserves limitées) : pétrole, charbon, gaz naturel, uranium.','Brûler des combustibles fossiles libère du dioxyde de carbone.']},
+];
+
+demarrerJeu({cle:'formes_energie_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>

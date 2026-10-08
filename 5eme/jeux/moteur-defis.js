@@ -251,5 +251,5 @@ function demarrerJeu(JEU){
   majTout(); majRecords(); compteurAttente();
 
   // pour les tests automatiques (console) : générer une partie sans l'afficher
-  window.JEU_TEST={partieNiveau, juste};
+  window.JEU_TEST={partieNiveau, juste, partie:()=>P};
 }

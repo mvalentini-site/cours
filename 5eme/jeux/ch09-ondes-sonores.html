@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le sonomètre</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Le sonomètre</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 9 · Les ondes sonores · 5ème</div>
+    <h1>Le sonomètre</h1>
+    <div class="meta">Source, milieu et récepteur, propagation du son, fréquences audibles, niveaux sonores dangereux et calculs de distance.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo du son</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Le son</h2>
+    <p>Un son est une vibration de la matière qui se propage de proche en proche, de la source sonore jusqu'au récepteur.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=2"></script>
+<script>
+/* ══════════ DESSIN : sonomètre ══════════ */
+function sonometre(db){
+  return `<svg viewBox="0 0 160 260" role="img" aria-label="Sonomètre affichant ${db} dB">`+
+    `<rect x="40" y="70" width="80" height="180" rx="14" fill="#e9e2d2" stroke="${ENC}" stroke-width="2.4"/>`+
+    `<rect x="62" y="20" width="36" height="54" rx="10" fill="#5f4e33" stroke="${ENC}" stroke-width="2"/>`+
+    `<circle cx="80" cy="34" r="12" fill="#2c2216"/>`+
+    `<rect x="50" y="96" width="60" height="44" rx="4" fill="#20321f"/>`+
+    `<text x="104" y="118" text-anchor="end" dominant-baseline="central" font-size="26" font-weight="700" fill="#9fe39a" font-family="monospace">${db}</text>`+
+    `<text x="80" y="160" text-anchor="middle" font-size="16" font-weight="800" fill="${ENC}">dB</text>`+
+    `<circle cx="65" cy="200" r="8" fill="#cfc6b3" stroke="${ENC}"/><circle cx="95" cy="200" r="8" fill="#cfc6b3" stroke="${ENC}"/></svg>`;
+}
+
+/* ══════════ BANQUES ══════════ */
+const SMR=[
+  {n:'facile', q:'Léo écoute Emma jouer de la guitare.', ico:'🎸', s:'La guitare', m:'L\'air', r:'L\'oreille de Léo'},
+  {n:'facile', q:'Un téléphone enregistre le chant d\'un oiseau.', ico:'🐦', s:'L\'oiseau', m:'L\'air', r:'Le microphone du téléphone'},
+  {n:'moyen', q:'Un plongeur entend le moteur d\'un bateau.', ico:'🤿', s:'Le moteur du bateau', m:'L\'eau', r:'L\'oreille du plongeur'},
+  {n:'moyen', q:'Tom, l\'oreille collée au mur, entend la musique des voisins.', ico:'🧱', s:'L\'enceinte des voisins', m:'Le mur', r:'L\'oreille de Tom'},
+  {n:'difficile', q:'Un cowboy, l\'oreille collée au rail, entend arriver un train.', ico:'🚂', s:'Le train', m:'L\'acier du rail', r:'L\'oreille du cowboy'},
+  {n:'difficile', q:'Une baleine entend l\'appel d\'une autre baleine.', ico:'🐋', s:'La première baleine', m:'L\'eau', r:'L\'oreille de la seconde baleine'},
+];
+const MILIEUX=[
+  {n:'facile', q:'l\'air', r:true}, {n:'facile', q:'le vide de l\'espace', r:false, pq:'Sans matière, il n\'y a rien pour vibrer : le son ne se propage pas dans le vide.'},
+  {n:'facile', q:'l\'eau', r:true, pq:'Le son se propage dans l\'eau, et même plus vite que dans l\'air.'},
+  {n:'moyen', q:'l\'acier d\'un rail', r:true, pq:'Le son se propage très bien dans les solides : environ 5 000 m/s dans l\'acier.'},
+  {n:'moyen', q:'le bois d\'une table', r:true},
+  {n:'difficile', q:'une cloche dont on a retiré tout l\'air', r:false, pq:'Quand on fait le vide dans la cloche, on n\'entend plus le réveil : il n\'y a plus de matière pour transmettre la vibration.'},
+  {n:'difficile', q:'le verre d\'une vitre', r:true},
+];
+const ESPECES=[['Le chien',40,60000,'🐕'],['La chauve-souris',2000,110000,'🦇'],['L\'éléphant',16,12000,'🐘'],['Le dauphin',75,150000,'🐬']];
+const QCM=[
+  {n:'facile', q:'Un son est…', o:['une vibration de la matière','un rayon de lumière','un courant électrique'], pq:'Le son est une vibration qui se propage de proche en proche.'},
+  {n:'facile', q:'Le niveau sonore se mesure avec…', o:['un sonomètre','un thermomètre','un ampèremètre'], pq:'Le sonomètre mesure le niveau sonore en décibels (dB).'},
+  {n:'facile', q:'Le son ne peut pas se propager dans…', o:['le vide','l\'eau','l\'acier'], pq:'Il faut de la matière pour transmettre la vibration.'},
+  {n:'moyen', q:'L\'oreille humaine entend les sons de fréquence comprise entre…', o:['20 Hz et 20 000 Hz','0 Hz et 100 Hz','20 000 Hz et 100 000 Hz'], pq:'En dessous de 20 Hz : infrasons ; au-dessus de 20 000 Hz : ultrasons.'},
+  {n:'moyen', q:'Un son grave a une fréquence…', o:['plus petite qu\'un son aigu','plus grande qu\'un son aigu','nulle'], pq:'Plus la fréquence est basse, plus le son est grave.'},
+  {n:'moyen', q:'La fréquence d\'un son s\'exprime en…', o:['hertz (Hz)','décibels (dB)','mètres par seconde (m/s)'], pq:'Fréquence en hertz ; niveau sonore en décibels.'},
+  {n:'difficile', q:'Le seuil de risque pour l\'audition est d\'environ…', o:['85 dB','35 dB','200 dB'], pq:'Au-delà de 85 dB, une exposition prolongée abîme l\'audition ; la douleur apparaît vers 120 dB.'},
+  {n:'difficile', q:'Dans un film, on entend un énorme « BOUM » quand un vaisseau explose dans l\'espace. Est-ce réaliste ?', o:['Non, le son ne se propage pas dans le vide','Oui, les explosions font toujours du bruit','Oui, si le vaisseau est grand'], pq:'Dans l\'espace, il n\'y a pas de matière : on ne devrait rien entendre.'},
+  {n:'difficile', q:'Pour se protéger d\'un bruit trop fort, on peut…', o:['porter des bouchons d\'oreille ou s\'éloigner de la source','monter le son','se rapprocher de la source'], pq:'On réduit la durée d\'exposition, on s\'éloigne, on porte des protections.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  smr(niv,deja){
+    const b=tirer(SMR,niv,deja), role=pick(['s','m','r']);
+    const lib={s:'la source sonore',m:'le milieu de propagation',r:'le récepteur'}[role];
+    return {titre:'Source, milieu, récepteur', type:'choix', options:[b.s,b.m,b.r], rep:b[role],
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Quel est ${lib} ?</span></div>`,
+      pq:`Source : ${b.s.toLowerCase()} ; milieu : ${b.m.toLowerCase()} ; récepteur : ${b.r.toLowerCase()}.`};
+  },
+  propagation(niv,deja){
+    const b=tirer(MILIEUX,niv,deja);
+    return {titre:'Propagation', type:'choix', options:['Oui','Non'], rep:b.r?'Oui':'Non',
+      html:`<div class="enonce grand">Le son peut-il se propager dans ${b.q} ?</div>`,
+      pq:b.pq||(b.r?'Le son se propage dans les gaz, les liquides et les solides.':'Il faut de la matière pour que le son se propage.')};
+  },
+  audible(niv,deja){
+    if(niv==='difficile'&&!deja.has('esp')){
+      deja.add('esp');
+      const [nom,a,b,ic]=pick(ESPECES), f=pick([10,30,1000,15000,30000,80000].filter(x=>x!==a&&x!==b)), ok=f>=a&&f<=b;
+      return {titre:'Qui entend quoi ?', type:'choix', options:['Oui','Non'], rep:ok?'Oui':'Non',
+        html:`<div class="enonce grand"><span class="ico">${ic}</span>${nom} entend les sons de ${d(fr(a)+' Hz')} à ${d(fr(b)+' Hz')}.<span class="q">Peut-il entendre un son de ${fr(f)} Hz ?</span></div>`,
+        pq:`${fr(f)} Hz est ${ok?'compris':'en dehors de l\'intervalle'} entre ${fr(a)} et ${fr(b)} Hz.`};
+    }
+    let pool=[10,15,50,440,1000,8000,15000,25000,30000,40000].filter(f=>!deja.has('f'+f));
+    const f=pick(pool); deja.add('f'+f); const ok=f>=20&&f<=20000;
+    return {titre:'Audible ?', type:'choix', options:['Oui','Non'], rep:ok?'Oui':'Non',
+      html:`<div class="enonce grand"><span class="ico">👂</span>Un être humain peut-il entendre un son de ${d(fr(f)+' Hz')} ?</div>`,
+      pq:ok?`${fr(f)} Hz est compris entre 20 Hz et 20 000 Hz : le son est audible.`:f<20?`${fr(f)} Hz < 20 Hz : c'est un infrason, inaudible pour l'être humain.`:`${fr(f)} Hz > 20 000 Hz : c'est un ultrason, inaudible pour l'être humain.`};
+  },
+  grave(niv,deja){
+    const [a,b]=melange([pick([100,200,300,440]),pick([2000,5000,8000])]);
+    const sens=pick(['grave','aigu']), rep=fr(sens==='grave'?Math.min(a,b):Math.max(a,b))+' Hz';
+    return {titre:'Grave ou aigu ?', type:'choix', options:[fr(a)+' Hz',fr(b)+' Hz'], rep,
+      html:`<div class="enonce grand"><span class="ico">🎵</span>On compare deux sons : ${d(fr(a)+' Hz')} et ${d(fr(b)+' Hz')}.<span class="q">Lequel est le plus ${sens} ?</span></div>`,
+      pq:`Plus la fréquence est ${sens==='grave'?'petite':'grande'}, plus le son est ${sens} : c'est le son de ${rep}.`};
+  },
+  niveau(niv,deja){
+    let pool=[[35,'🤫 CDI'],[55,'📚 salle de classe au travail'],[80,'⚽ cour de récréation'],[88,'🍽️ cantine'],[95,'🛠️ atelier avec machine'],[105,'🎧 baladeur à fond'],[120,'🎸 devant les enceintes d\'un concert'],[130,'✈️ près d\'un avion au décollage']].filter(x=>!deja.has('n'+x[0]));
+    const [db,lieu]=pick(pool); deja.add('n'+db);
+    const rep=db<85?'Sans danger':db<120?'Dangereux si l\'exposition dure':'Douloureux, danger immédiat';
+    return {titre:'Niveau sonore', type:'choix', options:['Sans danger','Dangereux si l\'exposition dure','Douloureux, danger immédiat'], rep,
+      html:sonometre(db)+`<div class="enonce">Mesure au sonomètre : ${lieu.replace(/^\S+ /,'')}.<span class="q">Ce niveau sonore est-il dangereux pour l'audition ?</span><small>Seuil de risque : 85 dB · seuil de douleur : 120 dB.</small></div>`,
+      pq:`${db} dB ${db<85?'< 85 dB : pas de risque.':db<120?'≥ 85 dB : risque pour l\'audition si l\'exposition est longue.':'≥ 120 dB : seuil de douleur atteint.'}`};
+  },
+  calcul(niv,deja){
+    const t=pick(['orage','sonar','rail'].filter(x=>!deja.has(x))); deja.add(t);
+    if(t==='orage'){const s=pick([2,3,5,6,9]);
+      return {titre:'À quelle distance est l\'orage ?', type:'num', unite:'m', rep:340*s,
+        html:`<div class="enonce grand"><span class="ico">⛈️</span>Nina voit un éclair puis entend le tonnerre ${d(s+' s')} plus tard. Le son se propage dans l'air à ${d('340 m/s')}.<span class="q">À quelle distance se trouve l'orage ?</span><small>Aide : d = v × t (la lumière arrive presque instantanément).</small></div>`,
+        pq:`d = 340 × ${s} = ${fr(340*s)} m.`};}
+    if(t==='sonar'){const s=pick([2,4,6,1]);
+      return {titre:'Le sonar', type:'num', unite:'m', rep:1500*s/2,
+        html:`<div class="enonce grand"><span class="ico">🚢</span>Un sonar envoie un son vers le fond de la mer ; l'écho revient ${d(s+' s')} plus tard. Dans l'eau, le son va à ${d('1 500 m/s')}.<span class="q">Quelle est la profondeur ?</span><small>Attention : le son fait l'aller et le retour.</small></div>`,
+        pq:`Le son parcourt 1 500 × ${s} = ${fr(1500*s)} m en tout, soit deux fois la profondeur : ${fr(1500*s)} ÷ 2 = ${fr(1500*s/2)} m.`};}
+    const km=pick([5,10,15]);
+    return {titre:'L\'oreille collée au rail', type:'num', unite:'s', rep:km*1000/5000,
+      html:`<div class="enonce grand"><span class="ico">🚂</span>Un train roule à ${d(km+' km')} d'un cowboy. Dans l'acier du rail, le son va à ${d('5 000 m/s')}.<span class="q">Combien de temps le son met-il pour lui parvenir par le rail ?</span><small>Aide : t = d / v, avec d en mètres.</small></div>`,
+      pq:`${km} km = ${fr(km*1000)} m ; t = ${fr(km*1000)} ÷ 5 000 = ${fr(km/5)} s (contre ${fr(Math.round(km*1000/340))} s environ dans l'air).`};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, compo:['smr','smr','propagation','niveau','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'fréquences', compo:['smr','propagation','audible','audible','grave','niveau','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'calculs de distance', compo:['smr','propagation','audible','grave','niveau','calcul','calcul','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Source, milieu, récepteur',
+   li:['La source sonore vibre (corde de guitare, haut-parleur, cordes vocales).','La vibration se propage dans un milieu matériel : gaz, liquide ou solide.','Le récepteur (oreille, microphone) capte la vibration.','Le son ne se propage pas dans le vide : il faut de la matière.']},
+  {t:'La fréquence',
+   li:['Elle s\'exprime en hertz (Hz).','Son grave : fréquence basse. Son aigu : fréquence élevée.','L\'être humain entend de 20 Hz à 20 000 Hz. En dessous : infrasons ; au-dessus : ultrasons.']},
+  {t:'Le niveau sonore', svg:sonometre(85),
+   li:['Il se mesure avec un sonomètre, en décibels (dB).','Seuil de risque : 85 dB (exposition prolongée). Seuil de douleur : 120 dB.','Se protéger : s\'éloigner de la source, limiter la durée, porter des bouchons ou un casque.']},
+  {t:'La vitesse du son',
+   tab:'<table><tr><th>Air</th><th>Eau</th><th>Acier</th></tr><tr><td>340 m/s</td><td>1 500 m/s</td><td>5 000 m/s</td></tr></table>',
+   li:['d = v × t et t = d / v.','Orage : distance = 340 × durée entre l\'éclair et le tonnerre.','Écho, sonar : le son fait l\'aller et le retour, on divise la distance totale par 2.']},
+];
+
+demarrerJeu({cle:'ondes_sonores_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>

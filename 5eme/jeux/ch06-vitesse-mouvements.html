@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le radar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Le radar</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 6 · La vitesse et les mouvements · 5ème</div>
+    <h1>Le radar</h1>
+    <div class="meta">Décrire un mouvement à partir d'une chronophotographie et calculer une vitesse moyenne, une distance ou une durée.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo vitesse et mouvement</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Décrire un mouvement</h2>
+    <p>Pour décrire le mouvement d'un objet (le mobile), on précise sa trajectoire et l'évolution de sa vitesse.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=2"></script>
+<script>
+/* ══════════ CHRONOPHOTOGRAPHIES ══════════ */
+// pts : positions successives (même intervalle de temps entre deux positions)
+function chrono(pts,legende){
+  let s=`<svg class="large" viewBox="0 0 440 240" role="img" aria-label="Chronophotographie">`;
+  pts.forEach(([x,y],i)=>{
+    const der=i===pts.length-1;
+    s+=`<circle cx="${x}" cy="${y}" r="${der?9:7}" fill="${der?'#b4361f':'#d9a08f'}" stroke="${ENC}" stroke-width="1.4"/>`;
+    if(i===0||der) s+=`<text x="${x}" y="${y-15}" text-anchor="middle" font-size="12" font-weight="700" fill="${ENC}">M${i}</text>`;
+  });
+  s+=`<text x="430" y="232" text-anchor="end" font-size="12" fill="#5f4e33">${legende||'une position toutes les 0,1 s'}</text>`;
+  return s+'</svg>';
+}
+function trajectoire(type){
+  const P=[];
+  if(type==='rectiligne'){const a=pick([0,-0.25,0.2]);for(let k=0;k<9;k++)P.push([40+k*45,120+a*(k*45-180)]);}
+  else if(type==='circulaire'){for(let k=0;k<11;k++){const t=-Math.PI/2+k*Math.PI*2/12;P.push([220+95*Math.cos(t),118+95*Math.sin(t)]);}}
+  else{const v=pick([0,1]);for(let k=0;k<9;k++){const x=40+k*45;P.push([x,v?40+0.0045*Math.pow(x-220,2)*1.6:120+70*Math.sin((x-40)/360*Math.PI*2)]);}}
+  return P;
+}
+function evolution(type){
+  const N=8, P=[], L=360;
+  for(let k=0;k<=N;k++){
+    const f=type==='uniforme'?k/N:type==='accéléré'?(k/N)**2:1-(1-k/N)**2;
+    P.push([40+L*f,120]);
+  }
+  return P;
+}
+const TRAJ={rectiligne:'Rectiligne',circulaire:'Circulaire',curviligne:'Curviligne'};
+const EVOL={uniforme:'Uniforme (vitesse constante)',accéléré:'Accéléré (la vitesse augmente)',ralenti:'Ralenti (la vitesse diminue)'};
+
+/* ══════════ SITUATIONS DE CALCUL ══════════ */
+const MOBILES_MS=[['Un coureur','🏃'],['Un cycliste','🚴'],['Un nageur','🏊'],['Un cheval','🐎'],['Une trottinette','🛴']];
+const MOBILES_KMH=[['Une voiture','🚗'],['Un TGV','🚄'],['Un avion','✈️'],['Un bus','🚌'],['Un camion','🚚']];
+
+/* ══════════ QCM ══════════ */
+const QCM=[
+  {n:'facile', q:'La trajectoire d\'une nacelle de grande roue est…', o:['circulaire','rectiligne','curviligne'], pq:'La nacelle décrit un cercle : trajectoire circulaire.'},
+  {n:'facile', q:'L\'unité de vitesse du système international est…', o:['le mètre par seconde (m/s)','le kilomètre par heure (km/h)','la seconde (s)'], pq:'L\'unité internationale est le m/s ; le km/h est utilisé dans la vie courante.'},
+  {n:'facile', q:'La vitesse moyenne se calcule par…', o:['v = d / t','v = d × t','v = t / d'], pq:'Vitesse = distance parcourue ÷ durée du parcours.'},
+  {n:'facile', q:'La trajectoire d\'un mobile, c\'est…', o:['l\'ensemble des positions occupées au cours du mouvement','la vitesse du mobile','la durée du mouvement'], pq:'La trajectoire est la ligne formée par les positions successives.'},
+  {n:'moyen', q:'Le compteur d\'une voiture indique…', o:['la vitesse instantanée','la vitesse moyenne du trajet','la distance parcourue'], pq:'Le compteur affiche la vitesse à chaque instant.'},
+  {n:'moyen', q:'Si la vitesse d\'un mobile reste constante, son mouvement est…', o:['uniforme','accéléré','ralenti'], pq:'Vitesse constante : mouvement uniforme.'},
+  {n:'moyen', q:'Sur une chronophotographie, les positions sont de plus en plus écartées. Le mouvement est…', o:['accéléré','ralenti','uniforme'], pq:'Le mobile parcourt une distance de plus en plus grande pendant la même durée : il accélère.'},
+  {n:'difficile', q:'Pour comparer des vitesses en m/s et en km/h, on utilise…', o:['1 m/s = 3,6 km/h','1 m/s = 1 000 km/h','1 m/s = 60 km/h'], pq:'1 m/s = 3 600 m/h = 3,6 km/h.'},
+  {n:'difficile', q:'Un radar « tronçon » mesure…', o:['la vitesse moyenne sur une portion de route','la vitesse instantanée devant le radar','la distance entre deux voitures'], pq:'Il mesure la durée pour parcourir une distance connue, donc une vitesse moyenne.'},
+  {n:'difficile', q:'La relation v = d / t peut aussi s\'écrire…', o:['t = d / v','t = v × d','t = v / d'], pq:'Si v = d / t, alors d = v × t et t = d / v.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  trajectoire(niv,deja){
+    let pool=Object.keys(TRAJ).filter(k=>!deja.has('t:'+k)); if(!pool.length) pool=Object.keys(TRAJ);
+    const t=pick(pool); deja.add('t:'+t);
+    return {titre:'Trajectoire', type:'choix', options:Object.values(TRAJ), rep:TRAJ[t],
+      html:chrono(trajectoire(t))+`<div class="enonce">Voici la chronophotographie d'un mobile.<span class="q">Quelle est sa trajectoire ?</span></div>`,
+      pq:{rectiligne:'Les positions sont alignées sur une droite : trajectoire rectiligne.',circulaire:'Les positions sont sur un cercle : trajectoire circulaire.',curviligne:'Les positions forment une courbe qui n\'est pas un cercle : trajectoire curviligne.'}[t]};
+  },
+  variation(niv,deja){
+    let pool=Object.keys(EVOL).filter(k=>!deja.has('e:'+k)); if(!pool.length) pool=Object.keys(EVOL);
+    const t=pick(pool); deja.add('e:'+t);
+    return {titre:'Évolution de la vitesse', type:'choix', options:Object.values(EVOL), rep:EVOL[t],
+      html:chrono(evolution(t))+`<div class="enonce">Le mobile se déplace de M0 vers M8. L'intervalle de temps entre deux positions est toujours le même.<span class="q">Comment évolue sa vitesse ?</span></div>`,
+      pq:{uniforme:'Les positions sont régulièrement espacées : même distance pendant la même durée, la vitesse est constante.',accéléré:'Les écarts augmentent : le mobile parcourt de plus en plus de distance pendant la même durée, il accélère.',ralenti:'Les écarts diminuent : le mobile ralentit.'}[t]};
+  },
+  vitesse(niv,deja){
+    const kmh=niv!=='facile'&&(deja.has('v:ms')&&!deja.has('v:kmh')||!deja.has('v:ms')&&Math.random()<.5);
+    deja.add(kmh?'v:kmh':'v:ms');
+    if(!kmh){const v=pick([2,4,5,8,10]), t=pick([10,20,25,50]), D=v*t, [m,ic]=pick(MOBILES_MS);
+      return {titre:'Calculer une vitesse', type:'num', unite:'m/s', rep:v,
+        html:`<div class="enonce grand"><span class="ico">${ic}</span>${m} parcourt ${d(D+' m')} en ${d(t+' s')}.<span class="q">Quelle est sa vitesse moyenne ?</span></div>`,
+        pq:`v = d / t = ${D} ÷ ${t} = ${v} m/s.`};}
+    const v=pick([60,80,90,120,300]), t=pick([2,3,0.5,1.5]), D=arr(v*t), [m,ic]=pick(MOBILES_KMH);
+    return {titre:'Calculer une vitesse', type:'num', unite:'km/h', rep:v,
+      html:`<div class="enonce grand"><span class="ico">${ic}</span>${m} parcourt ${d(fr(D)+' km')} en ${d(fr(t)+' h')}.<span class="q">Quelle est sa vitesse moyenne ?</span></div>`,
+      pq:`v = d / t = ${fr(D)} ÷ ${fr(t)} = ${v} km/h.`};
+  },
+  distance(){
+    const v=pick([50,80,90,110,130]), t=pick([2,3,0.5,1.5]), [m,ic]=pick(MOBILES_KMH);
+    return {titre:'Calculer une distance', type:'num', unite:'km', rep:arr(v*t),
+      html:`<div class="enonce grand"><span class="ico">${ic}</span>${m} roule à la vitesse moyenne de ${d(v+' km/h')} pendant ${d(fr(t)+' h')}.<span class="q">Quelle distance parcourt-il ?</span><small>Aide : d = v × t.</small></div>`,
+      pq:`d = v × t = ${v} × ${fr(t)} = ${fr(v*t)} km.`};
+  },
+  duree(){
+    const v=pick([30,36,40,60]), dd=pick([0.5,0.25,0.75])*v, t=arr(dd/v*60);
+    return {titre:'Calculer une durée', type:'num', unite:'min', rep:t,
+      html:`<div class="enonce grand"><span class="ico">🚌</span>Le bus scolaire doit parcourir ${d(fr(dd)+' km')} à la vitesse moyenne de ${d(v+' km/h')}.<span class="q">Combien de minutes dure le trajet ?</span><small>Aide : t = d / v, et 1 h = 60 min.</small></div>`,
+      pq:`t = d / v = ${fr(dd)} ÷ ${v} = ${fr(dd/v)} h, soit ${fr(dd/v)} × 60 = ${fr(t)} min.`};
+  },
+  conversion(niv,deja){
+    const versKmh=!deja.has('c:kmh')&&(deja.has('c:ms')||Math.random()<.5);
+    deja.add(versKmh?'c:kmh':'c:ms');
+    const ms=pick([5,10,15,20,25,30]);
+    if(versKmh) return {titre:'Convertir une vitesse', type:'num', unite:'km/h', rep:arr(ms*3.6),
+      html:`<div class="enonce grand">Convertis en km/h :<span class="q big">${ms} m/s = … km/h</span><small>Aide : 1 m/s = 3,6 km/h.</small></div>`,
+      pq:`On multiplie par 3,6 : ${ms} × 3,6 = ${fr(ms*3.6)} km/h.`};
+    return {titre:'Convertir une vitesse', type:'num', unite:'m/s', rep:ms,
+      html:`<div class="enonce grand">Convertis en m/s :<span class="q big">${fr(ms*3.6)} km/h = … m/s</span><small>Aide : 1 m/s = 3,6 km/h.</small></div>`,
+      pq:`On divise par 3,6 : ${fr(ms*3.6)} ÷ 3,6 = ${ms} m/s.`};
+  },
+  troncon(){
+    const [D,mn]=pick([[20,10],[20,12],[10,5],[30,15],[10,6],[15,10],[20,15],[30,20]]), v=arr(D/(mn/60));
+    return {titre:'Le radar tronçon', type:'num', unite:'km/h', rep:v,
+      html:`<div class="enonce"><span class="ico">📸</span>Un radar tronçon mesure qu'une voiture a parcouru ${d(D+' km')} en ${d(mn+' min')}.<span class="q">Quelle est sa vitesse moyenne en km/h ?</span><small>Aide : ${mn} min = ${mn} ÷ 60 h = ${fr(arr(mn/60))} h${Number.isInteger(60/mn)?' (1/'+(60/mn)+' h)':''}.</small></div>`,
+      pq:`${mn} min = ${fr(arr(mn/60))} h ; v = ${D} ÷ ${fr(arr(mn/60))} = ${fr(v)} km/h.`};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, desc:'en m/s', compo:['trajectoire','trajectoire','vitesse','vitesse','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'km/h et distance', compo:['trajectoire','variation','variation','vitesse','vitesse','distance','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'durée, conversions, radar', compo:['trajectoire','variation','vitesse','distance','duree','conversion','conversion','troncon','qcm']},
+};
+
+const MEMO=[
+  {t:'La trajectoire', svg:chrono(trajectoire('circulaire'),' ').replace('class="large" ',''),
+   li:['C\'est l\'ensemble des positions occupées par le mobile au cours du mouvement.','Rectiligne : une droite. Circulaire : un cercle. Curviligne : une autre courbe.']},
+  {t:'L\'évolution de la vitesse', svg:chrono(evolution('accéléré'),' ').replace('class="large" ',''),
+   li:['Sur une chronophotographie, l\'intervalle de temps entre deux positions est toujours le même.','Écarts réguliers : mouvement uniforme (vitesse constante).','Écarts qui augmentent : accéléré. Écarts qui diminuent : ralenti.']},
+  {t:'La vitesse moyenne',
+   tab:'<table><tr><th>v = d / t</th><th>d = v × t</th><th>t = d / v</th></tr></table>',
+   li:['d : distance parcourue ; t : durée du parcours.','d en m et t en s → v en m/s (unité internationale).','d en km et t en h → v en km/h.','1 m/s = 3,6 km/h ; 1 h = 60 min.']},
+  {t:'Moyenne ou instantanée ?',
+   li:['La vitesse instantanée est la vitesse à un instant précis (compteur de vitesse, radar fixe).','La vitesse moyenne se calcule sur tout un trajet (radar tronçon).']},
+];
+
+demarrerJeu({cle:'vitesse_records_v1', duree:240, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>
