@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dans la peau des particules</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Dans la peau des particules</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 5 · La matière à l'échelle microscopique · 5ème</div>
+    <h1>Dans la peau des particules</h1>
+    <div class="meta">Reconnaître les modèles du solide, du liquide et du gaz, et expliquer la compression, l'agitation et les changements d'état.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo du modèle particulaire</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Le modèle particulaire</h2>
+    <p>Un modèle est une représentation simplifiée de la réalité. On représente la matière par des particules, dessinées comme des petites boules toutes identiques pour une même substance.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=1"></script>
+<script>
+/* ══════════ MODÈLES ══════════ */
+const R=10, COUL='#8fb6d9';
+// positions des particules dans un récipient de 170 × 170 (coin haut gauche en 0,0)
+function positions(etat,n){
+  const P=[];
+  if(etat==='S'){                                     // proches, ordonnées : rangées régulières
+    for(let l=0;l<5;l++) for(let c=0;c<6;c++) P.push([30+c*21,160-R-l*21]);
+  }else if(etat==='L'){                               // proches, désordonnées : grille secouée, quelques trous
+    for(let l=0;l<5;l++) for(let c=0;c<7;c++){
+      const x=16+c*22.5+(l%2?8:0)+(Math.random()*5-2.5), y=160-R-l*20+(Math.random()*4-2);
+      if(x<160-R+1&&Math.random()>.14) P.push([x,y]);
+    }
+  }else{                                              // éloignées, désordonnées : dans tout le récipient
+    let essais=0;
+    while(P.length<(n||9)&&essais++<3000){
+      const x=R+4+Math.random()*(170-2*R-8), y=R+4+Math.random()*(170-2*R-8);
+      if(P.every(([a,b])=>Math.hypot(a-x,b-y)>46)) P.push([x,y]);
+    }
+  }
+  return P;
+}
+function boite(etat,x=0,titre=''){
+  let s=`<g transform="translate(${x},14)"><rect x="-2" y="-2" width="174" height="174" fill="#fffdf6" stroke="${ENC}" stroke-width="2.4"/>`;
+  positions(etat).forEach(([a,b])=>{s+=`<circle cx="${a}" cy="${b}" r="${R}" fill="${COUL}" stroke="${ENC}" stroke-width="1.4"/>`;});
+  if(titre) s+=`<text x="85" y="196" text-anchor="middle" font-size="16" font-weight="700" fill="${ENC}">${titre}</text>`;
+  return s+'</g>';
+}
+const svgModele=etat=>`<svg viewBox="-6 0 182 200" role="img" aria-label="Modèle particulaire">${boite(etat)}</svg>`;
+const svgChangement=(a,b)=>`<svg class="large" viewBox="-6 0 440 210" role="img" aria-label="Changement d'état modélisé">${boite(a,0,'avant')}`+
+  `<path d="M190,99 L236,99" stroke="#b4361f" stroke-width="4"/><path d="M248,99 l-14,-8 v16 z" fill="#b4361f"/>${boite(b,258,'après')}</svg>`;
+const NOM={S:'Solide',L:'Liquide',G:'Gaz'};
+const CE={SL:'La fusion',LS:'La solidification',LG:'La vaporisation',GL:'La liquéfaction',SG:'La sublimation',GS:'La condensation'};
+
+/* ══════════ BANQUES ══════════ */
+const DESCRIPTIONS=[
+  {n:'facile', q:'Les particules sont proches les unes des autres et ordonnées.', r:'Solide'},
+  {n:'facile', q:'Les particules sont proches les unes des autres et désordonnées.', r:'Liquide'},
+  {n:'facile', q:'Les particules sont éloignées les unes des autres et désordonnées.', r:'Gaz'},
+  {n:'moyen', q:'Les particules peuvent glisser les unes sur les autres : la matière coule.', r:'Liquide'},
+  {n:'moyen', q:'Les particules vibrent sur place sans changer de position : la matière garde sa forme.', r:'Solide'},
+  {n:'moyen', q:'Il y a beaucoup de vide entre les particules : la matière se comprime facilement.', r:'Gaz'},
+  {n:'difficile', q:'Les particules se déplacent dans tout le récipient et heurtent ses parois.', r:'Gaz'},
+  {n:'difficile', q:'Les particules sont serrées mais libres de se déplacer : la surface libre est horizontale.', r:'Liquide'},
+];
+const VRAIFAUX=[
+  {n:'facile', q:'Un modèle est une représentation simplifiée de la réalité.', r:'Vrai', pq:'Un modèle simplifie la réalité pour l\'expliquer.'},
+  {n:'facile', q:'Les particules d\'un liquide sont éloignées les unes des autres.', r:'Faux', pq:'Dans un liquide, les particules sont proches (mais désordonnées).'},
+  {n:'facile', q:'Plus la température est élevée, plus les particules sont agitées.', r:'Vrai', pq:'La température traduit l\'agitation des particules.'},
+  {n:'moyen', q:'Entre les particules d\'un gaz, il y a de l\'air.', r:'Faux', pq:'Entre les particules, il y a du vide. L\'air est lui-même fait de particules.'},
+  {n:'moyen', q:'Dans un solide, les particules sont totalement immobiles.', r:'Faux', pq:'Elles vibrent sur place, sans changer de position.'},
+  {n:'moyen', q:'Quand un glaçon fond, ses particules deviennent plus petites.', r:'Faux', pq:'Les particules ne changent pas : c\'est leur disposition qui change.'},
+  {n:'moyen', q:'Toutes les particules d\'une même substance sont identiques.', r:'Vrai', pq:'Dans le modèle, une même substance est représentée par des particules identiques.'},
+  {n:'difficile', q:'Quand on comprime un gaz, le nombre de particules diminue.', r:'Faux', pq:'Le nombre de particules reste le même : elles se rapprochent.'},
+  {n:'difficile', q:'Lors d\'un changement d\'état, la masse se conserve car le nombre de particules ne change pas.', r:'Vrai', pq:'Aucune particule n\'apparaît ni ne disparaît.'},
+  {n:'difficile', q:'Les particules d\'un gaz chaud grossissent.', r:'Faux', pq:'Elles ne grossissent pas : elles s\'agitent davantage.'},
+  {n:'difficile', q:'On ne peut pas comprimer un liquide car ses particules sont déjà proches les unes des autres.', r:'Vrai', pq:'Il n\'y a presque pas d\'espace vide entre les particules d\'un liquide.'},
+];
+const QCM=[
+  {n:'facile', q:'Dans un gaz, les particules sont…', o:['éloignées et désordonnées','proches et ordonnées','proches et désordonnées'], pq:'Gaz : particules éloignées et désordonnées.'},
+  {n:'facile', q:'Entre les particules d\'un gaz, il y a…', o:['du vide','de l\'air','de l\'eau'], pq:'Il n\'y a rien entre les particules : du vide.'},
+  {n:'facile', q:'Un modèle est…', o:['une représentation simplifiée de la réalité','une copie exacte de la réalité','une mesure'], pq:'Le modèle simplifie la réalité.'},
+  {n:'moyen', q:'Quand la température augmente, les particules…', o:['s\'agitent davantage','grossissent','disparaissent'], pq:'La température est liée à l\'agitation des particules.'},
+  {n:'moyen', q:'Un gaz est compressible car…', o:['il y a beaucoup d\'espace vide entre ses particules','ses particules rétrécissent','ses particules disparaissent'], pq:'En comprimant, on rapproche les particules.'},
+  {n:'moyen', q:'Lors de la fusion de la glace, le nombre de particules…', o:['reste le même','augmente','diminue'], pq:'Seule la disposition des particules change.'},
+  {n:'difficile', q:'Une bouteille fermée remplie d\'air s\'écrase au congélateur. Pourquoi ?', o:['Les particules d\'air froides s\'agitent moins et heurtent moins les parois','Des particules d\'air sont sorties','Les particules d\'air ont rétréci'], pq:'Au froid, les particules s\'agitent moins : elles poussent moins fort sur les parois, l\'air extérieur écrase la bouteille.'},
+  {n:'difficile', q:'Qu\'est-ce qui permet d\'expliquer qu\'un solide a une forme propre ?', o:['Ses particules sont liées et ne changent pas de position','Ses particules sont très grosses','Il n\'y a pas de particules'], pq:'Les particules d\'un solide restent à leur place : la forme ne change pas.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  modele(niv,deja){
+    let pool=['S','L','G'].filter(e=>!deja.has('m:'+e)); if(!pool.length) pool=['S','L','G'];
+    const e=pick(pool); deja.add('m:'+e);
+    return {titre:'Quel état ?', type:'choix', options:['Solide','Liquide','Gaz'], rep:NOM[e],
+      html:svgModele(e)+`<div class="enonce">Chaque boule représente une particule.<span class="q">Quel état de la matière ce modèle représente-t-il ?</span></div>`,
+      pq:{S:'Particules proches et ordonnées : solide.',L:'Particules proches mais désordonnées : liquide.',G:'Particules éloignées et désordonnées, dans tout le récipient : gaz.'}[e]};
+  },
+  description(niv,deja){
+    const b=tirer(DESCRIPTIONS,niv,deja);
+    return {titre:'Décrire un état', type:'choix', options:['Solide','Liquide','Gaz'], rep:b.r,
+      html:`<div class="enonce grand">« ${b.q} »<span class="q">De quel état de la matière s'agit-il ?</span></div>`,
+      pq:{Solide:'Solide : particules proches, ordonnées, qui vibrent sur place.',Liquide:'Liquide : particules proches, désordonnées, qui glissent les unes sur les autres.',Gaz:'Gaz : particules éloignées, désordonnées, très agitées, avec du vide entre elles.'}[b.r]};
+  },
+  vraifaux(niv,deja){
+    const b=tirer(VRAIFAUX,niv,deja);
+    return {titre:'Vrai ou faux ?', type:'choix', options:['Vrai','Faux'], rep:b.r,
+      html:`<div class="enonce grand">« ${b.q} »<span class="q">Cette affirmation est-elle vraie ou fausse ?</span></div>`, pq:b.pq};
+  },
+  changement(niv,deja){
+    const paires=(niv==='difficile'?['SL','LS','LG','GL','SG','GS']:['SL','LS','LG','GL']).filter(p=>!deja.has(p));
+    const p=pick(paires); deja.add(p);
+    const opts=['SL','LS','LG','GL'].concat(niv==='difficile'?['SG','GS']:[]).map(k=>CE[k]);
+    return {titre:'Changement d\'état', type:'choix', options:opts, rep:CE[p],
+      html:svgChangement(p[0],p[1])+`<div class="enonce">Voici le modèle d'une substance avant et après une transformation.<span class="q">Quel changement d'état est modélisé ?</span></div>`,
+      pq:`On passe de l'état ${NOM[p[0]].toLowerCase()} à l'état ${NOM[p[1]].toLowerCase()} : ${CE[p].toLowerCase()}. Les particules sont les mêmes, seule leur disposition change.`};
+  },
+  compression(niv,deja){
+    const t=pick(['nombre','volume','change'].filter(x=>!deja.has(x))); deja.add(t);
+    const n=pick([8,10,12]), v1=pick([40,60]), v2=v1/2;
+    const intro=`Une seringue bouchée contient ${d(v1+' mL')} d'air, modélisé par ${d(n+' particules')}. On pousse le piston jusqu'à ${d(v2+' mL')}.`;
+    if(t==='nombre') return {titre:'Comprimer un gaz', type:'num', unite:'particules', rep:n,
+      html:`<div class="enonce grand"><span class="ico">💉</span>${intro}<span class="q">Combien de particules faut-il dessiner après la compression ?</span></div>`,
+      pq:`Aucune particule n'entre ni ne sort : il y en a toujours ${n}. Elles sont seulement plus proches.`};
+    if(t==='volume') return {titre:'Comprimer un gaz', type:'choix', options:['La distance entre les particules','Le nombre de particules','La taille des particules'], rep:'La distance entre les particules',
+      html:`<div class="enonce grand"><span class="ico">💉</span>${intro}<span class="q">Qu'est-ce qui a changé à l'échelle des particules ?</span></div>`,
+      pq:'Les particules se rapprochent : il y a moins de vide entre elles. Leur nombre et leur taille ne changent pas.'};
+    return {titre:'Comprimer un liquide ?', type:'choix', options:['Non, ses particules sont déjà proches','Oui, comme un gaz','Oui, ses particules rétrécissent'], rep:'Non, ses particules sont déjà proches',
+      html:`<div class="enonce grand"><span class="ico">💧</span>On remplace l'air de la seringue par de l'eau liquide et on pousse le piston.<span class="q">Peut-on comprimer l'eau de la même façon ?</span></div>`,
+      pq:'Dans un liquide, les particules sont serrées : il n\'y a presque pas de vide, on ne peut pas les rapprocher.'};
+  },
+  temperature(niv,deja){
+    const t=pick(['encre','agitation']);
+    if(t==='encre') return {titre:'Agitation des particules', type:'choix', options:['Dans l\'eau chaude','Dans l\'eau froide','À la même vitesse'], rep:'Dans l\'eau chaude',
+      html:`<div class="enonce grand"><span class="ico">🫗</span>On dépose sans agiter une goutte d'encre dans un verre d'eau froide (10 °C) et dans un verre d'eau chaude (60 °C).<span class="q">Dans quel verre l'encre se mélange-t-elle le plus vite ?</span></div>`,
+      pq:'Dans l\'eau chaude, les particules sont plus agitées : elles mélangent l\'encre plus vite.'};
+    const T1=pick([10,20]), T2=pick([60,80]);
+    return {titre:'Agitation des particules', type:'choix', options:[`À ${T2} °C`,`À ${T1} °C`,'C\'est pareil'], rep:`À ${T2} °C`,
+      html:`<div class="enonce grand"><span class="ico">🌡️</span>On compare de l'eau à ${T1} °C et de l'eau à ${T2} °C.<span class="q">À quelle température les particules d'eau sont-elles les plus agitées ?</span></div>`,
+      pq:'Plus la température est élevée, plus les particules sont agitées.'};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, compo:['modele','modele','description','vraifaux','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'compression', compo:['modele','modele','description','vraifaux','vraifaux','compression','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'changements d\'état modélisés', compo:['modele','changement','changement','vraifaux','vraifaux','compression','temperature','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Solide', svg:svgModele('S'), li:['Particules proches les unes des autres et ordonnées.','Elles vibrent sur place : le solide garde sa forme.']},
+  {t:'Liquide', svg:svgModele('L'), li:['Particules proches les unes des autres mais désordonnées.','Elles glissent les unes sur les autres : le liquide coule.','Peu de vide entre elles : un liquide est incompressible.']},
+  {t:'Gaz', svg:svgModele('G'), li:['Particules éloignées les unes des autres et désordonnées.','Elles se déplacent dans tout le récipient.','Beaucoup de vide entre elles : un gaz est compressible.']},
+  {t:'Ce qu\'il faut retenir',
+   li:['Entre les particules, il y a du vide.','Lors d\'un changement d\'état, les particules ne changent pas : seule leur disposition change. Leur nombre reste le même, donc la masse se conserve.','Plus la température est élevée, plus les particules sont agitées.','Comprimer un gaz rapproche ses particules, sans en changer le nombre.']},
+];
+
+demarrerJeu({cle:'modele_particulaire_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>

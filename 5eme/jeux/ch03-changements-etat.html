@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La roue des changements d'état</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>La roue des changements d'état</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 3 · Les changements d'état de la matière · 5ème</div>
+    <h1>La roue des changements d'état</h1>
+    <div class="meta">Nommer les changements d'état, les reconnaître dans la vie courante et lire un palier de température.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo des changements d'état</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Les changements d'état</h2>
+    <p>Un changement d'état est le passage d'un état physique à un autre. La matière ne disparaît pas : la masse se conserve.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=1"></script>
+<script>
+/* ══════════ LA ROUE ══════════ */
+const CE={
+  fusion:       {nom:'Fusion',        de:'S', a:'L'},
+  solidification:{nom:'Solidification',de:'L', a:'S'},
+  vaporisation: {nom:'Vaporisation',  de:'L', a:'G'},
+  liquefaction: {nom:'Liquéfaction',  de:'G', a:'L'},
+  sublimation:  {nom:'Sublimation',   de:'S', a:'G'},
+  condensation: {nom:'Condensation',  de:'G', a:'S'},
+};
+const PRINCIPAUX=['fusion','solidification','vaporisation','liquefaction'];
+const NOMS_ETAT={S:'Solide',L:'Liquide',G:'Gaz'};
+const BOITE={S:[90,262],L:[350,262],G:[220,58]};
+// roue : surligne le changement « cible » ; etiquettes = true pour écrire tous les noms (mémo)
+function roue(cible,etiquettes){
+  let s=`<svg ${etiquettes?'':'class="large"'} viewBox="0 0 440 320" role="img" aria-label="Roue des changements d'état">`;
+  Object.entries(CE).forEach(([id,c])=>{
+    const [x1,y1]=BOITE[c.de], [x2,y2]=BOITE[c.a];
+    const dx=x2-x1, dy=y2-y1, l=Math.hypot(dx,dy), ux=dx/l, uy=dy/l, px=-uy, py=ux, off=13;
+    const t=Math.min(64/Math.abs(ux||1e-9),30/Math.abs(uy||1e-9));
+    const ax=x1+ux*t+px*off, ay=y1+uy*t+py*off, bx=x2-ux*t+px*off, by=y2-uy*t+py*off;
+    const on=id===cible, col=on?'#b4361f':(etiquettes?ENC:'#9a8f7a');
+    const h=on?14:10, w=on?7:5, cx=bx-ux*h, cy=by-uy*h;
+    s+=`<line x1="${ax}" y1="${ay}" x2="${cx}" y2="${cy}" stroke="${col}" stroke-width="${on?4:2.2}"/>`+
+      `<polygon points="${bx},${by} ${cx+px*w},${cy+py*w} ${cx-px*w},${cy-py*w}" fill="${col}"/>`;
+    if(on||etiquettes){
+      const mx=(ax+bx)/2+px*22, my=(ay+by)/2+py*22, lab=on&&!etiquettes?'?':c.nom;
+      s+=`<text x="${mx}" y="${my}" text-anchor="middle" dominant-baseline="central" font-size="${on&&!etiquettes?30:14}" font-weight="800" fill="${col}">${lab}</text>`;
+    }
+  });
+  Object.entries(BOITE).forEach(([e,[x,y]])=>{
+    s+=`<rect x="${x-55}" y="${y-22}" width="110" height="44" rx="6" fill="#fffdf6" stroke="${ENC}" stroke-width="2"/>`+
+      `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="700" fill="${ENC}">${NOMS_ETAT[e]}</text>`;
+  });
+  return s+'</svg>';
+}
+const optionsCE=niv=>(niv==='difficile'?Object.keys(CE):PRINCIPAUX).map(k=>CE[k].nom);
+
+/* ══════════ COURBES DE TEMPÉRATURE ══════════ */
+// pts : [[t,T],…] ; ymin/ymax : échelle des températures ; pas : graduation des températures
+function courbe(pts,ymin,ymax,pas){
+  const X0=58,X1=420,Y0=250,Y1=20, tmax=16;
+  const X=t=>X0+t/tmax*(X1-X0), Y=T=>Y0-(T-ymin)/(ymax-ymin)*(Y0-Y1);
+  let s=`<svg class="large" viewBox="0 0 440 290" role="img" aria-label="Courbe de température">`;
+  for(let T=ymin;T<=ymax;T+=pas) s+=`<line x1="${X0}" y1="${Y(T)}" x2="${X1}" y2="${Y(T)}" stroke="rgba(28,18,8,${T===0?.45:.12})"/>`+
+    `<text x="${X0-6}" y="${Y(T)}" text-anchor="end" dominant-baseline="central" font-size="13" fill="${ENC}">${String(T).replace('-','−')}</text>`;
+  for(let t=0;t<=tmax;t+=2) s+=`<line x1="${X(t)}" y1="${Y0}" x2="${X(t)}" y2="${Y1}" stroke="rgba(28,18,8,.08)"/>`+
+    `<text x="${X(t)}" y="${Y0+16}" text-anchor="middle" font-size="13" fill="${ENC}">${t}</text>`;
+  s+=`<line x1="${X0}" y1="${Y0}" x2="${X1}" y2="${Y0}" stroke="${ENC}" stroke-width="1.6"/><line x1="${X0}" y1="${Y0}" x2="${X0}" y2="${Y1-6}" stroke="${ENC}" stroke-width="1.6"/>`;
+  s+=`<text x="${X1}" y="${Y0+32}" text-anchor="end" font-size="13" fill="${ENC}">durée (min)</text><text x="${X0+6}" y="${Y1-4}" font-size="13" fill="${ENC}">température (°C)</text>`;
+  s+=`<polyline points="${pts.map(([t,T])=>X(t)+','+Y(T)).join(' ')}" fill="none" stroke="#b4361f" stroke-width="3" stroke-linejoin="round"/>`;
+  pts.forEach(([t,T])=>{s+=`<circle cx="${X(t)}" cy="${Y(T)}" r="3.2" fill="#b4361f"/>`;});
+  return s+'</svg>';
+}
+// refroidissement de l'eau pure : descend de 2 °C/min jusqu'à 0, palier, puis descend
+function refroidissement(){
+  const T0=pick([6,8,10]), deb=T0/2, L=pick([4,5,6]), fin=deb+L, pts=[];
+  for(let t=0;t<=16;t++) pts.push([t, t<=deb?T0-2*t : t<=fin?0 : -2*(t-fin)]);
+  return {pts:pts.filter(p=>p[1]>=-10), deb, fin, T0};
+}
+function chauffage(){
+  const T0=pick([20,30,40]), v=10, deb=(100-T0)/v, pts=[];
+  for(let t=0;t<=16;t++) pts.push([t, t<=deb?T0+v*t:100]);
+  return {pts, deb, T0};
+}
+function eauSalee(){
+  const pts=[]; for(let t=0;t<=16;t++) pts.push([t, t<=2?6-2*t: Math.max(-10,2-1.1*(t-2)-(t>9?1.2*(t-9):0))]);
+  return pts.map(([t,T])=>[t,Math.round(T*10)/10]);
+}
+
+/* ══════════ SITUATIONS ══════════ */
+const SITUATIONS=[
+  {n:'facile', q:'Un glaçon fond dans un verre de jus.', ico:'🧊', r:'fusion'},
+  {n:'facile', q:'Une flaque d\'eau sèche au soleil.', ico:'☀️', r:'vaporisation'},
+  {n:'facile', q:'On place de l\'eau au congélateur : elle devient de la glace.', ico:'❄️', r:'solidification'},
+  {n:'facile', q:'De la buée apparaît sur le miroir de la salle de bain.', ico:'🪞', r:'liquefaction', pq:'La vapeur d\'eau (gaz) de l\'air se transforme en gouttelettes (liquide) au contact du miroir froid.'},
+  {n:'facile', q:'Le chocolat fond dans la main.', ico:'🍫', r:'fusion'},
+  {n:'facile', q:'L\'eau de la casserole bout.', ico:'♨️', r:'vaporisation', pq:'L\'ébullition est une vaporisation rapide, avec de grosses bulles.'},
+  {n:'facile', q:'Le linge mouillé sèche sur le fil.', ico:'👕', r:'vaporisation', pq:'L\'eau liquide du linge devient de la vapeur d\'eau : c\'est une vaporisation lente (évaporation).'},
+  {n:'moyen', q:'Le matin, des gouttes de rosée couvrent l\'herbe.', ico:'🌿', r:'liquefaction', pq:'La vapeur d\'eau de l\'air devient liquide au contact de l\'herbe refroidie pendant la nuit.'},
+  {n:'moyen', q:'La lave d\'un volcan refroidit et devient de la roche.', ico:'🌋', r:'solidification'},
+  {n:'moyen', q:'Des gouttelettes se forment sur une bouteille sortie du réfrigérateur.', ico:'🍾', r:'liquefaction', pq:'Ces gouttes ne viennent pas de la bouteille : c\'est la vapeur d\'eau de l\'air qui se liquéfie sur la paroi froide.'},
+  {n:'moyen', q:'Du métal fondu coulé dans un moule refroidit et durcit.', ico:'🔩', r:'solidification'},
+  {n:'moyen', q:'La neige fond au soleil de printemps.', ico:'⛄', r:'fusion'},
+  {n:'moyen', q:'Une flaque d\'eau gèle pendant la nuit.', ico:'🌙', r:'solidification'},
+  {n:'moyen', q:'La cire d\'une bougie allumée coule.', ico:'🕯️', r:'fusion'},
+  {n:'difficile', q:'En hiver, du givre se forme directement sur le pare-brise à partir de la vapeur d\'eau de l\'air.', ico:'🚗', r:'condensation', pq:'La vapeur d\'eau (gaz) passe directement à l\'état solide (givre) : c\'est une condensation.'},
+  {n:'difficile', q:'Un morceau de glace carbonique « fume » et rétrécit sans jamais devenir liquide.', ico:'💨', r:'sublimation', pq:'Le solide passe directement à l\'état gazeux : c\'est une sublimation.'},
+  {n:'difficile', q:'Du linge gelé finit par sécher dehors, en plein hiver, sans dégeler.', ico:'🥶', r:'sublimation', pq:'La glace du linge passe directement à l\'état de vapeur : sublimation.'},
+  {n:'difficile', q:'Une couche de glace se forme sur les parois du congélateur à partir de l\'humidité de l\'air.', ico:'🧊', r:'condensation', pq:'La vapeur d\'eau de l\'air devient directement solide : condensation.'},
+  {n:'difficile', q:'Le métal d\'une statue en bronze est fondu dans un four.', ico:'🔥', r:'fusion'},
+];
+
+/* ══════════ QCM ══════════ */
+const QCM=[
+  {n:'facile', q:'Sous la pression habituelle, l\'eau pure bout à…', o:['100 °C','0 °C','50 °C','37 °C'], pq:'L\'eau pure bout à 100 °C.'},
+  {n:'facile', q:'Sous la pression habituelle, la glace (eau pure) fond à…', o:['0 °C','100 °C','−10 °C','10 °C'], pq:'L\'eau pure fond (et se solidifie) à 0 °C.'},
+  {n:'facile', q:'Le passage de l\'état solide à l\'état liquide s\'appelle…', o:['la fusion','la solidification','la vaporisation','la liquéfaction'], pq:'Solide → liquide : fusion.'},
+  {n:'facile', q:'Le passage de l\'état liquide à l\'état gazeux s\'appelle…', o:['la vaporisation','la liquéfaction','la fusion','la solidification'], pq:'Liquide → gaz : vaporisation.'},
+  {n:'moyen', q:'Pendant l\'ébullition de l\'eau pure, sa température…', o:['reste constante','augmente','diminue'], pq:'Pendant un changement d\'état d\'un corps pur, la température reste constante : c\'est le palier.'},
+  {n:'moyen', q:'Lors d\'un changement d\'état, la masse…', o:['se conserve','augmente','diminue'], pq:'La matière ne disparaît pas et n\'apparaît pas : la masse se conserve.'},
+  {n:'moyen', q:'Quand l\'eau gèle, son volume…', o:['augmente','diminue','ne change pas'], pq:'1 L d\'eau liquide donne environ 1,09 L de glace : c\'est pourquoi une bouteille pleine éclate au congélateur.'},
+  {n:'moyen', q:'Quelle différence entre évaporation et ébullition ?', o:['L\'ébullition est rapide, avec des bulles, à une température précise','L\'évaporation ne concerne que l\'eau salée','Il n\'y a aucune différence','L\'ébullition est une fusion'], pq:'Ce sont deux vaporisations : l\'évaporation est lente, à toute température ; l\'ébullition est rapide, à 100 °C pour l\'eau pure.'},
+  {n:'difficile', q:'Pendant la solidification de l\'eau salée, la température…', o:['continue de varier (pas de palier)','reste constante à 0 °C','reste constante à 100 °C'], pq:'L\'eau salée est un mélange : il n\'y a pas de palier de température.'},
+  {n:'difficile', q:'Un palier de température lors d\'un changement d\'état permet de dire que la substance est…', o:['un corps pur','un mélange','un gaz'], pq:'Seul un corps pur change d\'état à température constante.'},
+  {n:'difficile', q:'Une bouteille d\'eau pleine pèse 1,40 kg. Après congélation, elle pèse…', o:['1,40 kg','plus de 1,40 kg','moins de 1,40 kg'], pq:'La masse se conserve lors d\'un changement d\'état ; c\'est le volume qui augmente.'},
+  {n:'difficile', q:'Pourquoi les roches se fissurent-elles en montagne après l\'hiver ?', o:['L\'eau qui gèle dans les fissures prend plus de place','La glace est plus lourde que l\'eau','Le froid fait rétrécir l\'eau'], pq:'En gelant, l\'eau augmente de volume et écarte les fissures : c\'est la gélifraction.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  nom(niv,deja){
+    let pool=(niv==='difficile'?Object.keys(CE):PRINCIPAUX).filter(k=>!deja.has('nom:'+k));
+    if(niv==='difficile'){const rares=pool.filter(k=>!PRINCIPAUX.includes(k)); if(rares.length&&!deja.has('rare')){pool=rares;deja.add('rare');}}
+    const k=pick(pool); deja.add('nom:'+k);
+    const c=CE[k];
+    return {titre:'Nommer', type:'choix', options:optionsCE(niv), rep:c.nom,
+      html:roue(k)+`<div class="enonce">Quel est le nom du changement d'état indiqué par la flèche rouge ?</div>`,
+      pq:`Passage de l'état ${NOMS_ETAT[c.de].toLowerCase()} à l'état ${NOMS_ETAT[c.a].toLowerCase()} : ${c.nom.toLowerCase()}.`};
+  },
+  situation(niv,deja){
+    const b=tirer(SITUATIONS,niv,deja), c=CE[b.r];
+    return {titre:'Dans la vie courante', type:'choix', options:optionsCE(niv), rep:c.nom,
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Quel changement d'état a lieu ?</span></div>`,
+      pq:b.pq||`Passage de l'état ${NOMS_ETAT[c.de].toLowerCase()} à l'état ${NOMS_ETAT[c.a].toLowerCase()} : ${c.nom.toLowerCase()}.`};
+  },
+  courbe(niv,deja){
+    const types=['palierFroid','changementFroid','etatFroid','dureePalier','palierChaud','changementChaud'];
+    if(niv==='difficile') types.push('pur','pur');
+    const t=pick(types.filter(x=>!deja.has('c:'+x)));
+    deja.add('c:'+t);
+    if(t==='pur'){
+      const sale=Math.random()<.5;
+      const pts=sale?eauSalee():refroidissement().pts;
+      return {titre:'Corps pur ou mélange ?', type:'choix', options:['Un corps pur','Un mélange'], rep:sale?'Un mélange':'Un corps pur',
+        html:courbe(pts,-10,14,2)+`<div class="enonce">On refroidit un liquide et on relève sa température.<span class="q">Ce liquide est-il un corps pur ou un mélange ?</span></div>`,
+        pq:sale?'La température ne cesse de baisser : pas de palier, c\'est un mélange (de l\'eau salée).':'La courbe présente un palier à 0 °C : c\'est un corps pur (de l\'eau pure).'};
+    }
+    if(t.endsWith('Chaud')){
+      const c=chauffage(), svg=courbe(c.pts,0,110,10), intro=`On chauffe de l'eau pure et on relève sa température.`;
+      if(t==='palierChaud') return {titre:'Lire la courbe', type:'num', unite:'°C', rep:100,
+        html:svg+`<div class="enonce">${intro}<span class="q">À quelle température se trouve le palier ?</span></div>`,
+        pq:'La température reste constante à 100 °C : c\'est la température d\'ébullition de l\'eau pure.'};
+      return {titre:'Lire la courbe', type:'choix', options:['La vaporisation (ébullition)','La fusion','La solidification','La liquéfaction'], rep:'La vaporisation (ébullition)',
+        html:svg+`<div class="enonce">${intro}<span class="q">Quel changement d'état a lieu pendant le palier ?</span></div>`,
+        pq:'À 100 °C, l\'eau bout : elle passe de l\'état liquide à l\'état gazeux (vaporisation).'};
+    }
+    const c=refroidissement(), svg=courbe(c.pts,-10,14,2), intro=`On refroidit de l'eau pure et on relève sa température.`;
+    if(t==='palierFroid') return {titre:'Lire la courbe', type:'num', unite:'°C', rep:0,
+      html:svg+`<div class="enonce">${intro}<span class="q">À quelle température se trouve le palier ?</span></div>`,
+      pq:'La température reste constante à 0 °C : c\'est la température de solidification de l\'eau pure.'};
+    if(t==='changementFroid') return {titre:'Lire la courbe', type:'choix', options:['La solidification','La fusion','La vaporisation','La liquéfaction'], rep:'La solidification',
+      html:svg+`<div class="enonce">${intro}<span class="q">Quel changement d'état a lieu pendant le palier ?</span></div>`,
+      pq:'L\'eau refroidie passe de l\'état liquide à l\'état solide à 0 °C : solidification.'};
+    if(t==='dureePalier') return {titre:'Lire la courbe', type:'num', unite:'min', rep:c.fin-c.deb,
+      html:svg+`<div class="enonce">${intro}<span class="q">Combien de temps dure le palier ?</span></div>`,
+      pq:`Le palier commence à ${fr(c.deb)} min et se termine à ${fr(c.fin)} min : il dure ${fr(c.fin-c.deb)} min.`};
+    const quand=pick(['avant','pendant','apres']);
+    const tq=quand==='avant'?Math.max(0,Math.floor(c.deb)-1):quand==='pendant'?Math.round((c.deb+c.fin)/2):Math.min(16,c.fin+2);
+    const rep={avant:'Liquide',pendant:'Liquide et solide',apres:'Solide'}[quand];
+    return {titre:'Lire la courbe', type:'choix', options:['Liquide','Liquide et solide','Solide'], rep,
+      html:svg+`<div class="enonce">${intro}<span class="q">Dans quel état se trouve l'eau à ${d('t = '+tq+' min')} ?</span></div>`,
+      pq:{avant:'Avant le palier, l\'eau n\'a pas encore commencé à geler : elle est liquide.',pendant:'Pendant le palier, l\'eau est en train de se solidifier : il y a du liquide et du solide.',apres:'Après le palier, toute l\'eau a gelé : elle est solide (et continue de refroidir).'}[quand]};
+  },
+  conservation(niv,deja){
+    const t=pick(['masseGlace','volumeGlace','masseBouteille'].filter(x=>!deja.has(x))); deja.add(t);
+    if(t==='masseGlace'){const m=pick([50,120,250,400]);
+      return {titre:'Conservation', type:'num', unite:'g', rep:m,
+        html:`<div class="enonce grand"><span class="ico">🧊</span>On fait fondre complètement ${d(m+' g')} de glace dans un récipient fermé.<span class="q">Quelle est la masse d'eau liquide obtenue ?</span></div>`,
+        pq:`Lors d'un changement d'état, la masse se conserve : ${m} g de glace donnent ${m} g d'eau liquide.`};}
+    if(t==='volumeGlace'){const v=pick([200,300,500,1000]);
+      return {titre:'Volume de la glace', type:'num', unite:'mL', rep:arr(v*1.09),
+        html:`<div class="enonce">Donnée : ${d('100 mL')} d'eau liquide donnent ${d('109 mL')} de glace.<span class="q">Quel volume de glace obtient-on avec ${d(v+' mL')} d'eau liquide ?</span></div>`,
+        pq:`Le volume est proportionnel : ${v} ÷ 100 = ${fr(v/100)}, et ${fr(v/100)} × 109 = ${fr(v*1.09)} mL. Le volume augmente quand l'eau gèle.`};}
+    const m=pick([1.2,1.4,1.6]);
+    return {titre:'Conservation', type:'num', unite:'kg', rep:m,
+      html:`<div class="enonce grand"><span class="ico">🍾</span>Une bouteille d'eau fermée a une masse de ${d(fr(m)+' kg')}. On la met au congélateur jusqu'à ce que toute l'eau gèle.<span class="q">Quelle est sa masse après congélation ?</span></div>`,
+      pq:`La masse se conserve lors de la solidification : toujours ${fr(m)} kg. Seul le volume a changé.`};
+  },
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, desc:'4 changements d\'état', compo:['nom','nom','situation','situation','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'courbes de température', compo:['nom','nom','situation','situation','courbe','courbe','qcm']},
+  difficile:{nom:'Difficile',pts:3000, desc:'les 6 changements · corps pur', compo:['nom','nom','situation','situation','courbe','courbe','conservation','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Les six changements d\'état', svg:roue(null,true),
+   li:['Solide → liquide : fusion. Liquide → solide : solidification.','Liquide → gaz : vaporisation. Gaz → liquide : liquéfaction.','Solide → gaz : sublimation. Gaz → solide : condensation.']},
+  {t:'Le palier de température', svg:courbe(refroidissement().pts,-10,14,2).replace('class="large" ',''),
+   li:['Pour un corps pur, la température reste constante pendant le changement d\'état : c\'est un palier.','Eau pure : fusion et solidification à 0 °C ; ébullition à 100 °C.','Pendant le palier, les deux états coexistent (liquide et solide).','Un mélange (eau salée) ne présente pas de palier.']},
+  {t:'Ce qui change, ce qui se conserve',
+   li:['La masse se conserve : 100 g de glace donnent 100 g d\'eau liquide.','Le volume change : l\'eau qui gèle augmente de volume (100 mL d\'eau → 109 mL de glace).','C\'est pourquoi une bouteille pleine éclate au congélateur et que le gel fissure les roches.']},
+  {t:'Évaporation ou ébullition ?',
+   li:['Ce sont deux vaporisations (liquide → gaz).','L\'évaporation est lente et se fait à toute température (flaque, linge qui sèche).','L\'ébullition est rapide, avec de grosses bulles, à 100 °C pour l\'eau pure.']},
+];
+
+demarrerJeu({cle:'changements_etat_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>

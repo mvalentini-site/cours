@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le labo des mélanges</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/parcours.css?v=4">
+<link rel="stylesheet" href="moteur-defis.css?v=1">
+</head>
+<body class="une-colonne en-onglets niveau-5e">
+
+<header class="topbar">
+  <div class="crumb"><a href="../../index.html#5eme">5ème</a><span>/</span><span>Jeux</span><span>/</span><b>Le labo des mélanges</b></div>
+  <nav>
+    <a href="../../index.html#accueil">Accueil</a>
+    <a href="../../index.html#1ere-spe">1res Spé</a>
+    <a href="../../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../../index.html#5eme" aria-current="page">5ème</a>
+    <a href="../../index.html#4eme">4ème</a>
+    <a href="../../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="kicker">Jeu · Chapitre 4 · Les mélanges · 5ème</div>
+    <h1>Le labo des mélanges</h1>
+    <div class="meta">Homogène ou hétérogène, miscible ou non, soluté et solvant, conservation de la masse et saturation.</div>
+  </aside>
+
+<main>
+  <div class="onglets" role="tablist">
+    <button class="onglet actif" role="tab" aria-selected="true" data-cible="p-jeu" style="--c:var(--brown)">
+      <span class="num">1</span><span class="lib">S'entraîner</span></button>
+    <button class="onglet" role="tab" aria-selected="false" data-cible="p-memo" style="--c:var(--blue)">
+      <span class="num">2</span><span class="lib">Mémo des mélanges</span></button>
+  </div>
+  <section class="panneau" id="p-jeu" role="tabpanel"></section>
+  <section class="panneau" id="p-memo" role="tabpanel" hidden>
+    <h2>Les mélanges</h2>
+    <p>Un mélange contient plusieurs constituants. On les classe selon ce que l'on voit à l'œil nu.</p>
+    <div class="memo" id="memo"></div>
+  </section>
+</main>
+</div>
+
+<script src="moteur-defis.js?v=1"></script>
+<script>
+/* ══════════ DESSIN : tube à essais ══════════ */
+// couches du bas vers le haut : [{h, col, lab?}] ; grains = nombre de petits grains au fond (sable)
+function tube(couches,x=0,grains=0){
+  let s=`<g transform="translate(${x},0)">`, y=250;
+  s+=`<clipPath id="tb${x}"><path d="M30,20 L30,230 A30,30 0 0 0 90,230 L90,20 Z"/></clipPath><g clip-path="url(#tb${x})">`;
+  couches.forEach(c=>{s+=`<rect x="20" y="${y+10-c.h}" width="80" height="${c.h}" fill="${c.col}"/>`;y-=c.h;});
+  for(let i=0;i<grains;i++) s+=`<circle cx="${38+(i*37)%46}" cy="${246-(i*13)%18}" r="3" fill="#9b7a45"/>`;
+  s+=`</g><path d="M30,14 L30,230 A30,30 0 0 0 90,230 L90,14" fill="none" stroke="${ENC}" stroke-width="2.4"/>`;
+  y=250;
+  couches.forEach(c=>{const m=y+10-c.h/2; if(c.lab) s+=`<text x="100" y="${m}" font-size="15" font-weight="700" fill="${ENC}"><tspan x="100">← ${c.lab}</tspan></text>`; y-=c.h;});
+  return s+'</g>';
+}
+const svgTubes=(...t)=>`<svg viewBox="0 0 ${t.length*170+50} 270" role="img" aria-label="Tubes à essais">${t.map((c,i)=>tube(c.couches,i*170,c.grains)).join('')}</svg>`;
+const JAUNE='#ecd36b', BLEU='#a9cbe6', VERT='#9fd6a6', ROUGE='#e7a0a8';
+
+/* ══════════ BANQUES ══════════ */
+const TYPES=[
+  {n:'facile', q:'Eau + sirop de menthe', ico:'🥤', r:'Homogène', pq:'On ne voit qu\'une seule couleur, un seul constituant : mélange homogène.'},
+  {n:'facile', q:'Eau + huile', ico:'🫒', r:'Hétérogène', pq:'On distingue deux couches : l\'huile au-dessus de l\'eau.'},
+  {n:'facile', q:'Eau + sable', ico:'🏖️', r:'Hétérogène', pq:'On voit les grains de sable dans l\'eau.'},
+  {n:'facile', q:'Eau sucrée (sucre bien dissous)', ico:'🍬', r:'Homogène', pq:'Le sucre dissous n\'est plus visible : mélange homogène.'},
+  {n:'facile', q:'Eau boueuse', ico:'🟫', r:'Hétérogène', pq:'On distingue des particules de terre en suspension.'},
+  {n:'facile', q:'Eau salée (sel bien dissous)', ico:'🧂', r:'Homogène', pq:'Le sel dissous n\'est plus visible.'},
+  {n:'moyen', q:'Jus d\'orange avec pulpe', ico:'🍊', r:'Hétérogène', pq:'On distingue les morceaux de pulpe.'},
+  {n:'moyen', q:'Eau + alcool', ico:'🧪', r:'Homogène', pq:'Ces deux liquides sont miscibles : on n\'en voit qu\'un seul.'},
+  {n:'moyen', q:'Vinaigrette laissée au repos', ico:'🥗', r:'Hétérogène', pq:'L\'huile et le vinaigre se séparent en deux couches.'},
+  {n:'moyen', q:'Café noir filtré', ico:'☕', r:'Homogène', pq:'On ne distingue qu\'une seule phase.'},
+  {n:'moyen', q:'Céréales dans du lait', ico:'🥣', r:'Hétérogène'},
+  {n:'difficile', q:'Air filtré (sans poussières)', ico:'🌬️', r:'Homogène', pq:'L\'air est un mélange de gaz (diazote, dioxygène…) que l\'on ne distingue pas : homogène.'},
+  {n:'difficile', q:'Eau gazeuse dont on voit les bulles', ico:'🫧', r:'Hétérogène', pq:'Les bulles de gaz sont visibles : on distingue deux constituants.'},
+  {n:'difficile', q:'Eau + sel en excès (il reste des grains au fond)', ico:'🧂', r:'Hétérogène', pq:'La solution est saturée : le sel non dissous se voit au fond.'},
+  {n:'difficile', q:'Thé sucré bien mélangé', ico:'🍵', r:'Homogène'},
+];
+const MISCIBLES=[
+  {n:'facile', q:'l\'eau et l\'huile', r:'Non miscibles', pq:'Même agités, ils se séparent en deux couches : non miscibles.'},
+  {n:'facile', q:'l\'eau et le sirop de grenadine', r:'Miscibles', pq:'Ils forment un mélange homogène : miscibles.'},
+  {n:'facile', q:'l\'eau et l\'alcool', r:'Miscibles'},
+  {n:'moyen', q:'l\'eau et le vinaigre', r:'Miscibles'},
+  {n:'moyen', q:'l\'huile et le vinaigre', r:'Non miscibles', pq:'C\'est pour cela qu\'il faut agiter la vinaigrette avant de s\'en servir.'},
+  {n:'difficile', q:'l\'eau et le white-spirit', r:'Non miscibles'},
+  {n:'difficile', q:'l\'huile d\'olive et l\'huile de tournesol', r:'Miscibles', pq:'Deux huiles se mélangent bien entre elles : miscibles.'},
+];
+const SOLUTIONS=[
+  {n:'facile', nom:'l\'eau sucrée', soluté:'le sucre', solvant:'l\'eau', solution:'l\'eau sucrée'},
+  {n:'facile', nom:'l\'eau salée', soluté:'le sel', solvant:'l\'eau', solution:'l\'eau salée'},
+  {n:'moyen', nom:'le sirop de menthe dilué', soluté:'le sirop', solvant:'l\'eau', solution:'la boisson à la menthe'},
+  {n:'moyen', nom:'le thé sucré', soluté:'le sucre', solvant:'le thé', solution:'le thé sucré'},
+  {n:'difficile', nom:'une boisson pétillante', soluté:'le dioxyde de carbone', solvant:'l\'eau sucrée', solution:'la boisson pétillante'},
+];
+const QCM=[
+  {n:'facile', q:'Un mélange dans lequel on distingue plusieurs constituants à l\'œil nu est…', o:['hétérogène','homogène','saturé'], pq:'Plusieurs constituants visibles : hétérogène.'},
+  {n:'facile', q:'Un mélange dans lequel on ne distingue qu\'un seul constituant est…', o:['homogène','hétérogène','miscible'], pq:'Un seul constituant visible : homogène.'},
+  {n:'facile', q:'Dans l\'eau sucrée, le sucre est…', o:['le soluté','le solvant','la solution'], pq:'Le soluté est ce que l\'on dissout ; le solvant est le liquide qui le dissout.'},
+  {n:'moyen', q:'Lors d\'une dissolution, la masse totale…', o:['se conserve','diminue','augmente'], pq:'Le soluté ne disparaît pas : la masse de la solution = masse du solvant + masse du soluté.'},
+  {n:'moyen', q:'Une solution saturée…', o:['ne peut plus dissoudre de soluté','ne contient pas de soluté','est toujours colorée'], pq:'Quand la solution est saturée, le soluté ajouté ne se dissout plus.'},
+  {n:'moyen', q:'Le sel « a disparu » dans l\'eau. Comment montrer qu\'il est toujours là ?', o:['Faire évaporer l\'eau : le sel réapparaît','Agiter plus fort','Ajouter de l\'huile'], pq:'Quand l\'eau s\'évapore, le sel dissous réapparaît sous forme de cristaux.'},
+  {n:'moyen', q:'Un soluté est-il forcément un solide ?', o:['Non, il peut être liquide ou gazeux','Oui, toujours'], pq:'Le sirop (liquide) ou le dioxyde de carbone (gaz) sont aussi des solutés.'},
+  {n:'difficile', q:'L\'eau de la mer Morte contient 340 g de sel par litre (solubilité : 360 g/L). Quand l\'eau s\'évapore beaucoup…', o:['la solution devient saturée et des cristaux de sel apparaissent','le sel s\'évapore avec l\'eau','le sel devient liquide'], pq:'Moins d\'eau pour la même masse de sel : on dépasse la solubilité, le sel se dépose en cristaux.'},
+  {n:'difficile', q:'La solubilité d\'un soluté, c\'est…', o:['la masse maximale que l\'on peut dissoudre dans 1 L de solvant','la masse de solvant','le volume de la solution'], pq:'Au-delà de la solubilité, le soluté ne se dissout plus.'},
+  {n:'difficile', q:'Le soluté d\'une boisson pétillante qui forme des bulles est…', o:['un gaz','un solide','de l\'eau'], pq:'C\'est du dioxyde de carbone dissous dans l\'eau sucrée.'},
+];
+const SEPARATIONS=[
+  {n:'moyen', q:'On laisse reposer de l\'eau boueuse : la terre se dépose au fond du récipient.', o:['La décantation','La filtration','La dissolution','L\'évaporation'], pq:'Laisser reposer pour que les particules se déposent : décantation.'},
+  {n:'moyen', q:'On verse de l\'eau boueuse sur un filtre : la terre reste sur le filtre, l\'eau passe à travers.', o:['La filtration','La décantation','La dissolution','La fusion'], pq:'Le filtre retient les particules solides : filtration.'},
+  {n:'difficile', q:'On chauffe de l\'eau salée jusqu\'à ce que toute l\'eau soit partie : il reste du sel.', o:['L\'évaporation','La filtration','La décantation','La dissolution'], pq:'L\'eau s\'évapore, le sel reste : évaporation (comme dans les marais salants).'},
+  {n:'difficile', q:'Peut-on séparer le sel de l\'eau salée par filtration ?', o:['Non, le sel dissous passe à travers le filtre','Oui, le sel reste sur le filtre'], pq:'Le sel dissous est mélangé intimement à l\'eau : il traverse le filtre. Il faut évaporer l\'eau.'},
+];
+
+/* ══════════ GÉNÉRATEURS ══════════ */
+const G={
+  type(niv,deja){
+    const b=tirer(TYPES,niv,deja);
+    return {titre:'Homogène ou hétérogène ?', type:'choix', options:['Homogène','Hétérogène'], rep:b.r,
+      html:`<div class="enonce grand"><span class="ico">${b.ico}</span>${b.q}<span class="q">Ce mélange est-il homogène ou hétérogène ?</span></div>`,
+      pq:b.pq||(b.r==='Homogène'?'On ne distingue qu\'un seul constituant : homogène.':'On distingue plusieurs constituants : hétérogène.')};
+  },
+  miscible(niv,deja){
+    const b=tirer(MISCIBLES,niv,deja);
+    return {titre:'Miscibles ?', type:'choix', options:['Miscibles','Non miscibles'], rep:b.r,
+      html:`<div class="enonce grand">On verse dans un tube ${b.q}, on agite puis on laisse reposer.<span class="q">Ces deux liquides sont-ils miscibles ?</span></div>`,
+      pq:b.pq||(b.r==='Miscibles'?'Ils forment un mélange homogène : miscibles.':'Ils se séparent en deux couches : non miscibles.')};
+  },
+  solute(niv,deja){
+    const b=tirer(SOLUTIONS,niv,deja,x=>x.nom);
+    const role=pick(['soluté','solvant','solution']);
+    const opts=[b.soluté,b.solvant,b.solution];
+    return {titre:'Soluté, solvant, solution', type:'choix', options:opts, rep:b[role],
+      html:`<div class="enonce grand">On prépare ${b.nom}.<span class="q">Quel est ${role==='solution'?'la solution':'le '+role} ?</span></div>`,
+      pq:`Le soluté (${b.soluté}) est dissous dans le solvant (${b.solvant}) : on obtient la solution (${b.solution}).`};
+  },
+  tube(){
+    const cas=pick([
+      {liq:['l\'eau','l\'huile'], c:[{h:90,col:BLEU},{h:60,col:JAUNE}], rep:'L\'huile', autre:'L\'eau', pq:'L\'huile, moins dense, remonte au-dessus de l\'eau.'},
+      {liq:['l\'eau','l\'huile'], c:[{h:90,col:BLEU},{h:60,col:JAUNE}], rep:'L\'eau', autre:'L\'huile', bas:true, pq:'L\'eau se trouve en bas, sous l\'huile.'},
+    ]);
+    const couches=cas.c.map((x,i)=>({...x, lab:i===(cas.bas?0:1)?'?':''}));
+    return {titre:'Schématiser', type:'choix', options:['L\'huile','L\'eau'], rep:cas.rep,
+      html:svgTubes({couches})+`<div class="enonce">On verse de l'eau et de l'huile dans un tube, on agite puis on laisse reposer.<span class="q">Quel liquide se trouve à l'endroit marqué « ? » ?</span></div>`,
+      pq:cas.pq};
+  },
+  masse(niv){
+    const v=pick(['dissolution','tom']);
+    if(v==='dissolution'){const me=pick([150,200,250,300]), ms=pick([5,10,15,20,25]);
+      return {titre:'Conservation de la masse', type:'num', unite:'g', rep:me+ms,
+        html:`<div class="enonce grand">On dissout ${d(ms+' g')} de sucre dans ${d(me+' g')} d'eau.<span class="q">Quelle est la masse de l'eau sucrée obtenue ?</span></div>`,
+        pq:`Le sucre ne disparaît pas : ${me} + ${ms} = ${me+ms} g. La masse se conserve lors d'une dissolution.`};}
+    const tot=pick([240,260,285,310]), ms=pick([10,15,20]);
+    return {titre:'Le sel a-t-il disparu ?', type:'num', unite:'g', rep:tot,
+      html:`<div class="enonce">Sur une balance, Tom pose un verre d'eau et, à côté, une coupelle contenant ${d(ms+' g')} de sel : la balance affiche ${d(tot+' g')}. Il verse le sel dans l'eau, agite jusqu'à dissolution et repose la coupelle vide sur la balance.<span class="q">Que va afficher la balance ?</span></div>`,
+      pq:`Rien n'est entré ni sorti : la balance affiche toujours ${tot} g. Le sel est dissous, pas disparu.`};
+  },
+  solubilite(niv,deja){
+    const t=pick(['parLitre','reste','sature'].filter(x=>!deja.has(x))); deja.add(t);
+    const max=pick([36,20,30,40]);
+    if(t==='parLitre') return {titre:'Solubilité', type:'num', unite:'g', rep:max*10,
+      html:`<div class="enonce">Dans ${d('100 mL')} d'eau, on peut dissoudre au maximum ${d(max+' g')} d'un soluté.<span class="q">Quelle masse maximale peut-on dissoudre dans 1 L d'eau ?</span></div>`,
+      pq:`1 L = 1 000 mL = 10 × 100 mL, donc 10 × ${max} = ${max*10} g : la solubilité est de ${max*10} g/L.`};
+    const ajout=max+pick([4,10,14,20]);
+    if(t==='reste') return {titre:'Solubilité', type:'num', unite:'g', rep:ajout-max,
+      html:`<div class="enonce">Dans ${d('100 mL')} d'eau, on peut dissoudre au maximum ${d(max+' g')} de sel. On en ajoute ${d(ajout+' g')} et on agite longtemps.<span class="q">Quelle masse de sel reste au fond, non dissoute ?</span></div>`,
+      pq:`Seuls ${max} g se dissolvent : ${ajout} − ${max} = ${ajout-max} g restent au fond. La solution est saturée.`};
+    const ajout2=pick([max-10,max-5,max+5,max+12]), sat=ajout2>max;
+    return {titre:'Saturée ?', type:'choix', options:['Oui, elle est saturée','Non, elle n\'est pas saturée'], rep:sat?'Oui, elle est saturée':'Non, elle n\'est pas saturée',
+      html:`<div class="enonce">Dans ${d('100 mL')} d'eau, on peut dissoudre au maximum ${d(max+' g')} de sel. On en ajoute ${d(ajout2+' g')}.<span class="q">La solution obtenue est-elle saturée ?</span></div>`,
+      pq:sat?`${ajout2} g > ${max} g : tout ne peut pas se dissoudre, la solution est saturée et il reste du sel au fond.`:`${ajout2} g < ${max} g : tout le sel se dissout, la solution n'est pas saturée.`};
+  },
+  separation:qcmDepuis(SEPARATIONS,'Séparer'),
+  qcm:qcmDepuis(QCM),
+};
+
+const NIVEAUX={
+  facile:   {nom:'Facile',   pts:1000, compo:['type','type','miscible','solute','qcm']},
+  moyen:    {nom:'Moyen',    pts:2000, desc:'masse et séparation', compo:['type','type','miscible','solute','masse','tube','separation']},
+  difficile:{nom:'Difficile',pts:3000, desc:'solubilité et saturation', compo:['type','miscible','solute','masse','solubilite','solubilite','separation','qcm','qcm']},
+};
+
+const MEMO=[
+  {t:'Homogène ou hétérogène', svg:svgTubes({couches:[{h:150,col:VERT,lab:'homogène'}]},{couches:[{h:90,col:BLEU},{h:60,col:JAUNE,lab:'hétérogène'}]}),
+   li:['Homogène : on ne distingue qu\'un seul constituant à l\'œil nu (eau sucrée, eau + sirop).','Hétérogène : on distingue plusieurs constituants (eau + huile, eau boueuse, jus avec pulpe).']},
+  {t:'Liquides miscibles',
+   li:['Deux liquides miscibles forment un mélange homogène (eau + alcool, eau + vinaigre).','Deux liquides non miscibles se séparent en couches (eau + huile) : le moins dense est au-dessus.']},
+  {t:'La dissolution',
+   li:['Le soluté (sucre, sel, sirop, gaz…) se dissout dans le solvant (souvent l\'eau).','On obtient une solution, mélange homogène.','Le soluté n\'a pas disparu : on le retrouve en faisant évaporer l\'eau.']},
+  {t:'Conservation de la masse',
+   li:['Masse de la solution = masse du solvant + masse du soluté.','Exemple : 250 g d\'eau + 10 g de sel → 260 g d\'eau salée.']},
+  {t:'Saturation et solubilité',
+   li:['On ne peut pas dissoudre une quantité illimitée de soluté.','Quand plus rien ne se dissout, la solution est saturée : le soluté en trop reste au fond.','La solubilité est la masse maximale dissoute dans 1 L de solvant (sel : environ 360 g/L).']},
+  {t:'Séparer les constituants',
+   li:['Décantation : on laisse reposer, les particules se déposent au fond.','Filtration : un filtre retient les particules solides non dissoutes.','Évaporation : l\'eau s\'en va, le soluté dissous reste (marais salants).']},
+];
+
+demarrerJeu({cle:'melanges_records_v1', duree:180, niveaux:NIVEAUX, gen:G, memo:MEMO});
+</script>
+</body>
+</html>
