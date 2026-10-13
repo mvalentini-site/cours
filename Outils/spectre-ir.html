@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectres infrarouges des molécules des activités 7A à 7D</title>
+<style>
+:root{
+  --paper:#f6f3ea; --surface:#fffdf8; --ink:#1a1814; --ink2:#4a4640; --ink3:#8a8070;
+  --rule:#bdb6a2; --hi:#d9d4c4;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.45}
+.page{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 2px}
+.sub{color:var(--ink2);font-size:.92rem;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--rule);padding:12px 14px;margin-bottom:14px}
+.card h2{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px;font-family:system-ui,sans-serif;font-weight:600}
+.fam{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:5px 0}
+.fam b{font:600 .8rem system-ui,sans-serif;min-width:130px;color:var(--ink2)}
+button.mol{font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);border:1px solid var(--ink);padding:3px 9px;cursor:pointer}
+button.mol:hover{background:var(--hi)}
+button.mol[aria-pressed=true]{background:var(--ink);color:var(--surface)}
+.opts{display:flex;gap:16px;flex-wrap:wrap;font:.88rem system-ui,sans-serif;margin-top:10px;border-top:1px solid var(--rule);padding-top:8px}
+.opts label{cursor:pointer}
+.opts button.mol{margin-right:6px}
+.ident{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:baseline}
+.ident .nom{font-size:1.25rem;font-weight:bold}
+.ident .meta{font-size:.95rem;color:var(--ink2)}
+svg{display:block;width:100%;height:auto}
+#formule{max-height:300px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--ink);padding:5px 8px;text-align:left;vertical-align:top}
+th{font:600 .8rem system-ui,sans-serif;background:var(--hi)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#efeadb}
+tbody tr.on{background:var(--hi);font-weight:bold}
+tbody tr.on td:first-child{border-left:6px solid var(--ink)}
+.hint{font:italic .85rem Georgia,serif;color:var(--ink2);margin:6px 0 0}
+.note{font:.8rem system-ui,sans-serif;color:var(--ink2);margin-top:12px}
+.masque{display:none!important}
+.enigme-msg{font-style:italic;color:var(--ink2);padding:10px 0}
+#readout{font:.85rem system-ui,sans-serif;color:var(--ink2);min-height:1.2em;text-align:right}
+.edge-hit{cursor:pointer}
+.atom{cursor:default}
+.atom.click{cursor:pointer}
+@media print{
+  body{background:#fff}
+  .card{border-color:#000;break-inside:avoid}
+  .opts,.fam button.mol:not([aria-pressed=true]),#readout{display:none}
+  .fam{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Spectres infrarouges</h1>
+  <div class="sub">Les 23 molécules des activités 7A à 7D&nbsp;: choisis une molécule, puis clique sur une ligne du tableau ou sur une liaison de la formule.</div>
+
+  <div class="card">
+    <h2>Choix de la molécule</h2>
+    <div id="choix"></div>
+    <div class="opts">
+      <label><input type="checkbox" id="enigme"> Mode énigme&nbsp;: cacher la molécule et ne montrer que le spectre</label>
+      <span id="tirage" class="masque">
+        <button type="button" class="mol" id="btnTirer">Tirer une molécule au hasard</button>
+        <button type="button" class="mol" id="btnRev">Révéler la réponse</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="card" id="cIdent">
+    <div class="ident"><span class="nom" id="nom"></span><span class="meta" id="meta"></span></div>
+  </div>
+
+  <div class="card" id="cSpectre">
+    <h2>Spectre infrarouge (schématique)</h2>
+    <div id="readout">&nbsp;</div>
+    <svg id="spectre" viewBox="0 0 800 330" role="img" aria-label="Spectre infrarouge"></svg>
+  </div>
+
+  <div id="bloc-mol">
+    <div class="card">
+      <h2>Formule développée</h2>
+      <svg id="formule" viewBox="0 0 400 200" role="img" aria-label="Formule développée"></svg>
+      <p class="hint">Clique sur une liaison (ou sur un groupe CH) pour voir la bande correspondante.</p>
+    </div>
+    <div class="card">
+      <h2>Bandes caractéristiques</h2>
+      <div class="tw"><table>
+        <thead><tr><th>Liaison</th><th>σ (cm⁻¹)</th><th>Intensité</th><th>Commentaire</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table></div>
+      <p class="hint">Clique sur une ligne pour la repérer sur le spectre et dans la molécule. Un second clic annule la sélection.</p>
+    </div>
+  </div>
+  <div class="note">Spectres simulés à partir des tables de nombres d’onde usuelles&nbsp;: positions et allures des bandes caractéristiques réalistes, zone des empreintes (σ&nbsp;&lt;&nbsp;1&nbsp;500&nbsp;cm⁻¹) schématique. Ils ne remplacent pas des spectres expérimentaux.</div>
+</div>
+
+<script>
+"use strict";
+/* ───────────── Données : les 23 molécules ─────────────
+   chain : liste de motifs le long de la chaîne
+     'C'            carbone (les H sont complétés automatiquement)
+     'C^=O'         substituant en haut (^) ou en bas (_) ; =O, OH, CH3
+     'OH'           fin de chaîne : groupe –OH
+     'CHO' 'COOH'   fin de chaîne : groupes aldéhyde / carboxyle                       */
+const MOLS = [
+ {id:'methane', nom:'méthane', fam:'alcane', brute:'CH₄', chain:['C']},
+ {id:'M1', nom:'butane', fam:'alcane', brute:'C₄H₁₀', chain:['C','C','C','C']},
+ {id:'M4', nom:'2,2-diméthylpropane', fam:'alcane', brute:'C₅H₁₂', chain:['C','C^CH3_CH3','C']},
+ {id:'M5', nom:'2-méthylpentane', fam:'alcane', brute:'C₆H₁₄', chain:['C','C^CH3','C','C','C']},
+ {id:'M8', nom:'3-méthylpentane', fam:'alcane', brute:'C₆H₁₄', chain:['C','C','C^CH3','C','C']},
+
+ {id:'methanol', nom:'méthanol', fam:'alcool', brute:'CH₄O', chain:['C','OH']},
+ {id:'M20', nom:'éthanol', fam:'alcool', brute:'C₂H₆O', chain:['C','C','OH']},
+ {id:'M18', nom:'propan-1-ol', fam:'alcool', brute:'C₃H₈O', chain:['C','C','C','OH']},
+ {id:'M3', nom:'propan-2-ol', fam:'alcool', brute:'C₃H₈O', chain:['C','C_OH','C']},
+ {id:'M19', nom:'butan-2-ol', fam:'alcool', brute:'C₄H₁₀O', chain:['C','C','C_OH','C']},
+
+ {id:'methanal', nom:'méthanal', fam:'aldéhyde', brute:'CH₂O', chain:['C^=O']},
+ {id:'M7', nom:'éthanal', fam:'aldéhyde', brute:'C₂H₄O', chain:['C','CHO']},
+ {id:'M6', nom:'propanal', fam:'aldéhyde', brute:'C₃H₆O', chain:['C','C','CHO']},
+ {id:'M2', nom:'butanal', fam:'aldéhyde', brute:'C₄H₈O', chain:['C','C','C','CHO']},
+ {id:'M9', nom:'3-méthylbutanal', fam:'aldéhyde', brute:'C₅H₁₀O', chain:['C','C^CH3','C','CHO']},
+
+ {id:'M12', nom:'propanone', fam:'cétone', brute:'C₃H₆O', chain:['C','C^=O','C']},
+ {id:'M16', nom:'butanone', fam:'cétone', brute:'C₄H₈O', chain:['C','C','C^=O','C']},
+ {id:'M14', nom:'3-méthylbutan-2-one', fam:'cétone', brute:'C₅H₁₀O', chain:['C','C^CH3','C^=O','C']},
+ {id:'M10', nom:'hexan-3-one', fam:'cétone', brute:'C₆H₁₂O', chain:['C','C','C^=O','C','C','C']},
+
+ {id:'M13', nom:'acide éthanoïque', fam:'acide carboxylique', brute:'C₂H₄O₂', chain:['C','COOH']},
+ {id:'M11', nom:'acide propanoïque', fam:'acide carboxylique', brute:'C₃H₆O₂', chain:['C','C','COOH']},
+ {id:'M15', nom:'acide butanoïque', fam:'acide carboxylique', brute:'C₄H₈O₂', chain:['C','C','C','COOH']},
+ {id:'M17', nom:'acide 3-méthylhexanoïque', fam:'acide carboxylique', brute:'C₇H₁₄O₂', chain:['C','C','C','C^CH3','C','COOH']}
+];
+const FAMS = ['alcane','alcool','aldéhyde','cétone','acide carboxylique'];
+const FAM_PL = {'alcane':'Alcanes','alcool':'Alcools','aldéhyde':'Aldéhydes','cétone':'Cétones','acide carboxylique':'Acides carboxyliques'};
+
+/* ───────────── Bandes ───────────── */
+const nf = x => x.toLocaleString('fr-FR');
+function rowDef(key, fam, id){
+  switch(key){
+    case 'CH': return {lib:'C–H', r:[2800,3000], int:'moyenne à forte', com:'présente dans toutes les molécules organiques'};
+    case 'CHald': return {lib:'C–H aldéhydique', r:[2700,2850], int:'faible', com:'deux petites bandes vers 2 720 et 2 820 cm⁻¹'};
+    case 'OH': return fam==='alcool'
+      ? {lib:'O–H (alcool)', r:[3200,3400], int:'forte', com:'large'}
+      : {lib:'O–H (acide)', r:[2500,3200], int:'forte', com:'très large, recouvre les bandes C–H'};
+    case 'CdO': return {lib:'C=O', r:[1700,1760], int:'forte', com: fam==='acide carboxylique' ? 'fine, accompagne la bande O–H très large' : fam==='aldéhyde' ? 'fine' : 'fine'};
+    case 'CO': return fam==='alcool'
+      ? {lib:'C–O (alcool)', r:[1050,1150], int:'forte', com:'dans la zone des empreintes'}
+      : {lib:'C–O (acide)', r:[1210,1320], int:'forte', com:'dans la zone des empreintes'};
+    case 'CC': return {lib:'C–C et autres', r:[400,1500], int:'variable', com:'zone des empreintes digitales : propre à chaque molécule'};
+  }
+}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let s=seed||1;return()=> (s=Math.imul(s,1664525)+1013904223>>>0)/4294967296}
+
+/* Pics : [centre, largeur à mi-hauteur, absorbance] */
+function peaksFor(key, fam, m, nH){
+  switch(key){
+    case 'CH': {const A=Math.min(.9,.22+.035*nH);return [[2960,40,A*.9],[2930,34,A],[2875,28,A*.65]]}
+    case 'CHald': return [[2820,30,.22],[2720,30,.28]];
+    case 'OH': return fam==='alcool' ? [[3330,230,.75]] : [[2900,650,.5]];
+    case 'CdO': return [[fam==='aldéhyde'?(m.id==='methanal'?1745:1730):fam==='cétone'?1715:1712, 26, 1.0]];
+    case 'CO': return fam==='alcool' ? [[1080,55,.8]] : [[1260,60,.75],[930,70,.35]];
+    case 'CC': {
+      const r=rng(hash(m.id+m.nom)), p=[];
+      if(m.id!=='methanal'){p.push([1460,40,.3],[1375,26,.25])}
+      const n=m.id==='methane'?2:7;
+      for(let i=0;i<n;i++) p.push([600+r()*850, 18+r()*30, .06+r()*.22]);
+      return p;
+    }
+  }
+}
+
+/* ───────────── Construction du graphe moléculaire ───────────── */
+function build(m){
+  const nodes=[], edges=[];
+  const node=(lab,x,y,type)=>{nodes.push({lab,x,y,type,id:nodes.length});return nodes.length-1};
+  const edge=(a,b,key,dbl)=>edges.push({a,b,key,dbl:!!dbl});
+  let prev=null;
+  m.chain.forEach((it,i)=>{
+    if(it==='OH'){ const o=node('O',i,0,'O'), h=node('H',i+1,0,'H'); edge(prev,o,'CO'); edge(o,h,'OH'); return; }
+    const c=node('C',i,0,'C');
+    if(prev!==null) edge(prev,c,'CC');
+    prev=c;
+    if(it==='CHO'){ const o=node('O',i,-1,'O'); edge(c,o,'CdO',true); const h=node('H',i+1,0,'H'); edge(c,h,'CHald'); return; }
+    if(it==='COOH'){ const o=node('O',i,-1,'O'); edge(c,o,'CdO',true); const o2=node('O',i+1,0,'O'); edge(c,o2,'CO'); const h=node('H',i+2,0,'H'); edge(o2,h,'OH'); return; }
+    const parts=it.slice(1).match(/[\^_][^\^_]+/g)||[];
+    parts.forEach(p=>{
+      const d=p[0]==='^'?-1:1, t=p.slice(1);
+      if(t==='=O'){ const o=node('O',i,d,'O'); edge(c,o,'CdO',true); }
+      else if(t==='OH'){ const o=node('O',i,d,'O'); edge(c,o,'CO'); const h=node('H',i,2*d,'H'); edge(o,h,'OH'); }
+      else if(t==='CH3'){ const c2=node('C',i,d,'C'); edge(c,c2,'CC'); }
+    });
+  });
+  // nombre d'H portés par chaque carbone
+  nodes.forEach(n=>{
+    if(n.type!=='C') return;
+    let v=0; edges.forEach(e=>{ if(e.a===n.id||e.b===n.id) v+=e.dbl?2:1 });
+    n.h=4-v;
+    n.lab = 'C'+(n.h>0 ? 'H'+(n.h>1?'₀₁₂₃₄'[n.h]:'') : '');
+    n.key = n.h>0 ? (m.id==='methanal'?'CHald':'CH') : null;
+  });
+  return {nodes,edges};
+}
+function hasKey(g,k){return g.edges.some(e=>e.key===k)||g.nodes.some(n=>n.key===k)}
+
+/* ───────────── État ───────────── */
+let cur=null, G=null, ROWS=[], active=null;
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent,txt){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e}
+
+/* ───────────── Sélecteur de molécules ───────────── */
+function buildChoix(){
+  const box=$('choix');
+  FAMS.forEach(f=>{
+    const d=document.createElement('div');d.className='fam';
+    d.innerHTML='<b>'+FAM_PL[f]+'</b>';
+    MOLS.filter(m=>m.fam===f).forEach(m=>{
+      const b=document.createElement('button');b.className='mol';b.type='button';b.textContent=m.nom;b.dataset.id=m.id;b.setAttribute('aria-pressed','false');
+      b.onclick=()=>choose(m.id);
+      d.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+}
+function choose(id){
+  cur=MOLS.find(m=>m.id===id); G=build(cur); active=null;
+  document.querySelectorAll('button.mol').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===id));
+  // lignes du tableau
+  const nH=G.nodes.filter(n=>n.type==='C'&&n.key==='CH').reduce((s,n)=>s+n.h,0);
+  const order=['OH','CH','CHald','CdO','CO','CC'];
+  ROWS=[];
+  order.forEach(k=>{
+    if(k==='CC'|| hasKey(G,k)){
+      const d=rowDef(k,cur.fam,cur.id);
+      ROWS.push({key:k,...d,peaks:peaksFor(k,cur.fam,cur,nH)});
+    }
+  });
+  $('nom').textContent=cur.nom.charAt(0).toUpperCase()+cur.nom.slice(1);
+  $('meta').textContent='famille : '+cur.fam+'  ·  formule brute : '+cur.brute;
+  drawTable(); drawFormule(); drawSpectre(); refresh();
+}
+
+/* ───────────── Tableau ───────────── */
+function drawTable(){
+  const tb=$('tb');tb.innerHTML='';
+  ROWS.forEach(r=>{
+    const tr=document.createElement('tr');tr.tabIndex=0;tr.dataset.key=r.key;
+    tr.innerHTML='<td>'+r.lib+'</td><td>'+nf(r.r[0])+' – '+nf(r.r[1])+'</td><td>'+r.int+'</td><td>'+r.com+'</td>';
+    tr.onclick=()=>toggle(r.key);
+    tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(r.key)}};
+    tb.appendChild(tr);
+  });
+}
+function toggle(k){active=(active===k)?null:k;refresh()}
+
+/* ───────────── Formule développée ───────────── */
+const SX=64, SY=50;
+function drawFormule(){
+  const svg=$('formule');svg.innerHTML='';
+  const xs=G.nodes.map(n=>n.x), ys=G.nodes.map(n=>n.y);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const pad=36, W=(x1-x0)*SX+2*pad, H=(y1-y0)*SY+2*pad;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.style.maxWidth=Math.max(W,260)*1.35+'px';
+  const P=n=>[pad+(n.x-x0)*SX, pad+(n.y-y0)*SY];
+  const half=n=>n.type==='C'&&n.h>0 ? 8+ (n.lab.length)*6.2 : 11;
+  const gHalo=el('g',{},svg), gEdge=el('g',{},svg), gAtom=el('g',{},svg), gHit=el('g',{},svg);
+  G.edges.forEach((e,i)=>{
+    const A=G.nodes[e.a],B=G.nodes[e.b],[ax,ay]=P(A),[bx,by]=P(B);
+    const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    const sa=Math.abs(ux)>.5?half(A):13, sb=Math.abs(ux)>.5?half(B):13;
+    const x1=ax+ux*sa,y1=ay+uy*sa,x2=bx-ux*sb,y2=by-uy*sb;
+    const offs=e.dbl?[-3.2,3.2]:[0];
+    const nx=-uy,ny=ux;
+    const line=(cls,w,col)=>offs.map(o=>el('line',{x1:x1+nx*o,y1:y1+ny*o,x2:x2+nx*o,y2:y2+ny*o,stroke:col,'stroke-width':w,'stroke-linecap':'round','data-key':e.key,class:cls}));
+    el('line',{x1,y1,x2,y2,stroke:'#bdb6a2','stroke-width':14,'stroke-linecap':'round','data-key':e.key,class:'halo',opacity:0},gHalo);
+    offs.forEach(o=>el('line',{x1:x1+nx*o,y1:y1+ny*o,x2:x2+nx*o,y2:y2+ny*o,stroke:'#1a1814','stroke-width':1.8,'stroke-linecap':'round','data-key':e.key,class:'bond'},gEdge));
+    const hit=el('line',{x1,y1,x2,y2,stroke:'transparent','stroke-width':18,'stroke-linecap':'round',class:'edge-hit','data-key':e.key},gHit);
+    hit.onclick=()=>toggle(e.key);
+  });
+  G.nodes.forEach(n=>{
+    const [x,y]=P(n);
+    const w=half(n)*2;
+    const g=el('g',{class:'atom'+(n.key?' click':''),'data-key':n.key||''},gAtom);
+    el('rect',{x:x-w/2,y:y-13,width:w,height:26,rx:3,fill:'#fffdf8',stroke:'none',class:'abg'},g);
+    const t=el('text',{x,y:y+1,'text-anchor':'middle','dominant-baseline':'central','font-size':19,'font-family':'Georgia,serif',fill:'#1a1814'},g,n.lab);
+    if(n.key) g.onclick=()=>toggle(n.key);
+  });
+}
+
+/* ───────────── Spectre ───────────── */
+const SP={l:52,r:14,t:16,b:44,W:800,H:330,smin:400,smax:4000};
+const xs_=s=>SP.l+(SP.smax-s)/(SP.smax-SP.smin)*(SP.W-SP.l-SP.r);
+const ys_=T=>SP.t+(100-T)/100*(SP.H-SP.t-SP.b);
+function absorb(s){
+  let A=.015;
+  ROWS.forEach(r=>r.peaks.forEach(([c,w,h])=>{const sg=w/2.355;A+=h*Math.exp(-((s-c)**2)/(2*sg*sg))}));
+  return A;
+}
+function drawSpectre(){
+  const svg=$('spectre');svg.innerHTML='';
+  const defs=el('defs',{},svg);
+  const pat=el('pattern',{id:'hach',width:7,height:7,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'},defs);
+  el('line',{x1:0,y1:0,x2:0,y2:7,stroke:'#1a1814','stroke-width':1.2},pat);
+  el('rect',{x:SP.l,y:SP.t,width:SP.W-SP.l-SP.r,height:SP.H-SP.t-SP.b,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1},svg);
+  // grille et axes
+  for(let T=0;T<=100;T+=20){
+    el('line',{x1:SP.l,x2:SP.W-SP.r,y1:ys_(T),y2:ys_(T),stroke:'#d9d4c4','stroke-width':.8},svg);
+    el('text',{x:SP.l-7,y:ys_(T),'text-anchor':'end','dominant-baseline':'central','font-size':12,'font-family':'system-ui,sans-serif'},svg,T);
+  }
+  for(let s=4000;s>=500;s-=500){
+    el('line',{x1:xs_(s),x2:xs_(s),y1:SP.t,y2:SP.H-SP.b,stroke:'#d9d4c4','stroke-width':.8},svg);
+    el('line',{x1:xs_(s),x2:xs_(s),y1:SP.H-SP.b,y2:SP.H-SP.b+5,stroke:'#1a1814'},svg);
+    el('text',{x:xs_(s),y:SP.H-SP.b+18,'text-anchor':'middle','font-size':12,'font-family':'system-ui,sans-serif'},svg,nf(s));
+  }
+  el('text',{x:(SP.l+SP.W-SP.r)/2,y:SP.H-8,'text-anchor':'middle','font-size':13,'font-family':'system-ui,sans-serif'},svg,'Nombre d’onde σ (cm⁻¹)');
+  el('text',{transform:'translate(13,'+((SP.t+SP.H-SP.b)/2)+') rotate(-90)','text-anchor':'middle','font-size':13,'font-family':'system-ui,sans-serif'},svg,'Transmittance T (%)');
+  // zone surlignée
+  el('rect',{id:'zone',x:0,y:SP.t,width:0,height:SP.H-SP.t-SP.b,fill:'url(#hach)',opacity:.55,visibility:'hidden'},svg);
+  el('rect',{id:'zone2',x:0,y:SP.t,width:0,height:SP.H-SP.t-SP.b,fill:'none',stroke:'#1a1814','stroke-width':1.6,visibility:'hidden'},svg);
+  el('text',{id:'zlab',x:0,y:SP.t+16,'text-anchor':'start','paint-order':'stroke',stroke:'#fffdf8','stroke-width':4,'font-size':12,'font-weight':'bold','font-family':'system-ui,sans-serif',visibility:'hidden'},svg);
+  // courbe
+  let d='';
+  for(let s=SP.smax;s>=SP.smin;s-=2){
+    const T=100*Math.pow(10,-absorb(s));
+    d+=(d?'L':'M')+xs_(s).toFixed(1)+' '+ys_(Math.min(99,T)).toFixed(1);
+  }
+  el('path',{d,fill:'none',stroke:'#1a1814','stroke-width':1.7,'stroke-linejoin':'round'},svg);
+  // curseur
+  el('line',{id:'cur',x1:0,x2:0,y1:SP.t,y2:SP.H-SP.b,stroke:'#1a1814','stroke-dasharray':'4 3','stroke-width':1,visibility:'hidden'},svg);
+  const ov=el('rect',{x:SP.l,y:SP.t,width:SP.W-SP.l-SP.r,height:SP.H-SP.t-SP.b,fill:'transparent'},svg);
+  const move=ev=>{
+    const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;
+    const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+    const s=SP.smax-(p.x-SP.l)/(SP.W-SP.l-SP.r)*(SP.smax-SP.smin);
+    if(s<SP.smin||s>SP.smax)return;
+    const c=$('cur');c.setAttribute('x1',p.x);c.setAttribute('x2',p.x);c.setAttribute('visibility','visible');
+    $('readout').textContent='σ = '+nf(Math.round(s))+' cm⁻¹   ·   T = '+(100*Math.pow(10,-absorb(s))).toFixed(0)+' %';
+  };
+  ov.addEventListener('pointermove',move);
+  ov.addEventListener('pointerdown',move);
+  ov.addEventListener('pointerleave',()=>{$('cur').setAttribute('visibility','hidden');$('readout').innerHTML='&nbsp;'});
+}
+
+/* ───────────── Surbrillance ───────────── */
+function refresh(){
+  const row=ROWS.find(r=>r.key===active);
+  document.querySelectorAll('#tb tr').forEach(tr=>tr.classList.toggle('on',tr.dataset.key===active));
+  document.querySelectorAll('#formule .halo').forEach(l=>l.setAttribute('opacity',l.dataset.key===active?.9:0));
+  document.querySelectorAll('#formule .bond').forEach(l=>l.setAttribute('stroke-width',l.dataset.key===active?4:1.8));
+  document.querySelectorAll('#formule .atom').forEach(g=>{
+    const on=g.dataset.key&&g.dataset.key===active;
+    const r=g.querySelector('.abg');r.setAttribute('fill',on?'#d9d4c4':'#fffdf8');r.setAttribute('stroke',on?'#1a1814':'none');r.setAttribute('stroke-width',on?2:0);
+    g.querySelector('text').setAttribute('font-weight',on?'bold':'normal');
+  });
+  const z=$('zone'),z2=$('zone2'),zl=$('zlab');
+  if(row){
+    const xa=xs_(row.r[1]),xb=xs_(row.r[0]);
+    [z,z2].forEach(e=>{e.setAttribute('x',xa);e.setAttribute('width',xb-xa);e.setAttribute('visibility','visible')});
+    zl.setAttribute('x',xb+6);zl.setAttribute('text-anchor','start');zl.textContent=row.lib+'  '+nf(row.r[0])+' – '+nf(row.r[1]);zl.setAttribute('visibility','visible');
+  }else{[z,z2,zl].forEach(e=>e.setAttribute('visibility','hidden'))}
+}
+
+/* ───────────── Mode énigme ───────────── */
+function setEnigme(){
+  const on=$('enigme').checked;
+  $('choix').classList.toggle('masque',on);
+  $('tirage').classList.toggle('masque',!on);
+  $('cIdent').classList.toggle('masque',on);
+  $('bloc-mol').classList.toggle('masque',on);
+  if(on) tirer();
+}
+function tirer(){
+  let m; do{m=MOLS[Math.floor(Math.random()*MOLS.length)]}while(cur&&m.id===cur.id);
+  choose(m.id);
+  $('cIdent').classList.add('masque');$('bloc-mol').classList.add('masque');
+}
+function reveler(){$('cIdent').classList.remove('masque');$('bloc-mol').classList.remove('masque')}
+
+buildChoix();
+$('enigme').onchange=setEnigme;$('btnTirer').onclick=tirer;$('btnRev').onclick=reveler;
+choose('M20');
+</script>
+</body>
+</html>
