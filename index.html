@@ -38,6 +38,8 @@ a.card::after{content:'→';position:absolute;right:14px;top:14px;color:var(--fa
 a.card:hover::after{transform:translateX(3px);color:var(--c,var(--ink));}
 .card .num{width:34px;height:34px;border-radius:50%;background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:15px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card .ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.card .ico svg .f{fill:currentColor;stroke:none;}
 .card .txt{min-width:0;}
 .card .t{display:block;font-size:17px;font-weight:600;line-height:1.25;letter-spacing:-.01em;}
 .card .s{display:block;font-size:14px;color:var(--faded);margin-top:3px;line-height:1.4;}
@@ -234,8 +236,8 @@ const SOMMAIRES = {
 
 const PAGES = {
   'profs': [
-    { file:'Outils/generateur-prompt.html', title:'Prompt d\'évaluation', sub:'Nouveau sujet · variante · version adaptée', tag:'IA', color:'#2f4a5c' },
-    { file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }
+    { ico:'ia', file:'Outils/generateur-prompt.html', title:'Prompt d\'évaluation', sub:'Nouveau sujet · variante · version adaptée', tag:'IA', color:'#2f4a5c' },
+    { ico:'correction', file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }
   ],
   '5eme': [
     { file:'5eme/documents/index.html', title:'Documents des chapitres', sub:'Cours, activités, exercices et corrigés · liens Drive', tag:'Tous les chapitres', color:'#6b3a1c', bloc:'Documents' },
@@ -251,22 +253,22 @@ const PAGES = {
     { file:'5eme/jeux/ch10-propagation-lumiere.html', title:'Ombres et lumière', sub:'Sources et objets diffusants · vision · ombres', tag:'Ch. 10 · Propagation de la lumière', color:'#6b3a1c' }
   ],
   'outils': [
-    { file:'Outils/pointage-mouvement.html', title:'Pointage vidéo', sub:'Image par image · vecteurs v et a · énergies', tag:'Cinématique', color:'#3a1c6b' },
-    { file:'Outils/pointage-mouvement-v2.html', title:'Pointage vidéo — version 2', sub:'Même outil · étapes en onglets, tout sur un écran', tag:'Cinématique', color:'#3a1c6b' },
-    { file:'Outils/tableur-graphes.html', title:'Tableur-grapheur', sub:'Saisie · collage Excel · grandeurs calculées · modélisation', tag:'Traitement de données', color:'#1c5e6b' },
-    { file:'Outils/incertitudes.html', title:'Incertitudes', sub:'Type A · type B · composée · écart normalisé', tag:'Mesure et incertitudes', color:'#3a3a1c' },
-    { file:'Outils/desintegration-radioactive.html', title:'Désintégration radioactive', sub:'Lancer de dés · demi-vie · datation au carbone 14', tag:'Radioactivité', color:'#2a5c3a' },
-    { file:'Outils/colorimetre.html', title:'Colorimètre', sub:'Absorbance · 7 longueurs d\'onde · spectre d\'absorption', tag:'Spectrophotométrie', color:'#1c3d6e' },
-    { file:'Outils/dosage-etalonnage.html', title:'Dosage par étalonnage', sub:'Échelle de teintes · blanc · droite A = f(C) · Dakin, Bétadine', tag:'Dosages', color:'#1c3d6e' },
+    { ico:'pointage', file:'Outils/pointage-mouvement.html', title:'Pointage vidéo', sub:'Image par image · vecteurs v et a · énergies', tag:'Cinématique', color:'#3a1c6b' },
+    { ico:'pointage', file:'Outils/pointage-mouvement-v2.html', title:'Pointage vidéo — version 2', sub:'Même outil · étapes en onglets, tout sur un écran', tag:'Cinématique', color:'#3a1c6b' },
+    { ico:'graphe', file:'Outils/tableur-graphes.html', title:'Tableur-grapheur', sub:'Saisie · collage Excel · grandeurs calculées · modélisation', tag:'Traitement de données', color:'#1c5e6b' },
+    { ico:'incertitude', file:'Outils/incertitudes.html', title:'Incertitudes', sub:'Type A · type B · composée · écart normalisé', tag:'Mesure et incertitudes', color:'#3a3a1c' },
+    { ico:'de', file:'Outils/desintegration-radioactive.html', title:'Désintégration radioactive', sub:'Lancer de dés · demi-vie · datation au carbone 14', tag:'Radioactivité', color:'#2a5c3a' },
+    { ico:'colorimetre', file:'Outils/colorimetre.html', title:'Colorimètre', sub:'Absorbance · 7 longueurs d\'onde · spectre d\'absorption', tag:'Spectrophotométrie', color:'#1c3d6e' },
+    { ico:'tubes', file:'Outils/dosage-etalonnage.html', title:'Dosage par étalonnage', sub:'Échelle de teintes · blanc · droite A = f(C) · Dakin, Bétadine', tag:'Dosages', color:'#1c3d6e' },
     // --- outils désactivés : retirer les // pour les réafficher ---
-    // { file:'Outils/oscillateur-labo-a3.html', title:'Oscillateur harmonique', sub:'Masse-ressort · fréquence · énergie', tag:'Mécanique', color:'#1c3d6e' },
-    // { file:'Outils/masse-volumique-labo.html', title:'Masse volumique', sub:'ρ × V = m · visualisation à l\'échelle', tag:'Matière', color:'#2a5c3a' },
-    // { file:'Outils/gravite_terre_lune.html', title:'Gravité Terre-Lune', sub:'Champ gravitationnel · force d\'attraction', tag:'Gravitation', color:'#6b3a1c' },
-    // { file:'Outils/mariotte.html', title:'Loi de Mariotte', sub:'Arduino · P × V = cste · gaz parfaits', tag:'Thermodynamique', color:'#a63020' },
-    // { file:'Outils/corde-de-melde.html', title:'Corde de Melde', sub:'Ondes stationnaires · résonance · stroboscope', tag:'Ondes', color:'#1c5c5c' },
-    // { file:'Outils/plan.html', title:'Plan de classe', sub:'Places · feu de travail · minuteur · notes', tag:'Gestion', color:'#3a5c1c' },
-    // { file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouillé par mot de passe', tag:'Gestion', color:'#5c3a1c' },
-    // { file:'progression-1ere-spe.html', title:'Progression 1res Spé', sub:'Séquence annuelle 2025-2026 — toutes les séances', tag:'1res Spé', color:'#1c3d6e' },
+    // { ico:'ressort', file:'Outils/oscillateur-labo-a3.html', title:'Oscillateur harmonique', sub:'Masse-ressort · fréquence · énergie', tag:'Mécanique', color:'#1c3d6e' },
+    // { ico:'becher', file:'Outils/masse-volumique-labo.html', title:'Masse volumique', sub:'ρ × V = m · visualisation à l\'échelle', tag:'Matière', color:'#2a5c3a' },
+    // { ico:'orbite', file:'Outils/gravite_terre_lune.html', title:'Gravité Terre-Lune', sub:'Champ gravitationnel · force d\'attraction', tag:'Gravitation', color:'#6b3a1c' },
+    // { ico:'manometre', file:'Outils/mariotte.html', title:'Loi de Mariotte', sub:'Arduino · P × V = cste · gaz parfaits', tag:'Thermodynamique', color:'#a63020' },
+    // { ico:'onde', file:'Outils/corde-de-melde.html', title:'Corde de Melde', sub:'Ondes stationnaires · résonance · stroboscope', tag:'Ondes', color:'#1c5c5c' },
+    // { ico:'plan', file:'Outils/plan.html', title:'Plan de classe', sub:'Places · feu de travail · minuteur · notes', tag:'Gestion', color:'#3a5c1c' },
+    // { ico:'cadenas', file:'Outils/coffres.html', title:'Coffres-forts', sub:'Contenu verrouillé par mot de passe', tag:'Gestion', color:'#5c3a1c' },
+    // { ico:'calendrier', file:'progression-1ere-spe.html', title:'Progression 1res Spé', sub:'Séquence annuelle 2025-2026 — toutes les séances', tag:'1res Spé', color:'#1c3d6e' },
   ]
 };
 
@@ -358,8 +360,30 @@ function chapHTML(c, color){
     : '<div class="'+cls+'" style="--c:'+color+'">'+inner+'</div>';
 }
 
+// Icônes des cartes (champ « ico » de PAGES) — tracés 24×24, trait = couleur du texte, .f = rempli
+const ICONS = {
+  pointage:'<circle class="f" cx="3.5" cy="20" r="1.4"/><circle class="f" cx="6.5" cy="15" r="1.4"/><circle class="f" cx="10" cy="11.5" r="1.4"/><circle cx="17" cy="8" r="3.6"/><path d="M17 2v2.4M17 11.6V14M11 8h2.4M20.6 8H23"/>',
+  graphe:'<path d="M4 3v17h17"/><path d="M7 16l4-5 3 2.5 5-6.5"/>',
+  incertitude:'<path d="M3 19h18"/><path d="M3 19c3.5 0 4.5-13 9-13s5.5 13 9 13"/><path d="M12 6v13" stroke-dasharray="2 2.5"/>',
+  de:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle class="f" cx="8.5" cy="8.5" r="1.4"/><circle class="f" cx="12" cy="12" r="1.4"/><circle class="f" cx="15.5" cy="15.5" r="1.4"/>',
+  colorimetre:'<rect x="9" y="5" width="6" height="14" rx="1"/><path d="M2 12h5M17 12h5M20 10l2 2-2 2"/>',
+  tubes:'<path d="M5 4v13a1.75 1.75 0 0 0 3.5 0V4M10.25 4v13a1.75 1.75 0 0 0 3.5 0V4M15.5 4v13a1.75 1.75 0 0 0 3.5 0V4"/><path d="M3 4h18"/>',
+  ia:'<path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M18.5 15v5M16 17.5h5"/>',
+  correction:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 13.5l2.5 2.5 4.5-5"/>',
+  ressort:'<path d="M12 2v3l-5 2 10 3-10 3 10 3-5 2v1"/><rect x="8" y="19" width="8" height="3" rx=".5"/>',
+  becher:'<path d="M5 3h14M6.5 3v16a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V3"/><path d="M6.5 12h11"/>',
+  orbite:'<circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><circle class="f" cx="21" cy="10" r="1.5"/>',
+  manometre:'<circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3v2"/>',
+  onde:'<path d="M2 12c2.5-7 7.5-7 10 0s7.5 7 10 0"/><path d="M2 12c2.5 7 7.5 7 10 0s7.5-7 10 0" opacity=".45"/>',
+  plan:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16"/>',
+  cadenas:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  calendrier:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+};
+
 function cardHTML(p){
-  return '<a class="card" href="'+escH(p.file)+'" style="--c:'+p.color+'">'
+  const ico = p.ico && ICONS[p.ico]
+    ? '<span class="num ico"><svg viewBox="0 0 24 24" aria-hidden="true">'+ICONS[p.ico]+'</svg></span>' : '';
+  return '<a class="card" href="'+escH(p.file)+'" style="--c:'+p.color+'">'+ico
     +'<span class="txt"><span class="tag">'+escH(p.tag)+'</span><span class="t">'+escH(p.title)+'</span>'
     +'<span class="s">'+escH(p.sub)+'</span></span></a>';
 }
