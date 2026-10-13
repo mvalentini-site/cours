@@ -45,7 +45,20 @@ tbody tr.on td:first-child{border-left:6px solid var(--ink)}
 .edge-hit{cursor:pointer}
 .atom{cursor:default}
 .atom.click{cursor:pointer}
+/* ── Animation de l'expérience ── */
+#manip{max-height:260px}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font:.88rem system-ui,sans-serif;margin-top:8px}
+.ctrl label{display:flex;align-items:center;gap:8px;flex:1 1 260px}
+.ctrl input[type=range]{flex:1;direction:rtl;accent-color:#a8321e}
+@keyframes vib{0%,100%{transform:translate(0,0)}25%{transform:translate(1.4px,-1.1px)}50%{transform:translate(-1.3px,1.2px)}75%{transform:translate(1.1px,1.3px)}}
+#formule .bond.vib{stroke:#a8321e;stroke-width:3;animation:vib .11s linear infinite}
+#formule .atom.vib{animation:vib .11s linear infinite}
+#formule .atom.vib text{fill:#a8321e}
+#ech.vib .m{animation:vib .1s linear infinite}
+tbody tr.abs td:first-child{box-shadow:inset 4px 0 0 #a8321e}
+@media (prefers-reduced-motion:reduce){#formule .vib,#ech.vib .m{animation:none}}
 @media print{
+  #cManip{display:none}
   body{background:#fff}
   .card{border-color:#000;break-inside:avoid}
   .opts,.fam button.mol:not([aria-pressed=true]),#readout{display:none}
@@ -72,6 +85,17 @@ tbody tr.on td:first-child{border-left:6px solid var(--ink)}
 
   <div class="card" id="cIdent">
     <div class="ident"><span class="nom" id="nom"></span><span class="meta" id="meta"></span></div>
+  </div>
+
+  <div class="card" id="cManip">
+    <h2>L’expérience&nbsp;: on envoie un rayonnement infrarouge sur l’échantillon</h2>
+    <svg id="manip" viewBox="0 0 800 170" role="img" aria-label="Schéma animé du spectromètre infrarouge"></svg>
+    <div class="ctrl">
+      <button type="button" class="mol" id="btnRun">▶ Lancer la mesure</button>
+      <button type="button" class="mol" id="btnFull">Afficher tout le spectre</button>
+      <label>σ&nbsp;: <input type="range" id="sig" min="400" max="4000" step="10" value="4000" aria-label="Nombre d’onde du rayonnement envoyé"></label>
+    </div>
+    <p class="hint">Le rayonnement IR est invisible&nbsp;: il est représenté par une onde. On fait varier son nombre d’onde σ de 4&nbsp;000 à 400&nbsp;cm⁻¹. Quand σ correspond à une liaison de la molécule, celle-ci absorbe l’énergie et se met à vibrer&nbsp;: moins de rayonnement arrive au détecteur, la transmittance baisse.</p>
   </div>
 
   <div class="card" id="cSpectre">
@@ -243,7 +267,8 @@ function choose(id){
   });
   $('nom').textContent=cur.nom.charAt(0).toUpperCase()+cur.nom.slice(1);
   $('meta').textContent='famille : '+cur.fam+'  ·  formule brute : '+cur.brute;
-  drawTable(); drawFormule(); drawSpectre(); refresh();
+  MX.run=false; MX.rev=400; MX.sig=4000; vibKey=undefined;
+  drawTable(); drawFormule(); drawSpectre(); refresh(); syncSig(); updRun();
 }
 
 /* ───────────── Tableau ───────────── */
@@ -308,6 +333,8 @@ function drawSpectre(){
   const defs=el('defs',{},svg);
   const pat=el('pattern',{id:'hach',width:7,height:7,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'},defs);
   el('line',{x1:0,y1:0,x2:0,y2:7,stroke:'#1a1814','stroke-width':1.2},pat);
+  const clip=el('clipPath',{id:'clipSp'},defs);
+  el('rect',{id:'clipR',x:SP.l-2,y:0,width:SP.W,height:SP.H},clip);
   el('rect',{x:SP.l,y:SP.t,width:SP.W-SP.l-SP.r,height:SP.H-SP.t-SP.b,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1},svg);
   // grille et axes
   for(let T=0;T<=100;T+=20){
@@ -331,7 +358,10 @@ function drawSpectre(){
     const T=100*Math.pow(10,-absorb(s));
     d+=(d?'L':'M')+xs_(s).toFixed(1)+' '+ys_(Math.min(99,T)).toFixed(1);
   }
-  el('path',{d,fill:'none',stroke:'#1a1814','stroke-width':1.7,'stroke-linejoin':'round'},svg);
+  el('path',{d,fill:'none',stroke:'#1a1814','stroke-width':1.7,'stroke-linejoin':'round','clip-path':'url(#clipSp)'},svg);
+  // position du rayonnement envoyé (animation de l'expérience)
+  el('line',{id:'scan',x1:0,x2:0,y1:SP.t,y2:SP.H-SP.b,stroke:'#a8321e','stroke-width':1.4},svg);
+  el('circle',{id:'scanPt',cx:0,cy:0,r:4.5,fill:'#a8321e',stroke:'#fffdf8','stroke-width':1.5},svg);
   // curseur
   el('line',{id:'cur',x1:0,x2:0,y1:SP.t,y2:SP.H-SP.b,stroke:'#1a1814','stroke-dasharray':'4 3','stroke-width':1,visibility:'hidden'},svg);
   const ov=el('rect',{x:SP.l,y:SP.t,width:SP.W-SP.l-SP.r,height:SP.H-SP.t-SP.b,fill:'transparent'},svg);
@@ -342,6 +372,7 @@ function drawSpectre(){
     if(s<SP.smin||s>SP.smax)return;
     const c=$('cur');c.setAttribute('x1',p.x);c.setAttribute('x2',p.x);c.setAttribute('visibility','visible');
     $('readout').textContent='σ = '+nf(Math.round(s))+' cm⁻¹   ·   T = '+(100*Math.pow(10,-absorb(s))).toFixed(0)+' %';
+    if(!MX.run && s>=MX.rev-1){MX.sig=s;syncSig()}
   };
   ov.addEventListener('pointermove',move);
   ov.addEventListener('pointerdown',move);
@@ -374,7 +405,7 @@ function setEnigme(){
   $('tirage').classList.toggle('masque',!on);
   $('cIdent').classList.toggle('masque',on);
   $('bloc-mol').classList.toggle('masque',on);
-  if(on) tirer();
+  if(on) tirer(); else {vibKey=undefined;syncSig()}
 }
 function tirer(){
   let m; do{m=MOLS[Math.floor(Math.random()*MOLS.length)]}while(cur&&m.id===cur.id);
@@ -383,9 +414,147 @@ function tirer(){
 }
 function reveler(){$('cIdent').classList.remove('masque');$('bloc-mol').classList.remove('masque')}
 
+/* ───────────── Animation de l'expérience ─────────────
+   Source IR → rayonnement incident (onde dont la longueur d'onde suit σ)
+   → échantillon → rayonnement transmis (amplitude ∝ T) → détecteur.
+   « Lancer la mesure » balaie σ de 4 000 à 400 cm⁻¹ et trace le spectre au fur et à mesure. */
+const IR='#a8321e', SWEEP=300;               // cm⁻¹ par seconde (≈ 12 s pour tout le spectre)
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MX={sig:4000, rev:400, run:false, phase:0, last:0};
+let vibKey;
+const RAY={x0:116, x1:332, x2:418, x3:612, yc:84, amp:19};
+
+function buildManip(){
+  const svg=$('manip'), F='system-ui,sans-serif';
+  const defs=el('defs',{},svg);
+  const gr=el('radialGradient',{id:'glow'},defs);
+  el('stop',{offset:'0%','stop-color':IR,'stop-opacity':.55},gr);
+  el('stop',{offset:'100%','stop-color':IR,'stop-opacity':0},gr);
+  const lab=(x,t)=>el('text',{x,y:146,'text-anchor':'middle','font-size':13,'font-family':F,fill:'#4a4640'},svg,t);
+  // source
+  el('rect',{x:20,y:54,width:90,height:60,rx:6,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1.5},svg);
+  el('circle',{cx:80,cy:84,r:26,fill:'url(#glow)'},svg);
+  el('path',{d:'M58 84 l5 -9 l5 18 l5 -18 l5 18 l5 -18 l5 18 l5 -9',fill:'none',stroke:IR,'stroke-width':2,'stroke-linejoin':'round'},svg);
+  el('line',{x1:110,x2:116,y1:84,y2:84,stroke:'#1a1814','stroke-width':1.5},svg);
+  lab(65,'Source IR');
+  // ondes
+  el('path',{id:'wIn',fill:'none',stroke:IR,'stroke-width':2.2,'stroke-linecap':'round'},svg);
+  el('path',{id:'wOut',fill:'none',stroke:IR,'stroke-width':2.2,'stroke-linecap':'round'},svg);
+  el('polygon',{points:`${RAY.x1+6},${RAY.yc} ${RAY.x1-4},${RAY.yc-6} ${RAY.x1-4},${RAY.yc+6}`,fill:IR},svg);
+  el('polygon',{id:'aOut',points:`${RAY.x3+6},${RAY.yc} ${RAY.x3-4},${RAY.yc-6} ${RAY.x3-4},${RAY.yc+6}`,fill:IR},svg);
+  lab((RAY.x0+RAY.x1)/2,'rayonnement IR envoyé');
+  lab((RAY.x2+RAY.x3)/2,'rayonnement transmis');
+  // échantillon (cuve + molécules)
+  el('rect',{x:345,y:40,width:66,height:90,rx:3,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1.5},svg);
+  el('rect',{x:347,y:56,width:62,height:72,fill:'#ece6d6'},svg);
+  const ech=el('g',{id:'ech'},svg);
+  [[360,70,20],[390,68,-35],[372,90,60],[398,96,10],[358,112,-15],[385,116,40]].forEach(([x,y,a],i)=>{
+    const p=el('g',{transform:`translate(${x} ${y}) rotate(${a})`},ech);
+    const m=el('g',{class:'m',style:`animation-delay:${-i*.03}s`},p);
+    el('line',{x1:-6,y1:0,x2:6,y2:0,stroke:'#1a1814','stroke-width':1.6},m);
+    el('circle',{cx:-6,cy:0,r:3.6,fill:'#4a4640'},m);
+    el('circle',{cx:6,cy:0,r:2.8,fill:'#8a8070'},m);
+  });
+  lab(378,'Échantillon');
+  // détecteur + jauge
+  el('line',{x1:612,x2:622,y1:84,y2:84,stroke:'#1a1814','stroke-width':1.5},svg);
+  el('rect',{x:622,y:54,width:76,height:60,rx:6,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1.5},svg);
+  el('path',{d:'M640 70 a14 14 0 0 1 0 28 z',fill:'#4a4640'},svg);
+  lab(660,'Détecteur');
+  el('line',{x1:698,x2:716,y1:84,y2:84,stroke:'#1a1814','stroke-width':1.2,'stroke-dasharray':'3 3'},svg);
+  el('rect',{x:716,y:40,width:16,height:90,fill:'#fffdf8',stroke:'#1a1814','stroke-width':1.2},svg);
+  el('rect',{id:'gauge',x:717,y:41,width:14,height:88,fill:IR,opacity:.75},svg);
+  el('text',{x:766,y:76,'text-anchor':'middle','font-size':13,'font-family':F,fill:'#4a4640'},svg,'T');
+  el('text',{id:'mT',x:766,y:98,'text-anchor':'middle','font-size':17,'font-weight':'bold','font-family':F},svg,'');
+  // étiquettes dynamiques
+  el('text',{id:'mSig',x:(RAY.x0+RAY.x1)/2,y:30,'text-anchor':'middle','font-size':15,'font-weight':'bold','font-family':F,fill:IR},svg,'');
+  el('text',{id:'mAbs',x:(RAY.x2+RAY.x3)/2+40,y:30,'text-anchor':'middle','font-size':13,'font-family':F},svg,'');
+}
+
+const lam=s=>18+(4000-s)/3600*52;   // longueur d'onde affichée (px) : courte pour σ grand
+function wave(x0,x1,amp){
+  const L=lam(MX.sig); let d='';
+  for(let x=x0;x<=x1;x+=2) d+=(d?'L':'M')+x+' '+(RAY.yc+amp*Math.sin(2*Math.PI*(x-RAY.x0)/L-MX.phase)).toFixed(1);
+  return d;
+}
+function drawWaves(){
+  const T=100*Math.pow(10,-absorb(MX.sig)), k=Math.min(1,T/96);
+  $('wIn').setAttribute('d',wave(RAY.x0,RAY.x1,RAY.amp));
+  $('wOut').setAttribute('d',wave(RAY.x2,RAY.x3,RAY.amp*k));
+  $('wOut').setAttribute('opacity',.25+.75*k);
+  $('aOut').setAttribute('opacity',.25+.75*k);
+}
+function contrib(s){
+  return ROWS.map(r=>({r,a:r.peaks.reduce((S,[c,w,h])=>{const sg=w/2.355;return S+h*Math.exp(-((s-c)**2)/(2*sg*sg))},0)}));
+}
+function syncSig(){
+  const s=MX.sig, A=absorb(s), T=100*Math.pow(10,-A);
+  $('sig').value=s;
+  $('mSig').textContent='σ = '+nf(Math.round(s/10)*10)+' cm⁻¹';
+  $('mT').textContent=T.toFixed(0)+' %';
+  const gh=88*Math.min(T,100)/100;
+  $('gauge').setAttribute('y',41+88-gh);$('gauge').setAttribute('height',gh);
+  // absorption : quelle liaison ?
+  const dom=contrib(s).reduce((a,b)=>b.a>a.a?b:a,{a:0});
+  const ab=$('mAbs'), abs=A-.015>.08;
+  let key=null;
+  if(!abs){ab.textContent='pas d’absorption : tout traverse';ab.setAttribute('fill','#4a4640')}
+  else{
+    const mot=T<40?'forte':T<70?'moyenne':'faible';
+    const enig=$('enigme').checked;
+    let qui='';
+    if(!enig) qui=dom.r.key==='CC'?' (zone des empreintes)':' : liaison '+dom.r.lib;
+    ab.textContent='absorption '+mot+qui;ab.setAttribute('fill',IR);
+    key=enig?null:dom.r.key;
+  }
+  $('ech').classList.toggle('vib',abs&&T<85);
+  if(key!==vibKey){
+    vibKey=key;
+    document.querySelectorAll('#formule .bond, #formule .atom').forEach(e=>e.classList.toggle('vib',!!key&&e.dataset.key===key));
+    document.querySelectorAll('#tb tr').forEach(tr=>tr.classList.toggle('abs',!!key&&tr.dataset.key===key));
+  }
+  // spectre : partie déjà mesurée + position actuelle
+  const cr=$('clipR');
+  if(cr){
+    cr.setAttribute('width',xs_(MX.rev)-SP.l+2);
+    const x=xs_(s);
+    $('scan').setAttribute('x1',x);$('scan').setAttribute('x2',x);
+    $('scanPt').setAttribute('cx',x);$('scanPt').setAttribute('cy',ys_(Math.min(99,T)));
+  }
+  if(REDUCED) drawWaves();
+}
+function updRun(){
+  $('btnRun').textContent=MX.run?'❚❚ Pause':(MX.rev>400&&MX.rev<4000)?'▶ Reprendre la mesure':'▶ Lancer la mesure';
+}
+function frame(t){
+  const dt=MX.last?Math.min(.2,(t-MX.last)/1000):0; MX.last=t;
+  if(MX.run){
+    MX.sig=Math.max(400,MX.sig-dt*SWEEP); MX.rev=Math.min(MX.rev,MX.sig);
+    if(MX.sig<=400){MX.run=false;updRun()}
+    syncSig();
+  }
+  if(!REDUCED){MX.phase+=dt*2*Math.PI*70/lam(MX.sig); drawWaves()}
+  requestAnimationFrame(frame);
+}
+
+buildManip();
+$('btnRun').onclick=()=>{
+  if(MX.run) MX.run=false;
+  else{
+    if(MX.rev<=400){MX.rev=4000;MX.sig=4000}   // spectre complet → nouvelle mesure
+    else MX.sig=MX.rev;                        // reprise là où la mesure s'était arrêtée
+    MX.run=true;
+  }
+  syncSig(); updRun();
+};
+$('btnFull').onclick=()=>{MX.run=false;MX.rev=400;syncSig();updRun()};
+$('sig').oninput=e=>{MX.run=false;MX.sig=+e.target.value;MX.rev=Math.min(MX.rev,MX.sig);syncSig();updRun()};
+
 buildChoix();
 $('enigme').onchange=setEnigme;$('btnTirer').onclick=tirer;$('btnRev').onclick=reveler;
 choose('M20');
+drawWaves();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
