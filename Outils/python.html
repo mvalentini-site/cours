@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python en ligne</title>
+<link rel="stylesheet" crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<style>
+:root{
+  --paper:#f6f3ea; --surface:#fffdf8; --ink:#1a1814; --ink2:#4a4640; --ink3:#8a8070;
+  --rule:#bdb6a2; --hi:#d9d4c4; --err:#a8321e; --fs:15px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.45}
+.page{max-width:1400px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 2px}
+.sub{color:var(--ink2);font-size:.92rem;margin-bottom:14px}
+.barre{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;font:.88rem system-ui,sans-serif}
+.barre .sep{flex:1}
+button,select,.btn{font:.88rem system-ui,sans-serif;background:var(--surface);color:var(--ink);border:1px solid var(--ink);padding:5px 10px;cursor:pointer}
+button:hover,.btn:hover{background:var(--hi)}
+button:disabled{opacity:.45;cursor:wait}
+#run{background:var(--ink);color:var(--surface);font-weight:600;padding:5px 16px}
+#run:hover:not(:disabled){background:#3a3630}
+#stop{border-color:var(--err);color:var(--err);font-weight:600}
+#stop:hover:not(:disabled){background:#f6dcd4}
+#stop:disabled{opacity:.35;cursor:default}
+#etat{font:.82rem system-ui,sans-serif;color:var(--ink2)}
+#etat.ko{color:var(--err)}
+.grille{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:860px){.grille{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule)}
+.card h2{font:600 .78rem system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:0;padding:8px 12px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center}
+.card h2 button{font-size:.75rem;padding:2px 8px;text-transform:none;letter-spacing:0}
+.CodeMirror{height:62vh;min-height:320px;font:var(--fs)/1.5 Consolas,'DejaVu Sans Mono',monospace;background:var(--surface)}
+.CodeMirror-gutters{background:#f0ece0;border-right:1px solid var(--rule)}
+.ligne-err{background:#f6dcd4}
+#sortie{height:62vh;min-height:320px;overflow:auto;padding:10px 12px;font:var(--fs)/1.45 Consolas,'DejaVu Sans Mono',monospace;white-space:pre-wrap;word-break:break-word}
+#sortie .err{color:var(--err)}
+#sortie .info{color:var(--ink3);font-style:italic;font-family:Georgia,serif}
+#sortie .conseil{display:block;margin:8px 0 4px;padding:6px 10px;border-left:4px solid var(--err);background:#faf0ea;font:.9rem/1.4 Georgia,serif;color:var(--ink);white-space:normal}
+#sortie input.saisie{font:inherit;border:0;border-bottom:2px solid var(--ink);background:#f0ece0;padding:0 4px;width:24ch;max-width:100%;outline:none}
+#sortie figure{margin:8px 0;white-space:normal}
+#sortie img{max-width:100%;border:1px solid var(--rule);background:#fff;display:block}
+#sortie figcaption{font:.78rem system-ui,sans-serif;margin-top:2px}
+#sortie figcaption a{color:var(--ink2)}
+.note{font:.8rem system-ui,sans-serif;color:var(--ink2);margin-top:12px;line-height:1.5}
+kbd{font:.75rem system-ui,sans-serif;border:1px solid var(--rule);border-bottom-width:2px;padding:0 4px;background:var(--surface)}
+.masque{display:none}
+@media print{
+  .barre,.note,.card h2 button{display:none}
+  .grille{grid-template-columns:1fr}
+  .CodeMirror,#sortie{height:auto}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Python en ligne</h1>
+  <div class="sub">Écris ton programme à gauche, exécute-le avec <kbd>Ctrl</kbd>+<kbd>Entrée</kbd>. Le vrai Python tourne dans le navigateur, avec <code>numpy</code> et <code>matplotlib</code>.</div>
+
+  <div class="barre">
+    <button type="button" id="run" disabled>▶ Exécuter</button>
+    <button type="button" id="stop" disabled title="Arrêter le programme (Échap)">■ Stop</button>
+    <span id="etat">Chargement de Python…</span>
+    <span class="sep"></span>
+    <select id="exemples" aria-label="Exemples"><option value="">Exemples…</option></select>
+    <button type="button" id="ouvrir" title="Ouvrir un fichier .py">Ouvrir</button>
+    <input type="file" id="fichier" accept=".py,.txt" class="masque">
+    <button type="button" id="telecharger" title="Télécharger le programme (.py)">Télécharger</button>
+    <button type="button" id="partager" title="Copier un lien contenant le programme">Lien</button>
+    <button type="button" id="moins" title="Réduire le texte">A−</button>
+    <button type="button" id="plus" title="Agrandir le texte">A+</button>
+  </div>
+
+  <div class="grille">
+    <div class="card">
+      <h2><span>Programme</span><button type="button" id="nouveau">Effacer</button></h2>
+      <textarea id="code"></textarea>
+    </div>
+    <div class="card">
+      <h2><span>Résultat</span><button type="button" id="vider">Vider</button></h2>
+      <div id="sortie" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    Le programme est enregistré automatiquement dans ce navigateur. <code>input()</code> attend la réponse dans la zone Résultat (valider avec <kbd>Entrée</kbd>) ;
+    pour les nombres, utiliser <code>float(input(...))</code> et le point décimal (<code>2.5</code>, pas <code>2,5</code>).
+    <code>plt.show()</code> affiche le graphique dans le résultat.
+    Le bouton <b>Stop</b> (ou <kbd>Échap</kbd>) arrête un programme trop long ou une boucle infinie.
+    Le premier lancement télécharge Python (une dizaine de Mo) ; les suivants sont plus rapides.
+  </div>
+</div>
+
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script>
+// ── Exemples (programmes de physique-chimie) ──
+const EXEMPLES = [
+{ titre:'Premiers pas : énergie cinétique', code:
+`# Calcul de l'énergie cinétique d'un objet
+m = float(input("Masse en kg : "))
+v = float(input("Vitesse en m/s : "))
+
+Ec = 0.5 * m * v**2
+print("Énergie cinétique :", round(Ec, 2), "J")
+`},
+{ titre:'Boucle : tableau de valeurs (loi de Mariotte)', code:
+`# P × V = constante pour un gaz à température fixée
+P0 = 1013   # hPa
+V0 = 60     # mL
+
+print("V (mL)   P (hPa)")
+for V in range(20, 70, 5):
+    P = P0 * V0 / V
+    print(V, "     ", round(P))
+`},
+{ titre:'Graphique : loi d\'Ohm et modélisation', code:
+`import matplotlib.pyplot as plt
+import numpy as np
+
+# Mesures
+I = np.array([0, 0.010, 0.020, 0.030, 0.040, 0.050])   # A
+U = np.array([0, 0.98, 2.05, 2.96, 4.02, 5.01])         # V
+
+# Modélisation par une droite U = a × I + b
+a, b = np.polyfit(I, U, 1)
+print("Coefficient directeur a =", round(a, 1), "Ω")
+
+plt.plot(I, U, "+", markersize=10, label="mesures")
+plt.plot(I, a*I + b, label="modèle")
+plt.xlabel("I (A)")
+plt.ylabel("U (V)")
+plt.title("Caractéristique d'un conducteur ohmique")
+plt.grid()
+plt.legend()
+plt.show()
+`},
+{ titre:'Vecteurs vitesse d\'un mouvement', code:
+`import matplotlib.pyplot as plt
+
+# Positions relevées par pointage, toutes les 0,040 s
+dt = 0.040
+x = [0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70]
+y = [0.00, 0.07, 0.12, 0.15, 0.16, 0.15, 0.12, 0.07]
+
+plt.plot(x, y, "o", color="black")
+for i in range(len(x) - 1):
+    vx = (x[i+1] - x[i]) / dt
+    vy = (y[i+1] - y[i]) / dt
+    plt.quiver(x[i], y[i], vx, vy, angles="xy", scale_units="xy", scale=20, color="red")
+
+plt.xlabel("x (m)")
+plt.ylabel("y (m)")
+plt.axis("equal")
+plt.title("Vecteurs vitesse (échelle : 1 m/s ↔ 5 cm)")
+plt.show()
+`},
+{ titre:'Avancement : réactif limitant', code:
+`# Réaction : a A + b B -> c C + d D
+a, b, c, d = 1, 2, 1, 2
+nA, nB = 0.010, 0.015      # quantités initiales (mol)
+
+xmax = min(nA / a, nB / b)
+x = 0
+pas = xmax / 5
+print("   x        A        B        C        D")
+while x <= xmax + 1e-12:
+    print(f"{x:.4f}   {nA - a*x:.4f}   {nB - b*x:.4f}   {c*x:.4f}   {d*x:.4f}")
+    x = x + pas
+
+if nA / a < nB / b:
+    print("Réactif limitant : A")
+elif nA / a > nB / b:
+    print("Réactif limitant : B")
+else:
+    print("Mélange stœchiométrique")
+`},
+{ titre:'Chute libre : méthode d\'Euler', code:
+`import matplotlib.pyplot as plt
+
+g = 9.81
+dt = 0.05
+t, z, v = 0, 20.0, 0.0      # lâcher sans vitesse à 20 m
+T, Z, Zth = [], [], []
+
+while z > 0:
+    T.append(t)
+    Z.append(z)
+    Zth.append(20 - 0.5*g*t**2)
+    v = v - g*dt
+    z = z + v*dt
+    t = t + dt
+
+print("Durée de chute ≈", round(t, 2), "s")
+plt.plot(T, Z, "o", markersize=3, label="Euler")
+plt.plot(T, Zth, label="solution exacte")
+plt.xlabel("t (s)")
+plt.ylabel("z (m)")
+plt.legend()
+plt.grid()
+plt.show()
+`},
+{ titre:'Décroissance radioactive (dés)', code:
+`import random
+import matplotlib.pyplot as plt
+
+N = 1000          # nombre de dés (noyaux)
+lancers = [0]
+restants = [N]
+
+while N > 0:
+    # un dé qui tombe sur 6 se désintègre
+    N = sum(1 for _ in range(N) if random.randint(1, 6) != 6)
+    lancers.append(lancers[-1] + 1)
+    restants.append(N)
+
+plt.plot(lancers, restants, "o-")
+plt.xlabel("nombre de lancers")
+plt.ylabel("dés restants")
+plt.grid()
+plt.show()
+`},
+{ titre:'Incertitude par simulation (Monte-Carlo)', code:
+`import numpy as np
+import matplotlib.pyplot as plt
+
+# Masse volumique ρ = m / V à partir de mesures incertaines
+m, u_m = 25.32, 0.02     # g
+V, u_V = 10.0, 0.1       # mL
+
+n = 100000
+m_sim = np.random.normal(m, u_m, n)
+V_sim = np.random.normal(V, u_V, n)
+rho = m_sim / V_sim
+
+print("ρ =", round(rho.mean(), 3), "g/mL")
+print("u(ρ) =", round(rho.std(ddof=1), 3), "g/mL")
+
+plt.hist(rho, bins=60)
+plt.xlabel("ρ (g/mL)")
+plt.ylabel("effectif")
+plt.show()
+`},
+];
+
+// ── Conseils en français selon le type d'erreur ──
+const CONSEILS = {
+  SyntaxError:'Erreur de syntaxe : vérifier les parenthèses et les guillemets (chaque ouverture a sa fermeture), et les deux-points « : » à la fin des lignes if, elif, else, for, while, def.',
+  IndentationError:'Problème d\'indentation : les lignes d\'un même bloc doivent commencer exactement au même niveau (4 espaces), et la ligne après « : » doit être décalée.',
+  TabError:'Mélange de tabulations et d\'espaces : réindenter le bloc avec des espaces uniquement.',
+  NameError:'Nom inconnu : variable utilisée avant d\'avoir reçu une valeur, faute de frappe (majuscules comprises), ou module oublié dans les import.',
+  TypeError:'Types incompatibles : par exemple additionner un texte et un nombre. Ce que renvoie input() est un texte : écrire float(input(...)).',
+  ValueError:'Valeur impossible à convertir : par exemple float("abc"), ou une virgule au lieu du point décimal (2.5 et non 2,5).',
+  ZeroDivisionError:'Division par zéro : vérifier la valeur du dénominateur.',
+  IndexError:'Indice en dehors de la liste : les indices vont de 0 à len(liste) − 1.',
+  KeyError:'Clé absente du dictionnaire.',
+  AttributeError:'Cette fonction ou cet attribut n\'existe pas pour cet objet : faute de frappe ?',
+  ModuleNotFoundError:'Module introuvable : vérifier son nom. Seuls les modules disponibles dans le navigateur (math, random, numpy, matplotlib, scipy…) peuvent être importés.',
+  OverflowError:'Nombre trop grand : un calcul diverge (boucle qui ne s\'arrête pas, pas de temps trop grand…).',
+  RecursionError:'Trop d\'appels imbriqués : une fonction s\'appelle elle-même sans fin.',
+  KeyboardInterrupt:'Saisie annulée.'
+};
+
+const $ = id => document.getElementById(id);
+const sortie = $('sortie');
+const CLE = 'python-en-ligne.code';
+let enCours = false, ligneErr = null, totalSortie = 0;
+
+// ── Éditeur ──
+const cm = CodeMirror.fromTextArea($('code'), {
+  mode:'python', lineNumbers:true, indentUnit:4, matchBrackets:true, lineWrapping:false,
+  extraKeys:{
+    'Tab': c => c.somethingSelected() ? c.indentSelection('add') : c.replaceSelection('    '),
+    'Shift-Tab': c => c.indentSelection('subtract'),
+    'Ctrl-Enter': () => executer(), 'Cmd-Enter': () => executer()
+  }
+});
+
+function lireCodeDepuisLien(){
+  const m = location.hash.match(/^#code=(.+)$/);
+  if (!m) return null;
+  try {
+    const bin = atob(decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/'));
+    return new TextDecoder().decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)));
+  } catch(e){ return null; }
+}
+let initial = lireCodeDepuisLien();
+if (initial !== null) history.replaceState(null, '', location.pathname + location.search);
+else { try { initial = localStorage.getItem(CLE); } catch(e){} }
+cm.setValue(initial || EXEMPLES[0].code);
+cm.on('change', () => {
+  if (ligneErr !== null){ cm.removeLineClass(ligneErr, 'background', 'ligne-err'); ligneErr = null; }
+  try { localStorage.setItem(CLE, cm.getValue()); } catch(e){}
+});
+
+// ── Taille du texte (projection en classe) ──
+let fs = 15;
+try { fs = +localStorage.getItem(CLE + '.fs') || 15; } catch(e){}
+function appliquerTaille(){
+  document.documentElement.style.setProperty('--fs', fs + 'px');
+  cm.refresh();
+  try { localStorage.setItem(CLE + '.fs', fs); } catch(e){}
+}
+appliquerTaille();
+$('plus').onclick = () => { fs = Math.min(fs + 2, 32); appliquerTaille(); };
+$('moins').onclick = () => { fs = Math.max(fs - 2, 11); appliquerTaille(); };
+
+// ── Sortie ──
+const MAX_SORTIE = 300000;   // au-delà, la page ralentit
+function ecrire(texte, classe){
+  if (totalSortie > MAX_SORTIE) return;
+  totalSortie += texte.length;
+  if (totalSortie > MAX_SORTIE) texte = '\n… sortie trop longue, la suite n\'est pas affichée …\n';
+  const s = document.createElement('span');
+  if (classe) s.className = classe;
+  s.textContent = texte;
+  sortie.appendChild(s);
+  sortie.scrollTop = sortie.scrollHeight;
+}
+let nFig = 0;
+window.ajouterFigure = function(b64){
+  nFig++;
+  const f = document.createElement('figure');
+  const img = new Image();
+  img.src = 'data:image/png;base64,' + b64;
+  img.alt = 'Figure ' + nFig;
+  const cap = document.createElement('figcaption');
+  const a = document.createElement('a');
+  a.href = img.src; a.download = 'figure-' + nFig + '.png'; a.textContent = 'Enregistrer l\'image';
+  cap.appendChild(a);
+  f.append(img, cap);
+  sortie.appendChild(f);
+  img.onload = () => { sortie.scrollTop = sortie.scrollHeight; };
+};
+$('vider').onclick = () => { sortie.textContent = ''; };
+$('nouveau').onclick = () => {
+  if (cm.getValue().trim() && !confirm('Effacer tout le programme ?')) return;
+  cm.setValue(''); cm.focus();
+};
+
+// ── Python dans un worker ──
+// Avec la page « cross-origin isolated » (en-têtes ajoutés par python-sw.js),
+// SharedArrayBuffer permet d'interrompre Python et de répondre à input().
+// Sinon : Stop arrête le worker de force, et un programme avec input()
+// s'exécute dans la page (sans Stop), avec une fenêtre de saisie.
+const ISOLE = self.crossOriginIsolated === true;
+const interruption = ISOLE ? new Uint8Array(new SharedArrayBuffer(1)) : null;
+const entree = ISOLE ? { drapeau:new SharedArrayBuffer(8), octets:new SharedArrayBuffer(65536) } : null;
+const drapeau = ISOLE ? new Int32Array(entree.drapeau) : null;
+const octetsEntree = ISOLE ? new Uint8Array(entree.octets) : null;
+let worker = null, pret = false, minuterieStop = null, version = '';
+
+function majBoutons(){
+  $('run').disabled = !pret || enCours;
+  $('stop').disabled = !enCours || modePage;
+}
+
+function demarrerWorker(){
+  pret = false;
+  majBoutons();
+  worker = new Worker('python-worker.js', { type:'module' });
+  worker.onmessage = recevoir;
+  worker.onerror = e => {
+    $('etat').textContent = 'Impossible de charger Python (connexion internet ?)';
+    $('etat').className = 'ko';
+    console.error(e);
+  };
+  worker.postMessage({ type:'init', interruption: interruption && interruption.buffer, entree });
+}
+
+function recevoir(e){
+  const m = e.data;
+  switch (m.type){
+    case 'ready':
+      pret = true; version = m.version;
+      $('etat').textContent = 'Python ' + version + ' prêt';
+      $('etat').className = '';
+      majBoutons();
+      break;
+    case 'fail':
+      $('etat').textContent = 'Impossible de charger Python (connexion internet ?)';
+      $('etat').className = 'ko';
+      console.error(m.error);
+      break;
+    case 'status': $('etat').textContent = m.text; break;
+    case 'out': ecrire(m.text, m.cls); break;
+    case 'fig': ajouterFigure(m.b64); break;
+    case 'input': demanderSaisie(m.prompt); break;
+    case 'done':
+      if (m.ok) ecrire('\n— Terminé en ' + m.duree.toFixed(2) + ' s —\n', 'info');
+      else if (/KeyboardInterrupt/.test(m.error.split('\n').filter(Boolean).pop() || '')) ecrire('\n— Programme arrêté —\n', 'info');
+      else afficherErreur(m.error);
+      finir();
+      break;
+  }
+}
+
+function finir(){
+  clearTimeout(minuterieStop);
+  const champ = sortie.querySelector('input.saisie');
+  if (champ) champ.replaceWith(document.createTextNode('\n'));
+  enCours = false; modePage = false;
+  if (pret) $('etat').textContent = 'Python ' + version + ' prêt';
+  majBoutons();
+}
+
+// input() : champ de saisie au bout de la sortie
+function demanderSaisie(message){
+  ecrire(message);
+  const champ = document.createElement('input');
+  champ.className = 'saisie';
+  champ.setAttribute('aria-label', message || 'Saisie');
+  champ.onkeydown = ev => {
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    const texte = champ.value;
+    champ.replaceWith(document.createTextNode(texte + '\n'));
+    let b = new TextEncoder().encode(texte);
+    if (b.length > octetsEntree.length) b = b.slice(0, octetsEntree.length);
+    octetsEntree.set(b);
+    drapeau[1] = b.length;
+    Atomics.store(drapeau, 0, 1);
+    Atomics.notify(drapeau, 0);
+    $('etat').textContent = 'Exécution…';
+  };
+  sortie.appendChild(champ);
+  sortie.scrollTop = sortie.scrollHeight;
+  $('etat').textContent = 'En attente d\'une saisie…';
+  champ.focus();
+}
+
+function arreter(){
+  if (!enCours || modePage) return;
+  if (ISOLE){
+    interruption[0] = 2;                 // KeyboardInterrupt dans Python
+    Atomics.store(drapeau, 0, 2);        // débloque un input() en attente
+    Atomics.notify(drapeau, 0);
+    clearTimeout(minuterieStop);
+    minuterieStop = setTimeout(forcerArret, 1500);   // calcul bloqué hors de Python
+  } else forcerArret();
+}
+function forcerArret(){
+  if (!enCours) return;
+  worker.terminate();
+  ecrire('\n— Programme arrêté —\n', 'info');
+  finir();
+  $('etat').textContent = 'Redémarrage de Python…';
+  demarrerWorker();
+}
+$('stop').onclick = arreter;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && enCours) arreter(); });
+
+// ── Repli : exécution dans la page (programme avec input() sans isolation) ──
+let pyPage = null, modePage = false;
+const PREPARATION_PAGE = `
+import builtins, js, sys, os, io, base64
+os.environ["MPLBACKEND"] = "AGG"
+def _saisie(message=""):
+    message = str(message)
+    sys.stdout.flush()
+    r = js.window.prompt(message or "Saisie :")
+    if r is None:
+        raise KeyboardInterrupt("saisie annulée")
+    print(message + r)
+    return r
+builtins.input = _saisie
+def _afficher_figures(*args, **kwargs):
+    import matplotlib.pyplot as plt
+    sys.stdout.flush()
+    for num in plt.get_fignums():
+        buf = io.BytesIO()
+        plt.figure(num).savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        js.window.ajouterFigure(base64.b64encode(buf.getvalue()).decode())
+    plt.close("all")
+def _preparer_matplotlib():
+    import matplotlib.pyplot as plt
+    plt.show = _afficher_figures
+`;
+async function chargerPyodidePage(){
+  if (pyPage) return pyPage;
+  $('etat').textContent = 'Chargement de Python dans la page…';
+  const { loadPyodide } = await import('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.mjs');
+  pyPage = await loadPyodide();
+  pyPage.setStdout({ batched: s => ecrire(s + '\n') });
+  pyPage.setStderr({ batched: s => ecrire(s + '\n', 'err') });
+  pyPage.runPython(PREPARATION_PAGE);
+  return pyPage;
+}
+async function executerDansPage(code){
+  const t0 = performance.now();
+  try {
+    const p = await chargerPyodidePage();
+    $('etat').textContent = 'Préparation des modules…';
+    await p.loadPackagesFromImports(code, { messageCallback: () => {} });
+    if (/^\s*(import|from)\s+matplotlib/m.test(code)) p.runPython('_preparer_matplotlib()');
+    $('etat').textContent = 'Exécution…';
+    await new Promise(r => setTimeout(r, 20));
+    const ns = p.globals.get('dict')();
+    ns.set('__name__', '__main__');
+    try {
+      await p.runPythonAsync(code, { globals:ns, filename:'<prog>' });
+      p.runPython('import sys\nif "matplotlib.pyplot" in sys.modules: _afficher_figures()');
+    } finally { ns.destroy(); }
+    ecrire('\n— Terminé en ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s —\n', 'info');
+  } catch(e){
+    if (pyPage) pyPage.runPython('import sys; sys.stdout.flush()');
+    afficherErreur(e.message || String(e));
+  } finally {
+    if (pyPage) pyPage.runPython('import sys\nif "matplotlib.pyplot" in sys.modules:\n    import matplotlib.pyplot as plt; plt.close("all")');
+    finir();
+  }
+}
+
+// ── Erreurs ──
+function afficherErreur(message){
+  const lignes = String(message).replace(/\s+$/, '').split('\n');
+  const debut = lignes.findIndex(l => /File "<(prog|exec)>"/.test(l));
+  let utiles = debut >= 0 ? lignes.slice(debut) : lignes.slice(-1);
+  utiles = utiles.map(l => l.replace(/File "<(prog|exec)>", line (\d+)(, in <module>)?/, 'Ligne $2'));
+  ecrire(utiles.join('\n') + '\n', 'err');
+
+  const derniere = lignes[lignes.length - 1] || '';
+  const type = (derniere.match(/^(\w+)/) || [])[1];
+  if (type && CONSEILS[type]){
+    const c = document.createElement('span');
+    c.className = 'conseil';
+    c.textContent = CONSEILS[type];
+    sortie.appendChild(c);
+  }
+  // surligner la dernière ligne du programme citée
+  const nums = [...String(message).matchAll(/File "<(?:prog|exec)>", line (\d+)/g)].map(m => +m[1]);
+  if (nums.length){
+    const n = nums[nums.length - 1] - 1;
+    if (n >= 0 && n < cm.lineCount()){
+      ligneErr = cm.addLineClass(n, 'background', 'ligne-err');
+      cm.scrollIntoView({line:n, ch:0}, 80);
+    }
+  }
+}
+
+// ── Exécution ──
+function executer(){
+  if (!pret || enCours) return;
+  enCours = true;
+  if (ligneErr !== null){ cm.removeLineClass(ligneErr, 'background', 'ligne-err'); ligneErr = null; }
+  sortie.textContent = '';
+  totalSortie = 0;
+  const code = cm.getValue();
+  if (!ISOLE && /\binput\s*\(/.test(code)){
+    modePage = true;
+    majBoutons();
+    executerDansPage(code);
+    return;
+  }
+  if (ISOLE){ interruption[0] = 0; Atomics.store(drapeau, 0, 0); }
+  majBoutons();
+  worker.postMessage({ type:'run', code });
+}
+$('run').onclick = executer;
+
+// ── Démarrage : isolation via le service worker, puis Python ──
+(async function(){
+  const CLE_RECHARGE = 'python-en-ligne.recharge';
+  if (!ISOLE && 'serviceWorker' in navigator && window.isSecureContext){
+    let deja = false;
+    try { deja = sessionStorage.getItem(CLE_RECHARGE) === '1'; } catch(e){}
+    if (!deja){
+      try {
+        await navigator.serviceWorker.register('python-sw.js', { scope:'./python' });
+        await navigator.serviceWorker.ready;
+        try { sessionStorage.setItem(CLE_RECHARGE, '1'); } catch(e){}
+        location.reload();   // une seule fois : la page revient avec les en-têtes
+        return;
+      } catch(e){ console.warn('Service worker indisponible', e); }
+    }
+  }
+  if (ISOLE) try { sessionStorage.removeItem(CLE_RECHARGE); } catch(e){}
+  demarrerWorker();
+})();
+
+// ── Exemples ──
+EXEMPLES.forEach((ex, i) => {
+  const o = document.createElement('option');
+  o.value = i; o.textContent = ex.titre;
+  $('exemples').appendChild(o);
+});
+$('exemples').onchange = e => {
+  const ex = EXEMPLES[e.target.value];
+  e.target.value = '';
+  if (!ex) return;
+  if (cm.getValue().trim() && !confirm('Remplacer le programme actuel par l\'exemple ?')) return;
+  cm.setValue(ex.code);
+  sortie.textContent = '';
+};
+
+// ── Fichiers et lien ──
+$('ouvrir').onclick = () => $('fichier').click();
+$('fichier').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  f.text().then(t => { cm.setValue(t); sortie.textContent = ''; });
+  e.target.value = '';
+};
+$('telecharger').onclick = () => {
+  const nom = (prompt('Nom du fichier :', 'programme') || '').trim();
+  if (!nom) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([cm.getValue()], {type:'text/x-python'}));
+  a.download = nom.endsWith('.py') ? nom : nom + '.py';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('partager').onclick = async () => {
+  const octets = new TextEncoder().encode(cm.getValue());
+  let bin = '';
+  octets.forEach(o => bin += String.fromCharCode(o));
+  const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const url = location.origin + location.pathname + '#code=' + b64;
+  try {
+    await navigator.clipboard.writeText(url);
+    $('etat').textContent = 'Lien copié : il ouvre cette page avec ce programme';
+  } catch(e){
+    prompt('Copier ce lien :', url);
+  }
+};
+</script>
+</body>
+</html>
