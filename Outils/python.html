@@ -57,12 +57,30 @@ button:disabled{opacity:.45;cursor:wait}
 #sortie img{max-width:100%;border:1px solid var(--rule);background:#fff;display:block}
 #sortie figcaption{font:.78rem system-ui,sans-serif;margin-top:2px}
 #sortie figcaption a{color:var(--ink2)}
+.donnees{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px;padding:6px 10px;font:.85rem system-ui,sans-serif;background:var(--surface);border:1px dashed var(--rule)}
+.donnees.survol{border:1px solid var(--ink);background:var(--hi)}
+.donnees .titre{font-weight:600;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-right:4px}
+.donnees .vide{color:var(--ink3);font-style:italic}
+.donnees #fichiers{display:contents}
+.donnees .sep{flex:1}
+.fic{display:inline-flex;border:1px solid var(--ink);background:var(--paper)}
+.fic button{border:0;background:transparent;padding:2px 7px;font-size:.82rem}
+.fic button.nom{font-family:Consolas,'DejaVu Sans Mono',monospace}
+.fic button+button{border-left:1px solid var(--rule);color:var(--ink2)}
+dialog{border:1px solid var(--ink);background:var(--surface);color:var(--ink);padding:14px;width:min(640px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+dialog h3{margin:0 0 6px;font-size:1.05rem}
+dialog p{margin:0 0 8px;font:.85rem/1.4 system-ui,sans-serif;color:var(--ink2)}
+dialog label{font:.85rem system-ui,sans-serif}
+dialog input{font:.9rem Consolas,monospace;padding:3px 6px;border:1px solid var(--rule);margin-left:6px}
+dialog textarea{display:block;width:100%;height:220px;margin-top:8px;font:13px/1.4 Consolas,'DejaVu Sans Mono',monospace;border:1px solid var(--rule);padding:6px;tab-size:12}
+dialog .actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
 .note{font:.8rem system-ui,sans-serif;color:var(--ink2);margin-top:12px;line-height:1.5}
 kbd{font:.75rem system-ui,sans-serif;border:1px solid var(--rule);border-bottom-width:2px;padding:0 4px;background:var(--surface)}
 .masque{display:none}
 @media print{
   .topbar{display:none}
-  .barre,.note,.card h2 button{display:none}
+  .barre,.note,.donnees,.card h2 button{display:none}
   .grille{grid-template-columns:1fr}
   .CodeMirror,#sortie{height:auto}
   body{background:#fff}
@@ -99,6 +117,15 @@ kbd{font:.75rem system-ui,sans-serif;border:1px solid var(--rule);border-bottom-
     <button type="button" id="plus" title="Agrandir le texte">A+</button>
   </div>
 
+  <div class="donnees" id="zoneDonnees">
+    <span class="titre">Données</span>
+    <span id="fichiers"></span>
+    <span class="sep"></span>
+    <button type="button" id="ajoutDonnees" title="Ajouter un fichier de mesures (.csv, .txt…)">+ Fichier</button>
+    <input type="file" id="fichierDonnees" multiple accept=".csv,.txt,.tsv,.dat,.json,.py" class="masque">
+    <button type="button" id="collerDonnees" title="Coller des colonnes copiées depuis un tableur">Coller un tableau</button>
+  </div>
+
   <div class="grille">
     <div class="card">
       <h2><span>Programme</span><button type="button" id="nouveau">Effacer</button></h2>
@@ -110,10 +137,23 @@ kbd{font:.75rem system-ui,sans-serif;border:1px solid var(--rule);border-bottom-
     </div>
   </div>
 
+  <dialog id="dlgColler">
+    <h3>Coller un tableau</h3>
+    <p>Sélectionner les colonnes dans le tableur (Excel, LibreOffice, Regressi, outil Tableur-grapheur…), les copier, puis les coller ci-dessous, avec la ligne des titres.</p>
+    <label>Nom du fichier <input id="collerNom" value="mesures.txt" spellcheck="false"></label>
+    <textarea id="collerTexte" spellcheck="false" placeholder="t (s)&#9;x (m)&#10;0&#9;0&#10;0,04&#9;0,12"></textarea>
+    <div class="actions">
+      <button type="button" id="collerAnnuler">Annuler</button>
+      <button type="button" id="collerOk">Ajouter</button>
+    </div>
+  </dialog>
+
   <div class="note">
     Le programme est enregistré automatiquement dans ce navigateur. <code>input()</code> attend la réponse dans la zone Résultat (valider avec <kbd>Entrée</kbd>) ;
     pour les nombres, utiliser <code>float(input(...))</code> et le point décimal (<code>2.5</code>, pas <code>2,5</code>).
     <code>plt.show()</code> affiche le graphique dans le résultat.
+    <b>Données</b> : ajouter un fichier de mesures (ou le glisser sur la page), puis cliquer sur son nom pour insérer le code qui le lit ;
+    les fichiers enregistrés par le programme (<code>open(..., "w")</code>, <code>plt.savefig</code>) apparaissent aussi et se téléchargent.
     Le bouton <b>Stop</b> (ou <kbd>Échap</kbd>) arrête un programme trop long ou une boucle infinie.
     Le premier lancement télécharge Python (une dizaine de Mo) ; les suivants sont plus rapides.
   </div>
@@ -162,6 +202,58 @@ plt.ylabel("U (V)")
 plt.title("Caractéristique d'un conducteur ohmique")
 plt.grid()
 plt.legend()
+plt.show()
+`},
+{ titre:'Lire un fichier de mesures (chute d\'une balle)',
+  fichier:{ nom:'chute.csv', contenu:
+`t (s);z (m)
+0,00;1,798
+0,04;1,793
+0,08;1,768
+0,12;1,730
+0,16;1,675
+0,20;1,600
+0,24;1,514
+0,28;1,418
+0,32;1,296
+0,36;1,162
+0,40;1,019
+0,44;0,850
+0,48;0,673
+0,52;0,473
+0,56;0,263
+0,60;0,031
+`}, code:
+`import matplotlib.pyplot as plt
+import numpy as np
+
+# Lecture de chute.csv : une liste par colonne
+def nombre(texte):
+    # convertit une case en nombre (virgule décimale acceptée) ; case vide -> nan
+    texte = texte.strip().replace(",", ".")
+    return float(texte) if texte else float("nan")
+
+t, z = [], []
+with open("chute.csv", encoding="utf-8-sig") as fichier:
+    fichier.readline()               # ligne des titres
+    for ligne in fichier:
+        if not ligne.strip():
+            continue                     # ligne vide
+        cases = ligne.rstrip("\\n").split(";")
+        t.append(nombre(cases[0]))
+        z.append(nombre(cases[1]))
+
+# Modélisation : z = a t² + b t + c, donc a = -g/2
+a, b, c = np.polyfit(t, z, 2)
+print("g ≈", round(-2 * a, 2), "m/s²")
+
+tm = np.linspace(0, max(t), 100)
+plt.plot(t, z, "+", markersize=10, label="mesures")
+plt.plot(tm, a*tm**2 + b*tm + c, label="modèle")
+plt.xlabel("t (s)")
+plt.ylabel("z (m)")
+plt.legend()
+plt.grid()
 plt.show()
 `},
 { titre:'Vecteurs vitesse d\'un mouvement', code:
@@ -293,6 +385,10 @@ const CONSEILS = {
 const $ = id => document.getElementById(id);
 const sortie = $('sortie');
 const CLE = 'python-en-ligne.code';
+// python.html?programme=chemin.py&donnees=a.csv,b.csv : programme de départ et données d'un TP
+const PARAMS = new URLSearchParams(location.search);
+const PROGRAMME = PARAMS.get('programme');
+const CLE_CODE = PROGRAMME ? CLE + ':' + PROGRAMME : CLE;
 let enCours = false, ligneErr = null, totalSortie = 0;
 
 // ── Éditeur ──
@@ -315,11 +411,20 @@ function lireCodeDepuisLien(){
 }
 let initial = lireCodeDepuisLien();
 if (initial !== null) history.replaceState(null, '', location.pathname + location.search);
-else { try { initial = localStorage.getItem(CLE); } catch(e){} }
-cm.setValue(initial || EXEMPLES[0].code);
+else { try { initial = localStorage.getItem(CLE_CODE); } catch(e){} }
+cm.setValue(initial || (PROGRAMME ? '# Chargement du programme…\n' : EXEMPLES[0].code));
+if (!initial && PROGRAMME){
+  fetch(new URL(PROGRAMME, location.href))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(b => cm.setValue(decoderTexte(new Uint8Array(b))))
+    .catch(() => {
+      cm.setValue('# Programme introuvable : ' + PROGRAMME + '\n');
+      try { localStorage.removeItem(CLE_CODE); } catch(e){}
+    });
+}
 cm.on('change', () => {
   if (ligneErr !== null){ cm.removeLineClass(ligneErr, 'background', 'ligne-err'); ligneErr = null; }
-  try { localStorage.setItem(CLE, cm.getValue()); } catch(e){}
+  try { localStorage.setItem(CLE_CODE, cm.getValue()); } catch(e){}
 });
 
 // ── Taille du texte (projection en classe) ──
@@ -415,6 +520,7 @@ function recevoir(e){
     case 'out': ecrire(m.text, m.cls); break;
     case 'fig': ajouterFigure(m.b64); break;
     case 'input': demanderSaisie(m.prompt); break;
+    case 'files': recevoirFichiersCrees(m.liste); break;
     case 'done':
       if (m.ok) ecrire('\n— Terminé en ' + m.duree.toFixed(2) + ' s —\n', 'info');
       else if (/KeyboardInterrupt/.test(m.error.split('\n').filter(Boolean).pop() || '')) ecrire('\n— Programme arrêté —\n', 'info');
@@ -516,12 +622,14 @@ async function chargerPyodidePage(){
   return pyPage;
 }
 async function executerDansPage(code){
+  const fichiers = Object.fromEntries(FICHIERS);
   const t0 = performance.now();
   try {
     const p = await chargerPyodidePage();
     $('etat').textContent = 'Préparation des modules…';
     await p.loadPackagesFromImports(code, { messageCallback: () => {} });
     if (/^\s*(import|from)\s+matplotlib/m.test(code)) p.runPython('_preparer_matplotlib()');
+    preparerFichiers(p, fichiers);
     $('etat').textContent = 'Exécution…';
     await new Promise(r => setTimeout(r, 20));
     const ns = p.globals.get('dict')();
@@ -535,7 +643,10 @@ async function executerDansPage(code){
     if (pyPage) pyPage.runPython('import sys; sys.stdout.flush()');
     afficherErreur(e.message || String(e));
   } finally {
-    if (pyPage) pyPage.runPython('import sys\nif "matplotlib.pyplot" in sys.modules:\n    import matplotlib.pyplot as plt; plt.close("all")');
+    if (pyPage){
+      pyPage.runPython('import sys\nif "matplotlib.pyplot" in sys.modules:\n    import matplotlib.pyplot as plt; plt.close("all")');
+      recevoirFichiersCrees(listerFichiersCrees(pyPage, fichiers));
+    }
     finir();
   }
 }
@@ -583,7 +694,7 @@ function executer(){
   }
   if (ISOLE){ interruption[0] = 0; Atomics.store(drapeau, 0, 0); }
   majBoutons();
-  worker.postMessage({ type:'run', code });
+  worker.postMessage({ type:'run', code, fichiers:Object.fromEntries(FICHIERS) });
 }
 $('run').onclick = executer;
 
@@ -607,6 +718,229 @@ $('run').onclick = executer;
   demarrerWorker();
 })();
 
+// ── Fichiers de données ──
+// Les fichiers listés ici sont copiés dans le dossier de travail de Python
+// avant chaque exécution : open("mesures.csv") les trouve directement.
+const CLE_FICHIERS = 'python-en-ligne.fichiers';
+const FICHIERS = new Map();   // nom → texte (string) ou octets (Uint8Array : image créée par le programme…)
+try {
+  const f = JSON.parse(localStorage.getItem(CLE_FICHIERS) || '{}');
+  for (const k in f) FICHIERS.set(k, f[k]);
+} catch(e){}
+function sauverFichiers(){
+  const o = {};
+  for (const [k, v] of FICHIERS) if (typeof v === 'string') o[k] = v;
+  try { localStorage.setItem(CLE_FICHIERS, JSON.stringify(o)); } catch(e){}
+}
+// UTF-8 sinon Windows-1252 (CSV enregistré par Excel), sans BOM
+function decoderTexte(octets){
+  let t;
+  try { t = new TextDecoder('utf-8', { fatal:true }).decode(octets); }
+  catch(e){ t = new TextDecoder('windows-1252').decode(octets); }
+  return t.replace(/^﻿/, '');
+}
+function estTexte(octets){
+  if (octets.includes(0)) return false;
+  try { new TextDecoder('utf-8', { fatal:true }).decode(octets); return true; } catch(e){ return false; }
+}
+function nomFichierValide(nom){ return nom.replace(/[\\/:*?"<>|]/g, '_').trim() || 'donnees.txt'; }
+function ajouterFichier(nom, contenu){
+  FICHIERS.set(nomFichierValide(nom), contenu);
+  sauverFichiers();
+  afficherFichiers();
+}
+function telechargerFichier(nom, contenu){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenu]));
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function afficherFichiers(){
+  const z = $('fichiers');
+  z.textContent = '';
+  if (!FICHIERS.size){
+    const s = document.createElement('span');
+    s.className = 'vide';
+    s.textContent = 'aucun fichier';
+    z.appendChild(s);
+  }
+  for (const [nom, v] of FICHIERS){
+    const c = document.createElement('span');
+    c.className = 'fic';
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'nom'; b.textContent = nom;
+    if (typeof v === 'string'){
+      b.title = 'Insérer dans le programme le code qui lit ce fichier';
+      b.onclick = () => insererLecture(nom, v);
+    } else {
+      b.title = 'Fichier créé par le programme : télécharger';
+      b.onclick = () => telechargerFichier(nom, v);
+    }
+    const d = document.createElement('button');
+    d.type = 'button'; d.textContent = '⤓'; d.title = 'Télécharger ' + nom;
+    d.onclick = () => telechargerFichier(nom, v);
+    const x = document.createElement('button');
+    x.type = 'button'; x.textContent = '✕'; x.title = 'Retirer ' + nom;
+    x.onclick = () => { FICHIERS.delete(nom); sauverFichiers(); afficherFichiers(); };
+    c.append(b, d, x);
+    z.appendChild(c);
+  }
+}
+
+// ── Code de lecture adapté au fichier ──
+const MOTS_RESERVES = new Set(('False None True and as assert async await break class continue def del elif else except '
+  + 'finally for from global if import in is lambda nonlocal not or pass raise return try while with yield '
+  + 'print input len list float int str sum min max range open abs round nombre fichier ligne cases').split(' '));
+function nomVariable(titre, i, pris){
+  let n = (titre || '').replace(/^\s*"|"\s*$/g, '').split(/[([]/)[0]
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .trim().replace(/[^A-Za-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!n) n = 'col' + (i + 1);
+  if (/^\d/.test(n)) n = 'c' + n;
+  if (MOTS_RESERVES.has(n)) n += '_';
+  let m = n, k = 2;
+  while (pris.has(m)) m = n + '_' + k++;
+  pris.add(m);
+  return m;
+}
+function analyserTableau(texte){
+  const lignes = texte.split(/\r?\n/).filter(l => l.trim());
+  if (!lignes.length) return null;
+  const premiere = lignes[0];
+  const sep = premiere.includes('\t') ? '\t' : premiere.includes(';') ? ';' : premiere.includes(',') ? ',' : null;
+  const couper = l => sep ? l.split(sep) : l.trim().split(/\s+/);
+  const estNombre = s => /^\s*[-+]?(\d+([.,]\d*)?|[.,]\d+)([eE][-+]?\d+)?\s*$/.test(s);
+  const titres = couper(premiere);
+  const entete = !titres.every(c => !c.trim() || estNombre(c));
+  const corps = lignes.slice(entete ? 1 : 0).map(couper);
+  if (!corps.length || !corps.slice(0, 50).every(r => r.every(c => !c.trim() || estNombre(c)))) return null;
+  const n = Math.max(titres.length, ...corps.slice(0, 50).map(r => r.length));
+  const virgule = sep !== ',' && corps.some(r => r.some(c => /\d,\d|^\s*[-+]?,\d/.test(c)));
+  const vides = corps.some(r => r.length < n || r.some(c => !c.trim()));
+  const pris = new Set();
+  const noms = [];
+  for (let i = 0; i < n; i++) noms.push(nomVariable(entete ? titres[i] : '', i, pris));
+  return { sep, entete, virgule, vides, noms };
+}
+function codeLecture(nom, texte){
+  const q = JSON.stringify(nom);
+  const a = analyserTableau(texte);
+  if (!a) return '# Lecture du fichier ' + nom + '\nwith open(' + q + ', encoding="utf-8-sig") as fichier:\n'
+    + '    contenu = fichier.read()\nprint(contenu)\n';
+  const conv = a.virgule || a.vides;
+  const L = ['# Lecture de ' + nom + ' : une liste par colonne'];
+  if (conv){
+    L.push('def nombre(texte):');
+    L.push('    # convertit une case en nombre' + (a.virgule ? ' (virgule décimale acceptée)' : '') + ' ; case vide -> nan');
+    L.push('    texte = texte.strip()' + (a.virgule ? '.replace(",", ".")' : ''));
+    L.push('    return float(texte) if texte else float("nan")');
+    L.push('');
+  }
+  L.push(a.noms.join(', ') + ' = ' + a.noms.map(() => '[]').join(', '));
+  L.push('with open(' + q + ', encoding="utf-8-sig") as fichier:');
+  if (a.entete) L.push('    fichier.readline()               # ligne des titres');
+  L.push('    for ligne in fichier:');
+  L.push('        if not ligne.strip():');
+  L.push('            continue                     # ligne vide');
+  L.push('        cases = ' + (a.sep ? 'ligne.rstrip("\\n").split(' + JSON.stringify(a.sep) + ')' : 'ligne.split()'));
+  if (a.vides) L.push('        cases = cases + [""] * (' + a.noms.length + ' - len(cases))');
+  a.noms.forEach((v, i) => L.push('        ' + v + '.append(' + (conv ? 'nombre' : 'float') + '(cases[' + i + ']))'));
+  L.push('');
+  L.push('print(len(' + a.noms[0] + '), "lignes lues :", ' + JSON.stringify(a.noms.join(', ')) + ')');
+  return L.join('\n') + '\n';
+}
+function insererLecture(nom, texte){
+  const code = codeLecture(nom, texte);
+  if (!cm.getValue().trim()) cm.setValue(code);
+  else {
+    const l = cm.getCursor().line;
+    cm.replaceRange(code + '\n', { line:l, ch:0 });
+  }
+  cm.focus();
+}
+
+// ── Ajouter : fichier, collage, glisser-déposer, lien ──
+async function importerFichiers(liste){
+  for (const f of liste){
+    const octets = new Uint8Array(await f.arrayBuffer());
+    if (/\.py$/i.test(f.name)){
+      cm.setValue(decoderTexte(octets));
+      sortie.textContent = '';
+    } else if (/\.(xlsx?|ods)$/i.test(f.name)){
+      alert('« ' + f.name + ' » est un classeur : l\'enregistrer d\'abord au format CSV (Fichier › Enregistrer sous › CSV).');
+    } else {
+      ajouterFichier(f.name, octets.includes(0) ? octets : decoderTexte(octets));
+    }
+  }
+}
+$('ajoutDonnees').onclick = () => $('fichierDonnees').click();
+$('fichierDonnees').onchange = e => { importerFichiers([...e.target.files]); e.target.value = ''; };
+$('collerDonnees').onclick = () => {
+  $('collerNom').value = 'mesures.txt';
+  $('collerTexte').value = '';
+  $('dlgColler').showModal();
+  $('collerTexte').focus();
+};
+$('collerAnnuler').onclick = () => $('dlgColler').close();
+$('collerOk').onclick = () => {
+  const texte = $('collerTexte').value;
+  if (!texte.trim()) { $('dlgColler').close(); return; }
+  let nom = $('collerNom').value.trim() || 'mesures.txt';
+  if (!/\.\w+$/.test(nom)) nom += '.txt';
+  ajouterFichier(nom, texte.replace(/\r\n/g, '\n').replace(/\n?$/, '\n'));
+  $('dlgColler').close();
+};
+document.addEventListener('dragover', e => {
+  if ([...e.dataTransfer.types].includes('Files')){ e.preventDefault(); $('zoneDonnees').classList.add('survol'); }
+});
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) $('zoneDonnees').classList.remove('survol'); });
+document.addEventListener('drop', e => {
+  if (!e.dataTransfer.files.length) return;
+  e.preventDefault();
+  $('zoneDonnees').classList.remove('survol');
+  importerFichiers([...e.dataTransfer.files]);
+});
+// python.html?donnees=chemin1.csv,chemin2.csv : fichiers du site (chemins relatifs à cette page)
+(async function(){
+  const chemins = (PARAMS.get('donnees') || '').split(',').map(s => s.trim()).filter(Boolean);
+  for (const chemin of chemins){
+    try {
+      const r = await fetch(new URL(chemin, location.href));
+      if (!r.ok) throw new Error(r.status);
+      ajouterFichier(decodeURIComponent(chemin.split('/').pop()), decoderTexte(new Uint8Array(await r.arrayBuffer())));
+    } catch(e){
+      ecrire('Fichier de données introuvable : ' + chemin + '\n', 'err');
+    }
+  }
+})();
+afficherFichiers();
+
+// Copie dans le système de fichiers de Python, et récupération des fichiers créés
+function preparerFichiers(p, fichiers){
+  for (const nom of p.FS.readdir('.')){
+    try { if (p.FS.isFile(p.FS.stat(nom).mode)) p.FS.unlink(nom); } catch(e){}
+  }
+  for (const [nom, contenu] of Object.entries(fichiers)) p.FS.writeFile(nom, contenu);
+}
+function recevoirFichiersCrees(liste){
+  for (const { nom, octets } of liste){
+    FICHIERS.set(nom, estTexte(octets) ? decoderTexte(octets) : octets);
+    ecrire('Fichier créé : ' + nom + ' (voir Données)\n', 'info');
+  }
+  if (liste.length){ sauverFichiers(); afficherFichiers(); }
+}
+function listerFichiersCrees(p, fichiers){
+  const liste = [];
+  for (const nom of p.FS.readdir('.')){
+    try {
+      const st = p.FS.stat(nom);
+      if (p.FS.isFile(st.mode) && !(nom in fichiers) && st.size < 20e6) liste.push({ nom, octets:p.FS.readFile(nom) });
+    } catch(e){}
+  }
+  return liste;
+}
+
 // ── Exemples ──
 EXEMPLES.forEach((ex, i) => {
   const o = document.createElement('option');
@@ -618,6 +952,7 @@ $('exemples').onchange = e => {
   e.target.value = '';
   if (!ex) return;
   if (cm.getValue().trim() && !confirm('Remplacer le programme actuel par l\'exemple ?')) return;
+  if (ex.fichier) ajouterFichier(ex.fichier.nom, ex.fichier.contenu);
   cm.setValue(ex.code);
   sortie.textContent = '';
 };
@@ -644,7 +979,7 @@ $('partager').onclick = async () => {
   let bin = '';
   octets.forEach(o => bin += String.fromCharCode(o));
   const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-  const url = location.origin + location.pathname + '#code=' + b64;
+  const url = location.origin + location.pathname + location.search + '#code=' + b64;
   try {
     await navigator.clipboard.writeText(url);
     $('etat').textContent = 'Lien copié : il ouvre cette page avec ce programme';

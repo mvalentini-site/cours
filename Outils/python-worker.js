@@ -67,12 +67,32 @@ async function initialiser(m){
   postMessage({ type:'ready', version: py.runPython('import sys; sys.version.split()[0]') });
 }
 
-async function executer(code){
+// ── Fichiers de données : copiés dans le dossier de travail avant l'exécution ──
+function preparerFichiers(fichiers){
+  for (const nom of py.FS.readdir('.')){
+    try { if (py.FS.isFile(py.FS.stat(nom).mode)) py.FS.unlink(nom); } catch(e){}
+  }
+  for (const [nom, contenu] of Object.entries(fichiers)) py.FS.writeFile(nom, contenu);
+}
+// Fichiers créés par le programme : renvoyés à la page
+function envoyerFichiersCrees(fichiers){
+  const liste = [];
+  for (const nom of py.FS.readdir('.')){
+    try {
+      const st = py.FS.stat(nom);
+      if (py.FS.isFile(st.mode) && !(nom in fichiers) && st.size < 20e6) liste.push({ nom, octets:py.FS.readFile(nom) });
+    } catch(e){}
+  }
+  if (liste.length) postMessage({ type:'files', liste });
+}
+
+async function executer(code, fichiers){
   const t0 = performance.now();
   try {
     postMessage({ type:'status', text:'Préparation des modules…' });
     await py.loadPackagesFromImports(code, { messageCallback: () => {} });
     if (/^\s*(import|from)\s+matplotlib/m.test(code)) py.runPython('_preparer_matplotlib()');
+    preparerFichiers(fichiers);
     postMessage({ type:'status', text:'Exécution…' });
     const ns = py.globals.get('dict')();
     ns.set('__name__', '__main__');
@@ -84,10 +104,12 @@ async function executer(code){
     }
     py.runPython('import sys; sys.stdout.flush()');
     envoyer(true);
+    envoyerFichiersCrees(fichiers);
     postMessage({ type:'done', ok:true, duree:(performance.now() - t0) / 1000 });
   } catch(e){
     try { py.runPython('import sys; sys.stdout.flush()'); } catch(_){}
     envoyer(true);
+    try { envoyerFichiersCrees(fichiers); } catch(_){}
     postMessage({ type:'done', ok:false, error:String(e.message || e) });
   } finally {
     try { py.runPython('import sys\nif "matplotlib.pyplot" in sys.modules:\n    import matplotlib.pyplot as plt; plt.close("all")'); } catch(_){}
@@ -97,5 +119,5 @@ async function executer(code){
 onmessage = e => {
   const m = e.data;
   if (m.type === 'init') initialiser(m).catch(err => postMessage({ type:'fail', error:String(err) }));
-  else if (m.type === 'run') executer(m.code);
+  else if (m.type === 'run') executer(m.code, m.fichiers || {});
 };
