@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointage vidéo postbac</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#f6f1e4;--paper2:#ede7d3;--surface:#fdfaf0;
+  --ink:#1c1208;--ink2:#2d200a;--faded:#5f4e33;--faded2:#87704c;
+  --rule:rgba(28,18,8,.16);
+  --blue:#1c3d6e;--green:#2a5c3a;--brown:#6b3a1c;--red:#a63020;--purple:#3a1c6b;--olive:#3a3a1c;--video:#5a3a1c;--amber:#7a4e00;
+  --blue-bg:rgba(28,61,110,.08);--green-bg:rgba(42,92,58,.09);--amber-bg:rgba(122,78,0,.10);--red-bg:rgba(166,48,32,.08);
+  --accent:var(--blue);
+  --font:'Bricolage Grotesque',system-ui,sans-serif;
+  /* alias pour le balisage généré par le script */
+  --cream:var(--surface);--cream2:var(--paper2);--cream3:var(--paper2);--ink3:var(--faded2);--border:var(--rule);
+}
+html{font-size:17px;}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);line-height:1.5;min-height:100vh;}
+a{color:inherit}
+
+.topbar{background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,4vw,48px);height:52px;font-size:14px;}
+.topbar .crumb{display:flex;gap:10px;align-items:center;}
+.topbar .crumb a{text-decoration:none;opacity:.7}
+.topbar .crumb a:hover{opacity:1}
+.topbar .crumb b{font-weight:600;color:#a9c4ea}
+.topbar nav{display:flex;gap:4px;}
+.topbar nav a{text-decoration:none;padding:6px 12px;border-radius:999px;opacity:.7}
+.topbar nav a:hover,.topbar nav a[aria-current]{opacity:1;background:rgba(255,255,255,.12)}
+
+.layout{max-width:1320px;margin:0 auto;padding:36px clamp(16px,4vw,48px) 96px;}
+.kicker{font-size:14px;color:var(--faded);margin-bottom:6px;}
+h1{font-size:clamp(30px,3.6vw,44px);font-weight:800;line-height:1;letter-spacing:-.02em;margin-bottom:18px;font-variation-settings:'opsz' 96;}
+.meta{font-size:14px;color:var(--faded);line-height:1.6;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px;max-width:38ch;}
+.etape{scroll-margin-top:24px;}
+details.aide{margin:0 0 12px;border:1px solid var(--rule);background:var(--surface);}
+details.aide summary{cursor:pointer;padding:8px 14px;font-size:14px;font-weight:500;color:var(--faded);list-style:none;display:flex;align-items:center;gap:10px;user-select:none;}
+details.aide summary::-webkit-details-marker{display:none}
+details.aide summary::before{content:'';width:7px;height:7px;border-right:1.5px solid var(--faded2);border-bottom:1.5px solid var(--faded2);transform:rotate(-45deg);transition:transform .15s;flex-shrink:0;}
+details.aide[open] summary::before{transform:rotate(45deg);}
+details.aide ul{list-style:none;padding:0 14px 10px 14px;font-size:14px;color:var(--ink2);}
+details.aide li{padding:6px 0 6px 18px;position:relative;border-top:1px dashed var(--rule);}
+details.aide li::before{content:'';position:absolute;left:0;top:13px;width:7px;height:7px;border:1.5px solid var(--faded2);transform:rotate(45deg);}
+.kbd{display:inline-block;font-size:12px;font-weight:500;background:var(--paper2);border:1px solid var(--rule);border-radius:3px;padding:0 6px;color:var(--faded);line-height:1.6;}
+.etapes{list-style:none;position:relative;}
+.etapes::before{content:'';position:absolute;left:19px;top:20px;bottom:20px;width:2px;background:var(--rule);}
+.etape{position:relative;padding:0 0 34px 62px;}
+.etape:last-child{padding-bottom:0}
+.marker{position:absolute;left:0;top:2px;width:40px;height:40px;border-radius:50%;
+  background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:17px;
+  display:flex;align-items:center;justify-content:center;border:4px solid var(--paper);font-family:inherit;transition:background .15s;}
+.etape .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px;}
+.titre{font-size:21px;font-weight:600;line-height:1.2;letter-spacing:-.01em;}
+.type{font-size:13px;font-weight:500;color:var(--c,var(--ink));white-space:nowrap;}
+.type::after{content:' · ';color:var(--faded2)}
+.duree{font-size:13px;color:var(--faded);}
+.consigne{font-size:15px;color:var(--faded);max-width:66ch;margin-bottom:12px;}
+.consigne b{font-weight:600;color:var(--ink2)}
+.bloc{background:var(--surface);border:1px solid var(--rule);padding:16px 18px;}
+.bloc + .bloc{margin-top:10px}
+.repere{margin:6px 0 30px 62px;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;}
+.repere b{font-weight:600}
+.docs{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* contrôles */
+.row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;}
+.row + .row{margin-top:12px}
+.sep{width:1px;height:26px;background:var(--rule);align-self:center;margin:0 4px;}
+button{font:inherit;font-size:14px;padding:7px 14px;background:var(--surface);border:1px solid var(--rule);border-radius:4px;
+  color:var(--ink);cursor:pointer;min-height:36px;touch-action:manipulation;transition:border-color .12s,background .12s;}
+button:hover:not(:disabled){background:#fff;border-color:var(--ink);}
+button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+button:disabled{opacity:.4;cursor:default;}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+button.primary:hover:not(:disabled){background:var(--ink2);border-color:var(--ink2);}
+button.danger{color:var(--red);border-color:rgba(166,48,32,.35);}
+button.danger:hover:not(:disabled){background:var(--red-bg);border-color:var(--red);}
+button.ok-btn{color:var(--green);border-color:rgba(42,92,58,.4);background:var(--green-bg);}
+button.ok-btn:hover:not(:disabled){background:rgba(42,92,58,.16);border-color:var(--green);}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:13px;color:var(--faded);}
+input[type=number],input[type=text],select,.graph-sel,.model-sel{
+  font:inherit;font-size:14px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink);
+  padding:6px 9px;min-height:36px;min-width:70px;font-variant-numeric:tabular-nums;}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(28,61,110,.2);}
+input[type=color]{width:34px;height:30px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);padding:2px;cursor:pointer;}
+.param-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.info-pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:3px;
+  background:var(--paper2);color:var(--faded);font-variant-numeric:tabular-nums;}
+.info-pill.ok{background:var(--green-bg);color:var(--green);}
+.info-pill.warn{background:var(--amber-bg);color:var(--amber);}
+.info-pill.err{background:var(--red-bg);color:var(--red);}
+.log-line{font-size:13px;color:var(--faded2);margin-top:8px;font-style:italic;}
+.hint{font-size:13px;color:var(--faded2);font-style:italic;}
+.hidden{display:none!important;}
+
+/* vidéo */
+#video-wrap{position:relative;display:block;width:100%;user-select:none;background:#000;}
+#video-wrap video{display:block;width:100%;}
+/* poste de travail : vidéo à gauche, étalonnage + pointage à droite */
+.choix-video{margin-bottom:14px;}
+.poste{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start;}
+.poste-cote{display:flex;flex-direction:column;gap:14px;}
+.carte{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c,var(--ink));padding:14px 16px 16px;scroll-margin-top:24px;}
+.carte-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.carte-head .num{width:30px;height:30px;border-radius:50%;background:var(--c,var(--ink));color:var(--paper);font-weight:800;font-size:15px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.carte .titre{font-size:18px;}
+.carte .consigne{font-size:14px;margin-bottom:10px;}
+.carte details.aide{margin:14px 0 0;}
+.carte .param-row{margin-bottom:10px;}
+.nav-video{padding:12px 16px 14px;}
+.nav-video #scrubber{margin:0 0 8px;}
+.nav-video #nav-bar{gap:6px;flex-wrap:wrap;}
+.nav-video #nav-bar button{padding:7px 12px;}
+.nav-video .info-pill{padding:5px 8px;font-size:12px;white-space:nowrap;}
+.compteur{margin-left:auto;font-size:13px;color:var(--faded);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.liste-pts{list-style:none;margin:12px 0;max-height:190px;overflow:auto;border:1px solid var(--rule);background:var(--paper);
+  font-size:13px;font-variant-numeric:tabular-nums;}
+.liste-pts li{display:flex;align-items:center;gap:10px;padding:3px 6px 3px 10px;border-bottom:1px dashed var(--rule);}
+.liste-pts li:last-child{border-bottom:none;}
+.liste-pts li .n{font-weight:600;min-width:1.8em;}
+.liste-pts li .t{margin-left:auto;color:var(--faded);}
+.liste-pts li.vide{color:var(--faded2);font-style:italic;padding:8px 10px;}
+.liste-pts button{padding:0 8px;min-height:26px;font-size:12px;}
+
+#video-placeholder{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:1px solid var(--rule);color:var(--blue);font-weight:700;font-size:clamp(22px,5vw,44px);text-align:center;}
+#overlay-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+#click-canvas{position:absolute;top:0;left:0;cursor:crosshair;touch-action:none;}
+#scrubber{width:100%;accent-color:var(--ink);cursor:pointer;margin:10px 0 6px;height:28px;}
+#nav-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* tableau */
+.col-toggle-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+.col-toggle{display:inline-flex;align-items:center;gap:6px;font-size:14px;padding:4px 10px;border-radius:4px;
+  border:1px solid var(--rule);background:var(--surface);cursor:pointer;user-select:none;min-height:32px;touch-action:manipulation;}
+.col-toggle:hover{border-color:var(--ink)}
+.col-toggle input{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;margin:0;}
+.col-toggle.disabled-toggle{opacity:.4;cursor:not-allowed;}
+.col-sep{display:inline-block;width:1px;height:20px;background:var(--rule);margin:0 4px;vertical-align:middle;}
+.max-warn{font-size:13px;color:var(--amber);font-style:italic;margin-left:6px;}
+.table-wrap{max-height:300px;overflow:auto;}
+table{width:100%;font-size:14px;border-collapse:collapse;white-space:nowrap;font-variant-numeric:tabular-nums;}
+th{text-align:left;font-size:13px;font-weight:600;color:var(--faded);padding:4px 12px 6px 0;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--surface);}
+td{padding:5px 12px 5px 0;border-bottom:1px dashed var(--rule);vertical-align:middle;}
+td button{padding:1px 8px;font-size:13px;min-height:26px;}
+.no-data{color:var(--faded2);font-size:14px;padding:10px 0;font-style:italic;}
+
+/* graphiques */
+.graph-card{border:1px solid var(--rule);padding:12px 14px;background:var(--paper);margin-bottom:12px;position:relative;}
+.graph-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.graph-sel,.model-sel{font-size:13px;padding:4px 8px;min-height:30px;min-width:120px;}
+.model-sel{min-width:190px;}
+canvas.chart-cv{width:100%;display:block;cursor:crosshair;}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--faded);margin-top:6px;align-items:center;}
+.leg-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.model-panel{margin-top:8px;padding:8px 10px;}
+.model-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px;}
+.model-params{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;align-items:center;}
+.model-param{display:inline-flex;align-items:center;gap:4px;font-size:13px;}
+.model-param input{font-size:13px!important;min-height:0!important;padding:3px 6px!important;width:80px!important;}
+.model-param input:disabled{background:var(--paper2);color:var(--faded2);}
+.model-param label{font-size:13px;color:var(--faded);}
+.model-box{border:1px solid var(--rule);border-left-width:3px;padding:8px 12px;font-size:14px;margin-top:6px;background:var(--surface);}
+.model-box.ok{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.model-box.warn{border-color:var(--amber);background:var(--amber-bg);color:var(--amber);}
+.model-box.bad{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.model-eqn{font-size:15px;font-weight:600;margin:.1rem 0;}
+.model-r2{font-size:13px;opacity:.9;}
+.sc-btn{font:inherit;font-size:14px;font-weight:500;padding:0 7px;border-radius:3px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;line-height:1;min-height:26px;}
+.sc-btn:hover{background:#fff;border-color:var(--ink);}
+.sc-val{font-size:12px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:2px 5px;display:inline-block;min-width:44px;text-align:center;font-variant-numeric:tabular-nums;}
+.vec-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none;min-height:34px;}
+.vec-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);margin:0;}
+#canvas-chrono{width:100%;display:block;border:1px solid var(--rule);background:#000;}
+
+
+/* ═══ VERSION 2 : tout dans un même cadre, étapes en onglets ═══ */
+html,body{height:100%;}
+body{display:flex;flex-direction:column;}
+.app{--h-app:calc(100vh - 52px - 32px);height:var(--h-app);width:calc(100% - 32px);max-width:1600px;margin:16px auto;
+  display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--rule);min-height:520px;}
+.restore{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 14px;background:var(--green-bg);border-bottom:1px solid var(--rule);font-size:14px;}
+.restore button{min-height:30px;padding:3px 12px;}
+.onglets{display:flex;gap:2px;padding:8px 8px 0;background:var(--paper2);border-bottom:1px solid var(--rule);overflow-x:auto;flex-shrink:0;}
+.onglet{display:flex;align-items:center;gap:8px;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;background:transparent;
+  padding:8px 16px 9px 10px;font-size:15px;color:var(--faded);min-height:0;white-space:nowrap;margin-bottom:-1px;}
+.onglet:hover:not(:disabled){background:rgba(255,255,255,.5);border-color:transparent;color:var(--ink);}
+.onglet .num{width:24px;height:24px;border-radius:50%;background:var(--c);color:var(--paper);font-size:13px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.55;transition:opacity .12s;}
+.onglet.actif{background:var(--surface);border-color:var(--rule);color:var(--ink);font-weight:600;box-shadow:inset 0 3px 0 var(--c);}
+.onglet.actif .num,.onglet:hover .num{opacity:1;}
+.onglet.fait .num{font-size:0;}
+.onglet.fait .num::after{content:'✓';font-size:13px;}
+.compteur-onglet{font-size:12px;font-weight:500;color:var(--faded);font-variant-numeric:tabular-nums;}
+.compteur-onglet:not(:empty)::before{content:'· ';}
+
+.app-corps{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:minmax(0,1fr);}
+.zone-video{min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;padding:14px;background:var(--paper2);overflow:hidden;}
+.zone-cote{min-height:0;overflow:auto;padding:16px 18px;border-left:1px solid var(--rule);display:flex;flex-direction:column;}
+.zone-large{display:none;grid-column:1/-1;min-height:0;overflow:auto;padding:18px 22px;}
+.app.large .zone-video,.app.large .zone-cote{display:none;}
+.app.large .zone-large{display:block;}
+
+.panneau .titre{font-size:19px;margin-bottom:6px;display:flex;align-items:baseline;gap:10px;}
+.panneau .titre::before{content:'';width:4px;align-self:stretch;background:var(--c);border-radius:2px;}
+.panneau .consigne{font-size:14px;margin-bottom:12px;}
+.panneau .param-row{margin-bottom:10px;}
+.panneau details.aide{margin:14px 0 0;}
+.zone-cote .field select{width:100%;}
+.ou{font-size:14px;font-weight:600;color:var(--faded);margin:10px 0;}
+
+#video-placeholder{width:100%;max-width:760px;}
+#video-container{max-width:100%;max-height:100%;display:flex;flex-direction:column;}
+#video-wrap{display:inline-block;max-width:100%;background:transparent;}
+#video-wrap video{width:auto;height:auto;max-width:100%;}
+
+.zone-video .nav-video{margin-top:10px;padding:0;}
+.zone-video .nav-video .info-pill{background:var(--surface);border:1px solid var(--rule);}
+.nav-video #scrubber{margin:0 0 8px;}
+.nav-video #nav-bar{gap:6px;flex-wrap:wrap;}
+.nav-video #nav-bar button{padding:7px 12px;}
+.nav-video .info-pill{padding:5px 8px;font-size:12px;white-space:nowrap;}
+
+.zone-large .table-wrap{max-height:calc(var(--h-app) - 330px);min-height:160px;}
+#graphs-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(520px,100%),1fr));gap:12px;margin-bottom:12px;}
+#graphs-container .graph-card{margin-bottom:0;}
+.chrono-grille{display:grid;grid-template-columns:420px minmax(0,1fr);gap:22px;align-items:start;}
+.chrono-reglages .table-wrap{max-height:220px!important;}
+.chrono-image{display:flex;align-items:flex-start;justify-content:center;min-height:200px;}
+.chrono-vide{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border:1px dashed var(--rule);color:var(--faded2);font-style:italic;font-size:14px;}
+#canvas-chrono{width:auto!important;max-width:100%;max-height:calc(var(--h-app) - 120px);}
+
+@media (max-width:1000px){
+  .app{height:auto;min-height:0;}
+  .app-corps{grid-template-columns:1fr;grid-template-rows:auto;}
+  .zone-cote{border-left:none;border-top:1px solid var(--rule);}
+  .chrono-grille{grid-template-columns:1fr;}
+  .zone-large .table-wrap{max-height:340px;}
+}
+
+@media (max-width:1000px){
+  .layout{padding:24px 16px 80px;}
+  .poste{grid-template-columns:1fr;}
+  .topbar nav{display:none;}
+  .etape{padding-left:52px;}
+  .repere{margin-left:52px;}
+  .bloc{padding:12px;}
+  button{min-height:44px;}
+  input[type=number],input[type=text],select{min-height:44px;}
+  .table-wrap{max-height:240px;}
+}
+@media (max-width:640px){
+  .carte{padding:12px;}
+}
+.ident{margin-top:16px;padding-top:12px;border-top:1px solid var(--rule);}
+.ident-titre{font-size:13px;font-weight:600;margin-bottom:8px;}
+.mes-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;margin-bottom:16px;}
+.carte-mes{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;margin-bottom:16px;min-width:0;}
+.mes-grille .carte-mes{margin-bottom:0;}
+.carte-mes h3{font-size:15px;font-weight:600;margin-bottom:10px;}
+.th-res{margin-top:10px;font-size:14px;line-height:1.7;background:var(--amber-bg);border-radius:3px;padding:8px 12px;}
+.verdict-ok{color:var(--green);font-weight:600;}.verdict-ko{color:var(--red);font-weight:600;}
+.btn-retenir{margin-top:6px;font-size:12px;padding:4px 10px;}
+.model-u{font-size:12px;margin-top:3px;}
+@media (max-width:1000px){.mes-grille{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Pointage vidéo · postbac</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+
+<div class="app" id="app" data-onglet="1">
+
+  <div class="restore hidden" id="restore-bar">
+    <span><b>Session précédente retrouvée</b> — <span id="restore-info"></span></span>
+    <button id="btn-restore" class="ok-btn">Restaurer</button>
+    <button id="btn-restore-dismiss">Ignorer</button>
+  </div>
+
+  <nav class="onglets" role="tablist" aria-label="Étapes">
+    <button class="onglet actif" role="tab" data-onglet="1" style="--c:var(--video)"><span class="num">1</span>Vidéo</button>
+    <button class="onglet" role="tab" data-onglet="2" style="--c:var(--blue)"><span class="num">2</span>Étalonnage</button>
+    <button class="onglet" role="tab" data-onglet="3" style="--c:var(--green)"><span class="num">3</span>Pointage<span class="compteur-onglet" id="nb-pts-onglet"></span></button>
+    <button class="onglet" role="tab" data-onglet="4" style="--c:var(--brown)"><span class="num">4</span>Résultats</button>
+    <button class="onglet" role="tab" data-onglet="5" style="--c:var(--red)"><span class="num">5</span>Graphiques</button>
+    <button class="onglet" role="tab" data-onglet="6" style="--c:var(--amber)"><span class="num">6</span>Mesures<span class="compteur-onglet" id="nb-mes-onglet"></span></button>
+    <button class="onglet" role="tab" data-onglet="7" style="--c:var(--purple)"><span class="num">7</span>Chronophotographie</button>
+  </nav>
+
+  <div class="app-corps">
+
+    <!-- vidéo (onglets 1 à 3) -->
+    <div class="zone-video">
+      <div id="video-placeholder">Choisir une vidéo</div>
+      <div id="video-container" class="hidden">
+        <div id="video-wrap">
+          <video id="vid" preload="auto" playsinline></video>
+          <canvas id="overlay-canvas"></canvas>
+          <canvas id="click-canvas"></canvas>
+        </div>
+        <!-- navigation dans la vidéo, sous la vidéo -->
+          <div class="nav-video hidden" id="nav-video">
+            <input type="range" id="scrubber" min="0" value="0" step="1">
+            <div id="nav-bar">
+              <button id="btn-prev" disabled aria-label="Image précédente">◀</button>
+              <button id="btn-next" disabled aria-label="Image suivante">▶</button>
+              <span class="info-pill" id="pill-frame">Image — / —</span>
+              <span class="info-pill" id="pill-time">t = — s</span>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- panneau à droite de la vidéo (onglets 1 à 3) -->
+    <div class="zone-cote">
+
+      <section class="panneau" data-panneau="1" style="--c:var(--video)">
+        <h2 class="titre">Vidéo</h2>
+        <p class="consigne">Choisissez une vidéo intégrée ou chargez la vôtre, puis vérifiez la fréquence d'images. Une vidéo correspond à un lâcher : en charger une nouvelle remet le pointage et l'étalonnage à zéro, mais conserve la série de mesures (onglet 6).</p>
+        <div class="field">
+          <label>Choisir une vidéo intégrée</label>
+          <select id="sel-video-preset" onchange="loadPresetVideo(this.value)" style="min-width:190px;">
+                <option value="">— Choisir —</option>
+                <option value="LancerFranc_mp4.mp4" data-fps="25">Lancer franc (basket)</option>
+                <option value="chute-balle-verticale.mp4" data-fps="25">Chute verticale d'une balle</option>
+                <option value="chute-petanque-verticale.mp4" data-fps="25">Chute verticale d'une boule de pétanque</option>
+                <option value="vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,2 N</option>
+                <option value="vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4" data-fps="25">Masse 631 g soumise à une force de 0,4 N</option>
+                <option value="lancer-boite-allumettes-1.mp4" data-fps="25">Lancer d'une boîte d'allumettes (1)</option>
+                <option value="lancer-boite-allumettes-2.mp4" data-fps="25">Lancer d'une boîte d'allumettes (2)</option>
+                <option value="lancer-boite-allumettes-3.mp4" data-fps="25">Lancer d'une boîte d'allumettes (3)</option>
+                <option value="lancer-boite-allumettes-4.mp4" data-fps="25">Lancer d'une boîte d'allumettes (4)</option>
+                <option value="pendule-simple-14cm.mp4" data-fps="25">Pendule simple (L = 14 cm)</option>
+                <option value="pendule-simple-25cm.mp4" data-fps="25">Pendule simple (L = 25 cm)</option>
+                <option value="pendule-simple-45cm.mp4" data-fps="25">Pendule simple (L = 45 cm)</option>
+              </select>
+        </div>
+        <div class="ou">ou</div>
+        <button class="primary" onclick="document.getElementById('input-video').click()">Charger une vidéo personnelle</button>
+        <input type="file" id="input-video" accept="video/*" style="display:none;">
+        <div class="row" style="margin-top:16px;">
+          <div class="field"><label>Fréquence (img/s)</label>
+            <input type="number" id="fps" value="25" min="1" max="240" step="1" style="width:90px;"></div>
+        </div>
+        <div id="pill-video" class="info-pill warn" style="margin-top:12px;">Aucune vidéo chargée</div>
+        <label class="vec-check" style="margin-top:12px;"><input type="checkbox" id="garder-calib" checked> Caméra fixe : garder l'étalonnage et le repère pour la vidéo suivante</label>
+        <div class="ident">
+          <div class="ident-titre">Identification de l'essai <span class="hint">(nom des fichiers exportés)</span></div>
+          <div class="row">
+            <div class="field"><label>Groupe</label><input type="text" id="id-groupe" value="M1" style="width:70px;min-width:0;"></div>
+            <div class="field"><label>Binôme n°</label><input type="number" id="id-binome" value="1" min="1" step="1" style="width:70px;min-width:0;"></div>
+            <div class="field"><label>Mobile</label>
+              <select id="id-mobile" style="min-width:150px;">
+                <option value="chariot">Chariot</option>
+                <option value="chariot-leste">Chariot lesté</option>
+                <option value="balle">Balle de tennis</option>
+                <option value="autre">Autre</option>
+              </select></div>
+            <div class="field"><label>Lâcher n°</label><input type="number" id="id-lacher" value="1" min="1" step="1" style="width:70px;min-width:0;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panneau hidden" data-panneau="2" style="--c:var(--blue)">
+        <h2 class="titre">Étalonnage et paramètres</h2>
+              <p class="consigne">Cliquez sur deux points de la mire dont la distance est connue, indiquez cette distance, puis <b>✓ Valider</b>. Le premier point devient l'origine O. La mire doit être dans le plan du mouvement. Un 3<sup>e</sup> clic remplace le point le plus ancien.</p>
+              <div class="param-row">
+                <div class="field"><label>Distance réelle</label><input type="number" id="calib-dist" value="1" min="0.001" step="any" style="width:100px;"></div>
+                <div class="field"><label>Unité</label><input type="text" id="calib-unite" value="m" style="width:64px;min-width:0;"></div>
+                <div class="field"><label>Masse (kg)</label><input type="number" id="masse" value="" min="0" step="any" placeholder="optionnel" style="width:104px;"></div>
+              </div>
+              <div class="row">
+                <button id="btn-calib-start" class="hidden" disabled>Étalonner</button>
+                <button id="btn-calib-ok" class="ok-btn hidden" disabled>✓ Valider</button>
+                <button id="btn-calib-reset" class="danger" disabled>Recommencer l'étalonnage</button>
+              </div>
+              <div id="pill-calib" class="info-pill warn" style="margin-top:12px;">Vidéo non chargée</div>
+              <div class="log-line" id="log-calib"></div>
+              <div class="ident">
+                <div class="ident-titre">Orientation du repère</div>
+                <p class="consigne" style="font-size:13px;">Par défaut, x est horizontal et y vertical. Pour un plan incliné, orientez x le long du rail : cliquez deux points du rail, du haut vers le bas (sens du mouvement). z reste la hauteur verticale, utilisée pour l'énergie potentielle.</p>
+                <div class="row">
+                  <button id="btn-axe-start" disabled>Orienter l'axe x</button>
+                  <button id="btn-axe-reset" disabled>Axe horizontal</button>
+                </div>
+                <div id="pill-axe" class="info-pill" style="margin-top:10px;">Axe x horizontal (θ = 0°)</div>
+              </div>
+      </section>
+
+      <section class="panneau hidden" data-panneau="3" style="--c:var(--green)">
+        <h2 class="titre">Pointage <span class="compteur" id="nb-pts">0 point</span></h2>
+              <p class="consigne">Placez la croix sur le mobile puis cliquez <b>Pointer</b> (ou <span class="kbd">Espace</span>) : la vidéo avance automatiquement.</p>
+              <div class="row">
+                <button id="btn-point" class="primary" disabled>● Pointer</button>
+                <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+                  <label for="auto-step">Avance auto</label>
+                  <input type="number" id="auto-step" value="1" min="1" max="50" step="1" style="width:64px;min-width:0;">
+                  <label>img</label>
+                </div>
+              </div>
+              <ul class="liste-pts" id="liste-pts" aria-label="Points enregistrés"><li class="vide">Aucun point enregistré.</li></ul>
+              <div class="row">
+                <button id="btn-undo" class="danger" disabled>Supprimer dernier</button>
+                <button id="btn-clear-pts" class="danger" disabled>Effacer les points</button>
+              </div>
+              <div class="row">
+                <button id="btn-reset-all" class="danger" title="Efface les points, l'étalonnage, les graphiques et la chronophotographie">Tout réinitialiser</button>
+              </div>
+              <details class="aide">
+                <summary>Conseils de pointage</summary>
+                <ul>
+                  <li>le premier point pointé fixe t = 0</li>
+                  <li>vise toujours le même endroit du mobile (son centre)</li>
+                  <li>avec une vidéo à 60 img/s, une avance auto de 2 ou 3 lisse les vitesses</li>
+                  <li>✕ supprime un point précis, que vous pouvez ensuite repointer</li>
+                  <li>le travail est sauvegardé automatiquement ; « Sauvegarder la session » (onglet 4) permet de le reprendre sur un autre appareil</li>
+                </ul>
+              </details>
+      </section>
+
+    </div>
+
+    <!-- panneaux pleine largeur (onglets 4 à 6) -->
+    <div class="zone-large">
+
+      <section class="panneau hidden" data-panneau="4" style="--c:var(--brown)">
+        <h2 class="titre">Résultats</h2>
+        <p class="consigne">Le tableau se remplit à chaque point pointé. Vitesses et accélérations : dérivée centrée v<sub>i</sub> = (x<sub>i+1</sub> − x<sub>i−1</sub>)/(t<sub>i+1</sub> − t<sub>i−1</sub>), d'où l'absence de valeur aux extrémités. La dérivation amplifie le bruit de pointage : pour a, préférez l'ajustement de x(t) ou v(t) (onglet 5) à la lecture point par point.</p>
+          <div class="hint" style="margin:0 0 6px;">Colonnes affichées <span class="max-warn hidden" id="max-warn"></span> — le CSV complet contient toutes les grandeurs.</div>
+          <div class="col-toggle-bar" id="col-toggle-bar"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr id="tr-head"></tr></thead>
+              <tbody id="tbody-pts"><tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);">
+            <button id="btn-export-tp" class="primary" disabled title="Colonnes t (s) et x (m), fichier nommé d'après l'identification de l'essai (onglet 1)">⬇ CSV du TP (t ; x)</button>
+            <button id="btn-export-csv" disabled>⬇ CSV complet</button>
+            <div class="field" style="flex-direction:row;align-items:center;gap:6px;">
+              <label>format</label>
+              <select id="csv-sep" style="min-width:0;">
+                <option value="fr">Excel FR (; et virgule)</option>
+                <option value="en">standard (, et point)</option>
+              </select>
+            </div>
+            <span class="sep"></span>
+            <button id="btn-export-session" disabled title="Exporter tous les points + étalonnage pour les réimporter plus tard">Sauvegarder la session</button>
+            <button id="btn-import-session" title="Charger une session sauvegardée">Charger une session</button>
+            <input type="file" id="input-session" accept=".json" style="display:none;">
+          </div>
+      </section>
+
+      <section class="panneau hidden" data-panneau="5" style="--c:var(--red)">
+        <h2 class="titre">Graphiques et modélisation</h2>
+        <p class="consigne">Modélisation par moindres carrés, avec l'incertitude-type de chaque paramètre. Pour une accélération : modèle affine sur Vx(t) (a = pente) ou parabole sur x(t) (a = 2 × coefficient de t²), puis <b>Retenir</b> pour l'ajouter à la série de mesures (onglet 6). Frottement : ΔEm en fonction de x est affine, de pente −f.</p>
+          <div id="graphs-container"></div>
+          <button id="btn-add-graph" disabled>+ Ajouter un graphique</button>
+      </section>
+
+      <section class="panneau hidden" data-panneau="6" style="--c:var(--amber)">
+        <h2 class="titre">Mesures et incertitudes</h2>
+        <p class="consigne">Chaque lâcher retenu (onglet 5) s'ajoute à la série, regroupée par mobile et par inclinaison. La série est conservée quand vous changez de vidéo.</p>
+        <div class="mes-grille">
+          <div class="carte-mes">
+            <h3>Modèle : a<sub>th</sub> = g·sin α</h3>
+            <div class="row">
+              <div class="field"><label>h (m)</label><input type="number" id="th-h" step="any" style="width:90px;"></div>
+              <div class="field"><label>u(h) (m)</label><input type="number" id="th-uh" step="any" style="width:90px;"></div>
+              <div class="field"><label>L (m)</label><input type="number" id="th-L" step="any" style="width:90px;"></div>
+              <div class="field"><label>u(L) (m)</label><input type="number" id="th-uL" step="any" style="width:90px;"></div>
+              <div class="field"><label>g (m/s²)</label><input type="number" id="th-g" value="9.81" step="any" style="width:80px;"></div>
+            </div>
+            <p class="hint">Lecture unique sur un réglet : u = graduation/√12 (1 mm → 0,29 mm). Deux lectures (début et fin) : multiplier par √2.</p>
+            <div id="th-res" class="th-res">Renseignez h et L.</div>
+          </div>
+          <div class="carte-mes">
+            <h3>Lâchers retenus</h3>
+            <div class="table-wrap" style="max-height:260px;">
+              <table>
+                <thead><tr><th>#</th><th>mobile</th><th>lâcher</th><th>sin α</th><th>a (m/s²)</th><th>u<sub>ajust</sub>(a)</th><th>méthode</th><th></th></tr></thead>
+                <tbody id="tbody-mes"><tr><td class="no-data" colspan="8">Aucun lâcher retenu.</td></tr></tbody>
+              </table>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <button id="btn-mes-csv" disabled>⬇ CSV des mesures</button>
+              <button id="btn-mes-clear" class="danger" disabled>Vider la série</button>
+            </div>
+          </div>
+        </div>
+        <div class="carte-mes">
+          <h3>Comparaison au modèle</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>mobile</th><th>sin α</th><th>n</th><th>ā (m/s²)</th><th>s</th><th>u(ā)</th><th>a<sub>th</sub></th><th>u(a<sub>th</sub>)</th><th>z</th><th>μ apparent</th><th>conclusion</th></tr></thead>
+              <tbody id="tbody-stats"><tr><td class="no-data" colspan="11">—</td></tr></tbody>
+            </table>
+          </div>
+          <p class="hint" style="margin-top:6px;">u(ā) = s/√n (type A) si n ≥ 2, sinon incertitude d'ajustement. z = |ā − a<sub>th</sub>| / √(u(ā)² + u(a<sub>th</sub>)²) ; z ≤ 2 : compatible. μ apparent = (g·sin α − ā)/(g·cos α), dans le modèle du frottement solide.</p>
+        </div>
+        <div class="carte-mes">
+          <h3>Prolongement : a en fonction de sin α</h3>
+          <div class="row">
+            <div class="field"><label>Mobile</label><select id="sina-mobile" style="min-width:150px;"></select></div>
+          </div>
+          <canvas id="cv-sina" class="chart-cv" height="260"></canvas>
+          <div id="sina-res" class="hint" style="margin-top:6px;">Il faut au moins deux inclinaisons différentes pour un même mobile.</div>
+        </div>
+      </section>
+
+      <section class="panneau hidden" data-panneau="7" style="--c:var(--purple)">
+        <div class="chrono-grille">
+          <div class="chrono-reglages">
+            <h2 class="titre">Chronophotographie</h2>
+            <p class="consigne">Une seule image de fond, les positions redessinées par-dessus. Décochez les points dont vous ne voulez pas afficher les vecteurs.</p>
+          <div class="table-wrap" style="max-height:220px;margin-bottom:14px;">
+            <table>
+              <thead><tr>
+                <th style="width:28px;">V</th>
+                <th>#</th><th>img</th><th>t (s)</th>
+                <th id="chrono-th-x">x</th><th id="chrono-th-y">y</th>
+                <th id="chrono-th-v">V</th><th id="chrono-th-a">A</th>
+              </tr></thead>
+              <tbody id="tbody-chrono"><tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <div class="field"><label>Fond</label>
+              <select id="chrono-bg" style="min-width:130px;">
+                <option value="first">1ère image</option>
+                <option value="last">Dernière image</option>
+                <option value="black">Noir</option>
+                <option value="white">Blanc</option>
+              </select></div>
+            <div class="field"><label>Marqueurs</label>
+              <select id="chrono-label-style" style="min-width:110px;">
+                <option value="M">M0, M1…</option>
+                <option value="num">1, 2…</option>
+                <option value="none">Aucun</option>
+              </select></div>
+            <div class="field"><label>Couleur</label><input type="color" id="chrono-color-pts" value="#ffffff"></div>
+            <label class="vec-check"><input type="checkbox" id="chrono-traj" checked> Trajectoire</label>
+          </div>
+          <div class="row" style="padding-top:12px;margin-top:12px;border-top:1px solid var(--rule);">
+            <label class="vec-check"><input type="checkbox" id="chrono-vec-v"> Vecteur vitesse</label>
+            <div class="field"><label>Couleur</label><input type="color" id="chrono-color-v" value="#ffd700"></div>
+            <label class="vec-check"><input type="checkbox" id="chrono-vec-a"> Vecteur accélération</label>
+            <div class="field"><label>Couleur</label><input type="color" id="chrono-color-a" value="#ff4444"></div>
+            <div class="field"><label>Échelle des vecteurs</label>
+              <input type="number" id="chrono-vec-echelle" value="30" min="1" max="500" step="5" style="width:90px;"></div>
+          </div>
+          <div class="row" style="margin-top:14px;">
+            <button id="btn-chrono" class="primary" disabled>Générer</button>
+            <button id="btn-chrono-dl" disabled>⬇ Télécharger PNG</button>
+            <span id="chrono-progress" class="hint hidden" style="align-self:center"></span>
+          </div>
+          </div>
+          <div class="chrono-image">
+            <div class="chrono-vide" id="chrono-vide">L'image apparaîtra ici après « Générer ».</div>
+            <canvas id="canvas-chrono" class="hidden"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const COLORS=['#1c3d6e','#a63020','#2a5c3a','#6b3a1c','#3a1c6b','#1c5e6b','#7a4e00','#3a3a1c','#5c2a2a','#2d200a'];
+const CHART_AXIS='#87704c',CHART_GRID='rgba(28,18,8,0.10)',MODEL_COLOR='#a63020';
+const VIOLET='#6c3483',VERT_TR='#1a6e3c';
+const $=id=>document.getElementById(id);
+
+// ══ COLONNES — ordre pédagogique + séparateur visuel ══
+// Groupe 1 (prioritaire) : V A Ec Ep Em
+// Groupe 2 (complémentaire) : d α Vx Vy Ax Ay
+const ALL_COLS=[
+  {id:'Vx',  label:'Vx',  unit:'u/s',   grp:1},
+  {id:'V',   label:'V',   unit:'u/s',   grp:1},
+  {id:'Ax',  label:'Ax',  unit:'u/s²',  grp:1},
+  {id:'A',   label:'A',   unit:'u/s²',  grp:1},
+  {id:'z',   label:'z',   unit:'u',     grp:2},
+  {id:'Ec',  label:'Ec',  unit:'J',     grp:2, energy:true},
+  {id:'Ep',  label:'Ep',  unit:'J',     grp:2, energy:true},
+  {id:'Em',  label:'Em',  unit:'J',     grp:2, energy:true},
+  {id:'dEm', label:'ΔEm', unit:'J',     grp:2, energy:true},
+];
+const MAX_EXTRA_COLS=99; // plus de limite : seules V, A, Ec, Ep, Em sont proposées
+let activeCols=new Set(['Vx','Ax']);
+
+function buildColToggles(){
+  const bar=$('col-toggle-bar');bar.innerHTML='';
+  let lastGrp=0;
+  ALL_COLS.forEach(col=>{
+    if(col.grp!==lastGrp&&lastGrp!==0){
+      const sep=document.createElement('span');sep.className='col-sep';bar.appendChild(sep);
+    }
+    lastGrp=col.grp;
+    const label=document.createElement('label');
+    label.className='col-toggle'+(col.energy&&!hasMasse()?' disabled-toggle':'');
+    const cb=document.createElement('input');cb.type='checkbox';cb.id='col-cb-'+col.id;
+    cb.checked=activeCols.has(col.id);cb.disabled=col.energy&&!hasMasse();
+    cb.addEventListener('change',()=>{
+      if(cb.checked){if(activeCols.size>=MAX_EXTRA_COLS){cb.checked=false;return;}activeCols.add(col.id);}
+      else{activeCols.delete(col.id);}
+      updateMaxWarn();refreshTableHeader();refreshTable();
+    });
+    const unitStr=col.unit.replace(/u/g,calibUnit||'m');
+    label.appendChild(cb);label.appendChild(document.createTextNode(col.label+' ('+unitStr+')'));
+    bar.appendChild(label);
+  });
+  updateMaxWarn();
+}
+function updateMaxWarn(){
+  $('max-warn').classList.toggle('hidden',activeCols.size<MAX_EXTRA_COLS);
+  ALL_COLS.forEach(col=>{
+    const cb=$('col-cb-'+col.id);if(!cb)return;
+    cb.disabled=(activeCols.size>=MAX_EXTRA_COLS&&!activeCols.has(col.id))||(col.energy&&!hasMasse());
+    const label=cb.closest('.col-toggle');if(label)label.classList.toggle('disabled-toggle',cb.disabled&&!activeCols.has(col.id));
+  });
+}
+function hasMasse(){return isFinite(parseFloat($('masse').value))&&parseFloat($('masse').value)>0;}
+
+// ══ ÉTAT ══
+let videoLoaded=false,fps=25,totalFrames=0,currentFrame=0,duration=0;
+let calibMode=false,calibPts=[],calibDone=false;
+let pxPerUnit=null,originPx={x:0,y:0},calibUnit='m';
+// repère tourné : axeAngle = direction de l'axe x (rad) dans le repère du labo (X à droite, Z vers le haut)
+let axeAngle=0,axeMode=false,axePts=[];
+let memoCalib=null; // étalonnage gardé d'une vidéo à l'autre (caméra fixe)
+let points=[],derived=[],GRANDEURS=[],lignes=[];
+let history=[]; // ordre de saisie, pour l'annulation
+let graphs=[],graphCount=0,chronoDone=false;
+
+// ══ VIDÉO ══
+let currentPresetUrl='';
+const PRESET_VIDEOS=[
+  {url:'LancerFranc_mp4.mp4', label:'Lancer franc (basket)', fps:25},
+  {url:'chute-balle-verticale.mp4', label:'Chute verticale d\'une balle', fps:25},
+  {url:'chute-petanque-verticale.mp4', label:'Chute verticale d\'une boule de pétanque', fps:25},
+  {url:'vid%C3%A9o%201_masse%20631g_Force%200%2C2N%20-%20format%20avi.mp4', label:'Masse 631 g soumise à une force de 0,2 N', fps:25},
+  {url:'vid%C3%A9o%202_masse%20631g_Force%200%2C4N%20-%20format%20avi.mp4', label:'Masse 631 g soumise à une force de 0,4 N', fps:25},
+  {url:'lancer-boite-allumettes-1.mp4', label:'Lancer d\'une boîte d\'allumettes (1)', fps:25},
+  {url:'lancer-boite-allumettes-2.mp4', label:'Lancer d\'une boîte d\'allumettes (2)', fps:25},
+  {url:'lancer-boite-allumettes-3.mp4', label:'Lancer d\'une boîte d\'allumettes (3)', fps:25},
+  {url:'lancer-boite-allumettes-4.mp4', label:'Lancer d\'une boîte d\'allumettes (4)', fps:25},
+  {url:'pendule-simple-14cm.mp4', label:'Pendule simple (L = 14 cm)', fps:25},
+  {url:'pendule-simple-25cm.mp4', label:'Pendule simple (L = 25 cm)', fps:25},
+  {url:'pendule-simple-45cm.mp4', label:'Pendule simple (L = 45 cm)', fps:25},
+];
+
+let currentVideoLabel='';
+function memoriserCalib(){
+  const cv=$('click-canvas');
+  memoCalib=(calibDone&&$('garder-calib').checked&&cv.width)?{pts:calibPts.map(p=>({fx:p.px/cv.width,fy:p.py/cv.height})),axe:axeAngle}:null;
+}
+function restaurerCalib(){
+  const cv=$('click-canvas');if(!memoCalib||!cv.width)return;
+  calibPts=memoCalib.pts.map(p=>({px:p.fx*cv.width,py:p.fy*cv.height}));
+  axeAngle=memoCalib.axe;memoCalib=null;
+  finishCalib();majApresRepere();
+  if(ongletActif<=2)afficherOnglet(3);
+  $('pill-calib').textContent='✓ Étalonnage repris de la vidéo précédente : vérifiez qu\'il tombe sur la mire.';
+}
+function initVideoSrc(src, label){
+  const vid=$('vid');currentVideoLabel=label||'';
+  memoriserCalib();
+  videoLoaded=false;resetAll(false);
+  vid.src=src;vid.load();
+  vid.addEventListener('loadedmetadata',()=>{
+    duration=vid.duration;fps=parseFloat($('fps').value)||25;
+    totalFrames=Math.floor(duration*fps);videoLoaded=true;currentFrame=0;
+    const sc=$('scrubber');sc.max=totalFrames-1;sc.value=0;
+    seekToFrame(0);resizeCanvases();
+    $('video-container').classList.remove('hidden');$('nav-video').classList.remove('hidden');$('video-placeholder').classList.add('hidden');
+    $('pill-video').textContent=(label||'Vidéo chargée')+' · '+fmtTime(duration);$('pill-video').className='info-pill ok';
+    $('btn-calib-start').disabled=false;$('btn-prev').disabled=false;$('btn-next').disabled=false;
+    updatePillFrame();$('pill-calib').textContent='Cliquez deux points de la mire.';$('pill-calib').className='info-pill warn';
+    updateSteps();if(ongletActif<=2&&!memoCalib)afficherOnglet(2);
+    if(memoCalib)setTimeout(restaurerCalib,200); // après resizeCanvases
+  },{once:true});
+  vid.addEventListener('error',()=>{$('pill-video').textContent='Format non supporté : convertissez en MP4';$('pill-video').className='info-pill err';},{once:true});
+}
+
+function loadPresetVideo(url){
+  if(!url)return;
+  if(!confirmDiscard()){$('sel-video-preset').value=currentPresetUrl;return;}
+  currentPresetUrl=url;
+  const preset=PRESET_VIDEOS.find(v=>v.url===url);
+  if(preset?.fps){$('fps').value=preset.fps;}
+  initVideoSrc(url, preset?.label);
+}
+
+$('input-video').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(!confirmDiscard()){e.target.value='';return;}
+  $('sel-video-preset').value='';currentPresetUrl='';
+  initVideoSrc(URL.createObjectURL(f), f.name);
+});
+
+// Chargement automatique de la vidéo par défaut
+window.addEventListener('DOMContentLoaded',()=>{
+  chargerMesures();checkAutosave();updateSteps();
+});
+$('fps').addEventListener('change',()=>{fps=parseFloat($('fps').value)||25;if(videoLoaded){totalFrames=Math.floor(duration*fps);$('scrubber').max=totalFrames-1;updatePillFrame();}});
+function seekToFrame(n,fromScrubber){
+  n=Math.max(0,Math.min(n,(totalFrames-1)||0));currentFrame=n;
+  $('vid').currentTime=(n+0.5)/fps;if(!fromScrubber)$('scrubber').value=n;
+  updatePillFrame();setTimeout(()=>drawOverlay(),80);
+}
+$('vid').addEventListener('seeked',()=>drawOverlay());
+$('scrubber').addEventListener('input',e=>seekToFrame(parseInt(e.target.value),true));
+function updatePillFrame(){
+  $('pill-frame').textContent='Image '+(currentFrame+1)+' / '+(totalFrames||'?');
+  const t0=points.length?points[0].t_raw:null;
+  const tRel=t0!==null?currentFrame/fps-t0:currentFrame/fps;
+  $('pill-time').textContent='t = '+fmtT(tRel)+' s';
+}
+// taille maximale d'affichage de la vidéo (en pixels écran)
+const VIDEO_MAX_W=800,VIDEO_MAX_H=600;
+function resizeCanvases(){
+  const vid=$('vid');
+  requestAnimationFrame(()=>{
+    if(!vid.offsetWidth)return; // vidéo masquée (onglets 4 à 6) : on garde la taille actuelle
+    // taille de la vidéo : tient dans sa zone (barre de défilement comprise), sans dépasser VIDEO_MAX_W × VIDEO_MAX_H
+    const z=document.querySelector('.zone-video');
+    if(z&&vid.videoWidth){
+      const cs=getComputedStyle(z),nav=$('nav-video');
+      const navH=(nav&&nav.offsetHeight?nav.offsetHeight:80)+10;
+      const W=z.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+      const H=(window.innerWidth<=1000?window.innerHeight*0.7:z.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-navH);
+      const r=vid.videoWidth/vid.videoHeight;
+      vid.style.width=Math.floor(Math.min(W,H*r,VIDEO_MAX_W,VIDEO_MAX_H*r))+'px';
+    }
+    const w=vid.offsetWidth,h=vid.offsetHeight;
+    ['overlay-canvas','click-canvas'].forEach(id=>{const cv=$(id);cv.width=w;cv.height=h;cv.style.width=w+'px';cv.style.height=h+'px';});
+    drawOverlay();
+  });
+}
+window.addEventListener('resize',()=>{if(videoLoaded)resizeCanvases();graphs.forEach(gr=>drawGraph(gr));if(ongletActif===6)dessinerSinA();});
+$('btn-prev').addEventListener('click',()=>seekToFrame(currentFrame-1));
+$('btn-next').addEventListener('click',()=>seekToFrame(currentFrame+1));
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;
+  if(e.key==='ArrowLeft'){e.preventDefault();seekToFrame(currentFrame-1);}
+  else if(e.key==='ArrowRight'){e.preventDefault();seekToFrame(currentFrame+1);}
+  else if(e.key===' '){e.preventDefault();doPoint();}
+});
+$('click-canvas').addEventListener('click',handleVideoClick);
+$('click-canvas').addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];handleVideoClick({clientX:t.clientX,clientY:t.clientY,currentTarget:e.currentTarget});},{passive:false});
+function handleVideoClick(e){
+  if(!videoLoaded)return;
+  const cv=$('click-canvas'),rect=cv.getBoundingClientRect();
+  const sx=cv.width/rect.width,sy=cv.height/rect.height;
+  const px=(e.clientX-rect.left)*sx,py=(e.clientY-rect.top)*sy;
+  if(axeMode){
+    axePts.push({px,py});
+    if(axePts.length>=2)finirAxe();
+    else{$('pill-axe').textContent='Cliquez le 2e point du rail (vers le bas)…';drawOverlay();}
+    return;
+  }
+  if(calibMode){
+    calibPts.push({px,py});
+    if(calibPts.length>2){calibPts.shift();logCalib('Nouveau point : le plus ancien a été remplacé.');}
+    else logCalib('Point étalon '+calibPts.length+' enregistré.');
+    const n=calibPts.length;$('btn-calib-reset').disabled=false;
+    if(n===1){$('pill-calib').textContent='Cliquez le point 2…';}
+    else if(n===2){$('btn-calib-ok').classList.remove('hidden');$('btn-calib-ok').disabled=false;$('pill-calib').textContent='2 points : cliquez ✓ Valider.';$('pill-calib').className='info-pill warn';}
+    drawOverlay();return;
+  }
+  window._crosshair={px,py};drawOverlay();if(calibDone)$('btn-point').disabled=false;
+}
+
+// ══ ÉTALONNAGE ══
+$('btn-calib-start').addEventListener('click',()=>{
+  if(!videoLoaded)return;
+  calibMode=true;calibPts=[];calibDone=false;pxPerUnit=null;window._crosshair=null;
+  $('btn-calib-start').disabled=true;$('btn-calib-ok').classList.add('hidden');$('btn-calib-ok').disabled=true;
+  $('pill-calib').textContent='Cliquez le point 1 sur la vidéo…';$('pill-calib').className='info-pill warn';
+  logCalib('');drawOverlay();
+});
+$('btn-calib-ok').addEventListener('click',()=>{if(calibPts.length>=2)finishCalib();});
+$('btn-calib-reset').addEventListener('click',()=>{
+  calibMode=false;calibPts=[];calibDone=false;pxPerUnit=null;window._crosshair=null;
+  $('btn-calib-start').disabled=false;$('btn-calib-reset').disabled=true;
+  $('btn-calib-ok').classList.add('hidden');$('btn-calib-ok').disabled=true;$('btn-point').disabled=true;
+  $('pill-calib').textContent='Étalonnage réinitialisé.';$('pill-calib').className='info-pill warn';
+  logCalib('');drawOverlay();
+});
+function versReel(px,py){
+  const X=(px-originPx.x)/pxPerUnit,Z=-(py-originPx.y)/pxPerUnit;
+  const c=Math.cos(axeAngle),s=Math.sin(axeAngle);
+  return{x:X*c+Z*s,y:-X*s+Z*c,z:Z};
+}
+function recalculerPoints(){points.forEach(p=>{const r=versReel(p.xPx,p.yPx);p.xReal=r.x;p.yReal=r.y;p.zReal=r.z;});}
+// facteur de conversion de l'unité d'étalonnage vers le mètre
+function enMetres(){return{m:1,cm:0.01,mm:0.001,dm:0.1}[(calibUnit||'m').trim()]??1;}
+function valG(){const g=parseFloat($('th-g').value);return isFinite(g)&&g>0?g:9.81;}
+
+// ══ ORIENTATION DE L'AXE x ══
+function majPillAxe(){
+  if(axeMode)return;
+  const incl=Math.atan2(Math.abs(Math.sin(axeAngle)),Math.abs(Math.cos(axeAngle)));
+  $('pill-axe').textContent=axeAngle===0?'Axe x horizontal (θ = 0°)':'Axe x incliné de '+(incl*180/Math.PI).toFixed(1)+'° sur l\'horizontale de l\'image (sin = '+Math.sin(incl).toFixed(3)+')';
+  $('pill-axe').className='info-pill'+(axeAngle===0?'':' ok');
+}
+function majApresRepere(){
+  majPillAxe();$('btn-axe-reset').disabled=axeAngle===0;$('btn-axe-start').disabled=!calibDone;
+  if(calibDone){recalculerPoints();if(points.length){computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();}}
+  majTheorie();drawOverlay();autosave();
+}
+function finirAxe(){
+  axeMode=false;
+  const dX=axePts[1].px-axePts[0].px,dZ=-(axePts[1].py-axePts[0].py);
+  if(Math.hypot(dX,dZ)>=5)axeAngle=Math.atan2(dZ,dX);
+  axePts=[];majApresRepere();
+}
+$('btn-axe-start').addEventListener('click',()=>{
+  if(!calibDone)return;
+  axeMode=true;calibMode=false;axePts=[];window._crosshair=null;$('btn-point').disabled=true;
+  $('pill-axe').textContent='Cliquez le 1er point du rail (en haut)…';$('pill-axe').className='info-pill warn';drawOverlay();
+});
+$('btn-axe-reset').addEventListener('click',()=>{axeAngle=0;axePts=[];axeMode=false;majApresRepere();});
+
+function finishCalib(){
+  calibMode=false;
+  const dist=parseFloat($('calib-dist').value)||1;calibUnit=$('calib-unite').value||'m';
+  const dx=calibPts[1].px-calibPts[0].px,dy=calibPts[1].py-calibPts[0].py;
+  const distPx=Math.sqrt(dx*dx+dy*dy);pxPerUnit=distPx/dist;
+  originPx={x:calibPts[0].px,y:calibPts[0].py};calibDone=true;
+  // nouvel étalonnage : on recalcule les coordonnées des points déjà pointés (positions écran conservées)
+  recalculerPoints();
+  $('pill-calib').textContent='✓ Étalon : '+distPx.toFixed(1)+' px = '+dist+' '+calibUnit;$('pill-calib').className='info-pill ok';
+  $('btn-calib-ok').classList.add('hidden');$('btn-calib-reset').disabled=false;$('btn-calib-start').disabled=false;
+  logCalib('Échelle : '+pxPerUnit.toFixed(2)+' px/'+calibUnit+(points.length?' — '+points.length+' point(s) recalculé(s)':''));
+  $('btn-point').disabled=(window._crosshair===null);$('btn-add-graph').disabled=false;
+  if(points.length){computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();}
+  buildGrandeurs();buildColToggles();refreshTableHeader();drawOverlay();autosave();
+  $('btn-axe-start').disabled=false;majPillAxe();
+  if(ongletActif===2)afficherOnglet(3);
+}
+function logCalib(m){$('log-calib').textContent=m;}
+
+// ══ GRANDEURS ══
+function buildGrandeurs(){
+  const u=calibUnit,hasM=hasMasse();
+  GRANDEURS=[
+    {id:'g0',nom:'t',unite:'s',colorIdx:0},{id:'g1',nom:'x',unite:u,colorIdx:1},{id:'g2',nom:'y',unite:u,colorIdx:2},{id:'g14',nom:'z',unite:u,colorIdx:3},
+    {id:'g3',nom:'Vx',unite:u+'/s',colorIdx:3},{id:'g4',nom:'Vy',unite:u+'/s',colorIdx:4},{id:'g5',nom:'V',unite:u+'/s',colorIdx:0},
+    {id:'g6',nom:'Ax',unite:u+'/s²',colorIdx:1},{id:'g7',nom:'Ay',unite:u+'/s²',colorIdx:2},{id:'g8',nom:'A',unite:u+'/s²',colorIdx:5},
+    {id:'g9',nom:'d',unite:u,colorIdx:6},{id:'g10',nom:'α',unite:'°',colorIdx:7},
+  ];
+  if(hasM){GRANDEURS.push({id:'g11',nom:'Ec',unite:'J',colorIdx:8});GRANDEURS.push({id:'g12',nom:'Ep',unite:'J',colorIdx:9});GRANDEURS.push({id:'g13',nom:'Em',unite:'J',colorIdx:0});GRANDEURS.push({id:'g15',nom:'ΔEm',unite:'J',colorIdx:4});}
+  refreshGraphSelects();
+}
+
+// ══ CALCUL DÉRIVÉES ══
+function computeDerived(){
+  if(!points.length){derived=[];lignes=[];return;}
+  const n=points.length,m=parseFloat($('masse').value),hasM=isFinite(m)&&m>0,g=valG(),k=enMetres();
+  const t0=points[0].t_raw;
+  const ts=points.map(p=>p.t_raw-t0),xs=points.map(p=>p.xReal),ys=points.map(p=>p.yReal),zs=points.map(p=>p.zReal??p.yReal);
+  const Vx=ts.map((_,i)=>{
+    if(i===0||i===n-1)return null;
+    return(xs[i+1]-xs[i-1])/(ts[i+1]-ts[i-1]);
+  });
+  const Vy=ts.map((_,i)=>{
+    if(i===0||i===n-1)return null;
+    return(ys[i+1]-ys[i-1])/(ts[i+1]-ts[i-1]);
+  });
+  const V=Vx.map((vx,i)=>vx!=null?Math.sqrt(vx*vx+Vy[i]*Vy[i]):null);
+  const Ax=n<3?ts.map(()=>null):Vx.map((_,i)=>{
+    if(i===0||i===n-1||Vx[i]==null||Vx[i+1]==null||Vx[i-1]==null)return null;
+    return(Vx[i+1]-Vx[i-1])/(ts[i+1]-ts[i-1]);
+  });
+  const Ay=n<3?ts.map(()=>null):Vy.map((_,i)=>{
+    if(i===0||i===n-1||Vy[i]==null||Vy[i+1]==null||Vy[i-1]==null)return null;
+    return(Vy[i+1]-Vy[i-1])/(ts[i+1]-ts[i-1]);
+  });
+  const A=Ax.map((ax,i)=>ax!=null&&Ay[i]!=null?Math.sqrt(ax*ax+Ay[i]*Ay[i]):null);
+  let Em0=null;
+  derived=ts.map((t,i)=>{
+    const x=xs[i],y=ys[i],z=zs[i];
+    const Ec=(hasM&&V[i]!=null)?0.5*m*(V[i]*k)**2:null,Ep=hasM?m*g*z*k:null,Em=Ec!=null?Ec+Ep:null;
+    if(Em0===null&&Em!=null)Em0=Em;
+    return{t,x,y,z,Vx:Vx[i],Vy:Vy[i],V:V[i],Ax:Ax[i],Ay:Ay[i],A:A[i],d:Math.sqrt(x*x+y*y),alpha:Vx[i]!=null?Math.atan2(Vy[i],Vx[i])*180/Math.PI:null,Ec,Ep,Em,dEm:Em!=null?Em-Em0:null};
+  });
+  lignes=derived.map(d=>({g0:d.t,g1:d.x,g2:d.y,g3:d.Vx,g4:d.Vy,g5:d.V,g6:d.Ax,g7:d.Ay,g8:d.A,g9:d.d,g10:d.alpha,g11:d.Ec,g12:d.Ep,g13:d.Em,g14:d.z,g15:d.dEm}));
+  buildGrandeurs();
+}
+
+// ══ TABLEAU ══
+function refreshTableHeader(){
+  const cols=getActiveCols();
+  $('tr-head').innerHTML=`<th>img</th><th>t(s)</th><th>x(${calibUnit})</th><th>y(${calibUnit})</th>`
+    +cols.map(c=>`<th>${c.label}${c.unit?' ('+c.unit.replace(/u/g,calibUnit)+')':''}</th>`).join('')+'<th></th>';
+}
+function getActiveCols(){return ALL_COLS.filter(c=>activeCols.has(c.id)&&!(c.energy&&!hasMasse()));}
+// liste compacte des points (encadré 3, à droite de la vidéo)
+let _nbPtsPrec=0;
+function refreshListePts(){
+  const ul=$('liste-pts'),n=points.length;
+  $('nb-pts').textContent=n+(n>1?' points':' point');
+  if(!n){ul.innerHTML='<li class="vide">Aucun point enregistré.</li>';_nbPtsPrec=0;return;}
+  ul.innerHTML=points.map((p,i)=>{
+    const t=derived[i]?derived[i].t:null;
+    return`<li><span class="n">${i+1}</span><span>img ${p.frame+1}</span><span class="t">t = ${fmtT(t)} s</span><button class="danger" onclick="deletePoint(${i})" title="Supprimer ce point" aria-label="Supprimer le point ${i+1}">✕</button></li>`;
+  }).join('');
+  if(n>_nbPtsPrec)ul.scrollTop=ul.scrollHeight;
+  _nbPtsPrec=n;
+}
+function refreshTable(){
+  refreshListePts();
+  const tb=$('tbody-pts');
+  if(!derived.length){tb.innerHTML='<tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr>';return;}
+  const cols=getActiveCols();
+  tb.innerHTML=derived.map((d,i)=>{
+    const vals=cols.map(c=>{
+      const v=getColVal(d,c.id);
+      return`<td${(c.id==='V'||c.id==='A')?' style="font-weight:500"':''}>${v!=null&&isFinite(v)?fmtN4(v):'—'}</td>`;
+    }).join('');
+    return`<tr><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmtN4(d.x)}</td><td style="color:var(--blue)">${fmtN4(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
+  }).join('');
+}
+function getColVal(d,id){return{V:d.V,A:d.A,d:d.d,alpha:d.alpha,Ec:d.Ec,Ep:d.Ep,Em:d.Em,dEm:d.dEm,z:d.z,Vx:d.Vx,Vy:d.Vy,Ax:d.Ax,Ay:d.Ay}[id];}
+
+// ══ POINTAGE — points triés par frame ══
+$('btn-point').addEventListener('click',doPoint);
+function doPoint(){
+  if(!calibDone||!window._crosshair)return;
+  const r=versReel(window._crosshair.px,window._crosshair.py);
+  const t_raw=currentFrame/fps;
+  // Insérer en ordre croissant de frame (évite le bug du point ajouté en fin)
+  const newPt={frame:currentFrame,t_raw,xPx:window._crosshair.px,yPx:window._crosshair.py,xReal:r.x,yReal:r.y,zReal:r.z};
+  const insertIdx=points.findIndex(p=>p.frame>currentFrame);
+  if(insertIdx===-1)points.push(newPt);else points.splice(insertIdx,0,newPt);
+  history.push(newPt);
+  window._crosshair=null;$('btn-point').disabled=true;
+  $('btn-undo').disabled=false;$('btn-clear-pts').disabled=false;$('btn-export-csv').disabled=false;$('btn-export-session').disabled=false;$('btn-chrono').disabled=false;
+  seekToFrame(currentFrame+(parseInt($('auto-step').value)||1));
+  computeDerived();refreshTableHeader();refreshTable();refreshAllGraphs();updateTraitementHint();refreshChronoTable();refreshAllInterp();drawOverlay();autosave();
+}
+$('btn-undo').addEventListener('click',()=>{
+  if(!points.length)return;
+  const last=history.pop();const idx=last?points.indexOf(last):-1;
+  if(idx>=0)points.splice(idx,1);else points.pop();
+  if(!points.length){$('btn-undo').disabled=true;$('btn-clear-pts').disabled=true;$('btn-export-csv').disabled=true;$('btn-chrono').disabled=true;}
+  computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();drawOverlay();autosave();
+});
+$('btn-clear-pts').addEventListener('click',()=>{
+  if(!confirm('Effacer tous les points ?'))return;points=[];history=[];window._crosshair=null;
+  $('btn-undo').disabled=true;$('btn-clear-pts').disabled=true;$('btn-export-csv').disabled=true;$('btn-chrono').disabled=true;
+  computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();drawOverlay();autosave();
+});
+function deletePoint(i){
+  const [rm]=points.splice(i,1);history=history.filter(p=>p!==rm);
+  if(!points.length){$('btn-undo').disabled=true;$('btn-clear-pts').disabled=true;$('btn-export-csv').disabled=true;$('btn-chrono').disabled=true;}
+  computeDerived();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();drawOverlay();autosave();
+}
+
+// ══ CSV ══
+$('btn-export-csv').addEventListener('click',()=>{
+  const u=calibUnit,us=u+'/s',us2=u+'/s²',hasM=hasMasse();
+  const fr=$('csv-sep').value==='fr',sep=fr?';':',';
+  const f=v=>(v==null||!isFinite(v))?'':(fr?String(v).replace('.',','):String(v));
+  const head=['#','image','t(s)',`x(${u})`,`y(${u})`,`z(${u})`,`Vx(${us})`,`Vy(${us})`,`V(${us})`,`Ax(${us2})`,`Ay(${us2})`,`A(${us2})`,`d(${u})`,'alpha(deg)'];
+  if(hasM)head.push('Ec(J)','Ep(J)','Em(J)','dEm(J)');
+  const rows=[head.join(sep)];
+  derived.forEach((d,i)=>{
+    const r=[i+1,points[i].frame+1,d.t,d.x,d.y,d.z,d.Vx,d.Vy,d.V,d.Ax,d.Ay,d.A,d.d,d.alpha];
+    if(hasM)r.push(d.Ec,d.Ep,d.Em,d.dEm);
+    rows.push(r.map(f).join(sep));
+  });
+  const csv='\ufeff'+rows.join('\n')+'\n';
+  telecharger(csv,nomFichier()+'_complet.csv','text/csv;charset=utf-8');
+});
+// CSV du TP : t (s) ; x (m), le long de l'axe x choisi
+$('btn-export-tp').addEventListener('click',()=>{
+  if(!derived.length)return;
+  const k=enMetres(),fr=$('csv-sep').value==='fr',sep=fr?';':',';
+  const f=v=>{const s=String(+v.toPrecision(6));return fr?s.replace('.',','):s;};
+  const rows=['t (s)'+sep+'x (m)'];
+  derived.forEach(d=>rows.push(f(d.t)+sep+f(d.x*k)));
+  telecharger(rows.join('\n')+'\n',nomFichier()+'.csv','text/csv;charset=utf-8');
+});
+function telecharger(contenu,nom,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([contenu],{type}));a.download=nom;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function prefixeFichier(){return(($('id-groupe').value||'M1').trim().replace(/[^\w-]+/g,'')||'M1')+'_binome'+(parseInt($('id-binome').value)||1);}
+function nomFichier(){return prefixeFichier()+'_'+$('id-mobile').value+'_lacher'+(parseInt($('id-lacher').value)||1);}
+
+// ══ OVERLAY ══
+function drawOverlay(){
+  updateSteps();
+  const cv=$('overlay-canvas'),c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);
+  calibPts.forEach((p,i)=>{
+    c.beginPath();c.arc(p.px,p.py,6,0,Math.PI*2);c.strokeStyle='#f39c12';c.lineWidth=2;c.stroke();
+    c.beginPath();c.arc(p.px,p.py,2,0,Math.PI*2);c.fillStyle='#f39c12';c.fill();
+    c.fillStyle='#f39c12';c.font='bold 11px "Bricolage Grotesque",system-ui,sans-serif';c.fillText('E'+(i+1),p.px+8,p.py-6);
+  });
+  if(calibDone&&calibPts.length===2){
+    c.beginPath();c.moveTo(calibPts[0].px,calibPts[0].py);c.lineTo(calibPts[1].px,calibPts[1].py);c.strokeStyle='rgba(243,156,18,0.4)';c.lineWidth=1;c.setLineDash([4,4]);c.stroke();c.setLineDash([]);
+    const c0=Math.cos(axeAngle),s0=Math.sin(axeAngle),ox=originPx.x,oy=originPx.y;
+    c.beginPath();c.moveTo(ox,oy);c.lineTo(ox+60*c0,oy-60*s0);c.strokeStyle='rgba(192,57,43,0.85)';c.lineWidth=2;c.stroke();
+    c.beginPath();c.moveTo(ox,oy);c.lineTo(ox-44*s0,oy-44*c0);c.strokeStyle='rgba(24,95,165,0.75)';c.lineWidth=1.5;c.stroke();
+    c.fillStyle='rgba(192,57,43,.95)';c.font='bold 11px "Bricolage Grotesque",system-ui,sans-serif';c.fillText('x',ox+66*c0-3,oy-66*s0+4);
+    c.fillStyle='rgba(24,95,165,.9)';c.fillText('y',ox-50*s0-3,oy-50*c0+4);
+  }
+  axePts.forEach((p,i)=>{
+    c.beginPath();c.arc(p.px,p.py,6,0,Math.PI*2);c.strokeStyle='#c0392b';c.lineWidth=2;c.stroke();
+    c.fillStyle='#c0392b';c.font='bold 11px "Bricolage Grotesque",system-ui,sans-serif';c.fillText('R'+(i+1),p.px+8,p.py-6);
+  });
+  if(points.length>1){c.beginPath();points.forEach((p,i)=>{i===0?c.moveTo(p.xPx,p.yPx):c.lineTo(p.xPx,p.yPx);});c.strokeStyle='rgba(26,110,60,0.4)';c.lineWidth=1;c.setLineDash([2,3]);c.stroke();c.setLineDash([]);}
+  points.forEach((p,i)=>{c.beginPath();c.arc(p.xPx,p.yPx,5,0,Math.PI*2);c.fillStyle='rgba(26,110,60,0.85)';c.fill();c.strokeStyle='rgba(253,250,240,.95)';c.lineWidth=1.5;c.stroke();c.fillStyle='rgba(26,110,60,.9)';c.font='10px "Bricolage Grotesque",system-ui,sans-serif';c.fillText(i+1,p.xPx+7,p.yPx-5);});
+  const cr=window._crosshair;if(cr){c.strokeStyle='rgba(200,75,47,0.9)';c.lineWidth=1;c.beginPath();c.moveTo(cr.px-14,cr.py);c.lineTo(cr.px+14,cr.py);c.stroke();c.beginPath();c.moveTo(cr.px,cr.py-14);c.lineTo(cr.px,cr.py+14);c.stroke();c.beginPath();c.arc(cr.px,cr.py,5,0,Math.PI*2);c.lineWidth=1.5;c.stroke();}
+}
+
+// ══ GRAPHIQUES + MODÉLISATION INTÉGRÉE ══
+const MODELES_LISTE=[
+  {value:'none',       label:'— Aucun —',             desc:''},
+  {value:'constante',  label:'y = a',                 desc:'constante'},
+  {value:'lineaire',   label:'y = a·x',               desc:'linéaire'},
+  {value:'affine',     label:'y = a·x + b',           desc:'affine'},
+  {value:'parabole',   label:'y = a·x² + b·x + c',   desc:'parabole'},
+  {value:'parabole2',  label:'y = a·x²',              desc:'parabole centrée'},
+  {value:'puissance',  label:'y = a·xⁿ',              desc:'puissance'},
+  {value:'exponentiel',label:'y = a·eᵏˣ',             desc:'exponentielle'},
+  {value:'reciproque', label:'y = a/x',               desc:'hyperbole'},
+  {value:'logarithme', label:'y = a·ln(x) + b',       desc:'logarithme'},
+  {value:'sinusoide',  label:'y = A·sin(ωx+φ) + B',  desc:'sinusoïde'},
+];
+
+// Paramètres par modèle
+const MODELE_PARAMS={
+  constante:   [{n:'a'}],
+  lineaire:    [{n:'a'}],
+  affine:      [{n:'a'},{n:'b'}],
+  parabole:    [{n:'a'},{n:'b'},{n:'c'}],
+  parabole2:   [{n:'a'}],
+  puissance:   [{n:'a'},{n:'n'}],
+  exponentiel: [{n:'a'},{n:'k'}],
+  reciproque:  [{n:'a'}],
+  logarithme:  [{n:'a'},{n:'b'}],
+  sinusoide:   [{n:'A'},{n:'ω'},{n:'φ'},{n:'B'}],
+};
+
+function getPts(gr, gyId){
+  const gx=GRANDEURS.find(g=>g.id===gr.gx);
+  const gy=GRANDEURS.find(g=>g.id===gyId);
+  if(!gx||!gy)return[];
+  return lignes.map(l=>({x:l[gx.id],y:l[gy.id]})).filter(p=>p.x!=null&&p.y!=null&&isFinite(p.x)&&isFinite(p.y));
+}
+
+function addGraph(){
+  if(!calibDone||!GRANDEURS.length)return;
+  const id='gr'+(++graphCount);
+  // gr.series = [{gy, modele}]
+  const gr={id, gx:GRANDEURS[0].id,
+    series:[{gy:GRANDEURS[1]?.id||GRANDEURS[0].id, modele:null}],
+    scaleXmin:null,scaleXmax:null,scaleYmin:null,scaleYmax:null};
+  graphs.push(gr);
+  const div=document.createElement('div');div.className='graph-card';div.id='gc-'+id;
+  div.innerHTML=`
+    <div class="graph-header">
+      <span style="font-size:12px;color:var(--ink3);">Abscisse :</span>
+      <select class="graph-sel" id="gsel-x-${id}" onchange="setGraphX('${id}',this.value)"></select>
+      <div style="margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--ink3);">
+          Abscisse <button class="sc-btn" onclick="gScaleStep('${id}','xmin',-1)">−</button><span class="sc-val" id="lbl-${id}-xmin"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','xmax',-1)">−</button><span class="sc-val" id="lbl-${id}-xmax"></span><button class="sc-btn" onclick="gScaleStep('${id}','xmax',+1)">+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--ink3);">
+          Ordonnée <button class="sc-btn" onclick="gScaleStep('${id}','ymin',-1)">−</button><span class="sc-val" id="lbl-${id}-ymin"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymin',+1)">+</button>→<button class="sc-btn" onclick="gScaleStep('${id}','ymax',-1)">−</button><span class="sc-val" id="lbl-${id}-ymax"></span><button class="sc-btn" onclick="gScaleStep('${id}','ymax',+1)">+</button>
+        </div>
+        <button onclick="gAutoScale('${id}')" style="font-size:10px;padding:3px 7px;">Auto</button>
+        <button class="danger" onclick="removeGraph('${id}')" style="font-size:10px;padding:3px 7px;">✕</button>
+      </div>
+    </div>
+    <div id="series-list-${id}"></div>
+    <button onclick="addSeries('${id}')" style="font-size:10px;padding:3px 10px;margin-bottom:.4rem;">+ Ajouter une courbe</button>
+    <div style="position:relative;">
+      <canvas id="cv-${id}" class="chart-cv" height="260"></canvas>
+      <canvas id="ov-${id}" class="chart-cv" height="260" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+    </div>
+    <div class="chart-legend" id="leg-${id}"></div>
+    <div id="cur-${id}" style="display:none;font-size:11px;color:var(--blue);background:var(--blue-bg);border:.5px solid #b5d4f4;border-radius:2px;padding:3px 8px;margin-top:3px;font-weight:500;"></div>`;
+  $('graphs-container').appendChild(div);
+  gr.canvas=$('cv-'+id);gr.overlay=$('ov-'+id);
+  gr.canvas.addEventListener('mousemove',ev=>handleCursor(gr,ev));
+  gr.canvas.addEventListener('mouseleave',()=>{$('cur-'+gr.id).style.display='none';gr.overlay.getContext('2d').clearRect(0,0,gr.overlay.width,gr.overlay.height);});
+  refreshGraphSelects();
+  buildSeriesList(gr);
+  autoScale(gr);drawGraph(gr);updateSteps();
+}
+$('btn-add-graph').addEventListener('click',addGraph);
+function removeGraph(id){graphs=graphs.filter(g=>g.id!==id);const el=$('gc-'+id);if(el)el.remove();updateSteps();}
+
+function addSeries(id){
+  const gr=graphs.find(g=>g.id===id);if(!gr||!GRANDEURS.length)return;
+  // Proposer la prochaine grandeur non encore utilisée
+  const usedGy=gr.series.map(s=>s.gy);
+  const next=GRANDEURS.find(g=>!usedGy.includes(g.id))||GRANDEURS[0];
+  gr.series.push({gy:next.id,modele:null});
+  buildSeriesList(gr);
+  autoScale(gr);drawGraph(gr);
+}
+
+function removeSerie(id,si){
+  const gr=graphs.find(g=>g.id===id);if(!gr)return;
+  if(gr.series.length<=1)return; // garder au moins 1
+  gr.series.splice(si,1);
+  buildSeriesList(gr);
+  autoScale(gr);drawGraph(gr);
+}
+
+function buildSeriesList(gr){
+  const id=gr.id;
+  const container=$('series-list-'+id);if(!container)return;
+  const modeleSel=MODELES_LISTE.map(m=>`<option value="${m.value}">${m.label}${m.desc?' — '+m.desc:''}</option>`).join('');
+  container.innerHTML='';
+  gr.series.forEach((s,si)=>{
+    const color=COLORS[si%COLORS.length];
+    const sid=`${id}-s${si}`;
+    const row=document.createElement('div');
+    row.style.cssText='border:.5px solid var(--border);border-radius:2px;padding:.5rem .75rem;margin-bottom:.4rem;background:rgba(255,255,255,.35);';
+    row.id='sr-'+sid;
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.4rem;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+        <span style="font-size:12px;color:var(--ink3);">Ordonnée :</span>
+        <select class="graph-sel" id="gsel-y-${sid}" onchange="setSerieY('${id}',${si},this.value)"></select>
+        ${gr.series.length>1?`<button class="danger" onclick="removeSerie('${id}',${si})" style="font-size:10px;padding:2px 7px;margin-left:auto;">✕</button>`:''}
+      </div>
+      <div class="model-panel" style="margin:0;background:transparent;border:none;padding:.3rem 0 0;">
+        <div class="model-row" style="margin-bottom:.3rem;">
+          <div class="field"><label>Modèle</label>
+            <select class="model-sel" id="msel-${sid}" onchange="onModeleChange('${sid}')">
+              ${modeleSel}
+            </select>
+          </div>
+          <div id="mparams-${sid}" class="model-params"></div>
+          <button onclick="runModelSerie('${id}',${si})" style="padding:4px 10px;font-size:11px;align-self:flex-end;">Ajuster</button>
+        </div>
+        <div id="mresult-${sid}" class="hidden"></div>
+      </div>`;
+    container.appendChild(row);
+    // Peupler le select Y
+    const sel=$('gsel-y-'+sid);
+    if(sel){
+      sel.innerHTML=GRANDEURS.map(g=>`<option value="${g.id}">${g.nom}${g.unite?' ('+g.unite+')':''}</option>`).join('');
+      sel.value=s.gy;
+    }
+    // Si un modèle est déjà actif, remettre le sélecteur
+    if(s.modele){
+      const msel=$('msel-'+sid);
+      // retrouver le type du modèle courant (stocké dans s.modeleType)
+      if(s.modeleType&&msel)msel.value=s.modeleType;
+    }
+  });
+}
+
+function setGraphX(id,val){const gr=graphs.find(g=>g.id===id);if(gr){gr.gx=val;gAutoScale(id);drawGraph(gr);}}
+function setSerieY(id,si,val){
+  const gr=graphs.find(g=>g.id===id);if(!gr)return;
+  gr.series[si].gy=val;gAutoScale(id);drawGraph(gr);
+}
+
+function refreshGraphSelects(){
+  graphs.forEach(gr=>{
+    // X
+    const selX=$('gsel-x-'+gr.id);if(selX){
+      const cur=selX.value;
+      selX.innerHTML=GRANDEURS.map(g=>`<option value="${g.id}">${g.nom}${g.unite?' ('+g.unite+')':''}</option>`).join('');
+      if(GRANDEURS.find(g=>g.id===cur))selX.value=cur;
+      gr.gx=selX.value;
+    }
+    // Y de chaque série
+    gr.series.forEach((s,si)=>{
+      const sid=`${gr.id}-s${si}`;
+      const selY=$('gsel-y-'+sid);if(!selY)return;
+      const cur=selY.value;
+      selY.innerHTML=GRANDEURS.map(g=>`<option value="${g.id}">${g.nom}${g.unite?' ('+g.unite+')':''}</option>`).join('');
+      if(GRANDEURS.find(g=>g.id===cur))selY.value=cur;
+      s.gy=selY.value;
+    });
+  });
+}
+function refreshAllGraphs(){graphs.forEach(gr=>{autoScale(gr);drawGraph(gr);});}
+
+// Modélisation par série
+function runModelSerie(id,si){
+  const gr=graphs.find(g=>g.id===id);if(!gr)return;
+  const s=gr.series[si];
+  const sid=`${id}-s${si}`;
+  const type=$('msel-'+sid)?.value;
+  const res=$('mresult-'+sid);if(!res)return;
+  const pts=getPts(gr,s.gy);
+  if(type==='none'||pts.length<2){s.modele=null;s.modeleType=null;if(res)res.classList.add('hidden');drawGraph(gr);return;}
+  const fixed=getFixedParams(sid,type);
+  const m=ajuster(type,pts,fixed);
+  s.modele=m;s.modeleType=type;
+  fillParamValues(sid,type,m);
+  if(m.invalid){res.className='model-box bad';res.innerHTML=m.msg||'Ce modèle nécessite des valeurs strictement positives.';res.classList.remove('hidden');drawGraph(gr);return;}
+  const gx=GRANDEURS.find(g=>g.id===gr.gx),gy=GRANDEURS.find(g=>g.id===s.gy);
+  const nomY=gy?.nom||'y',nomX=gx?.nom||'x';
+  const modDesc=MODELES_LISTE.find(ml=>ml.value===type)?.desc||'';
+  let label=m.label.replace(/\b[xy]\b/g,c=>c==='y'?nomY:nomX);
+  let oh='';
+  if(m.outliers?.length){const o=m.outliers[0];oh=`<div style="margin-top:.3rem;padding:.2rem .5rem;background:#fdf0ef;border:.5px solid #f7c1c1;border-radius:2px;font-size:10px;color:var(--red);">⚠ Point ${o.idx} dégrade fortement la modélisation (ΔR²= +${o.gain.toFixed(3)})</div>`;}
+
+  let statsHtml,cls;
+  if(type==='constante'){
+    const n=pts.length;
+    const mean=m.a;
+    const sd=n>1?Math.sqrt(pts.reduce((s,p)=>{const d=p.y-mean;return s+d*d;},0)/(n-1)):NaN;
+    cls='ok';
+    statsHtml=`moyenne = ${fmtN4(mean)}    s = ${fmtN4(sd)}    u = s/√n = ${fmtN4(sd/Math.sqrt(n))}`;
+  } else {
+    const r2=m.r2;
+    const q=r2>=0.99?'✓ Excellente':r2>=0.95?'✓ Bonne':r2>=0.85?'△ Approximative':'✗ Insuffisante';
+    cls=r2>=0.99?'ok':r2>=0.90?'':r2>=0.85?'warn':'bad';
+    statsHtml=`R² = ${r2.toFixed(5)} — ${q}`;
+  }
+  res.className='model-box '+cls;
+  let uHtml='';
+  if(m.u&&type!=='constante'){
+    uHtml='<div class="model-u">'+Object.keys(m.u).map(nm=>`${nm} = ${fmtU(m[nm],m.u[nm])}${m.u[nm]===0?' (fixé)':''}`).join('    ')+'</div>';
+  }
+  s.acc=accCandidat(gx,gy,type,m);
+  let btn='';
+  if(s.acc)btn=`<div><button class="btn-retenir primary" onclick="retenirAcc('${id}',${si})">Retenir a = ${fmtU(s.acc.a,s.acc.u)} m/s²</button><span class="hint" id="ret-${sid}"></span></div>`;
+  res.innerHTML=`<div class="model-eqn">${label}${modDesc?` <span style="font-size:10px;font-weight:400;opacity:.7;">— ${modDesc}</span>`:''}</div>${uHtml}<div class="model-r2">${statsHtml}</div>${oh}${btn}`;
+  res.classList.remove('hidden');
+  drawGraph(gr);
+}
+
+// accélération déductible du modèle : pente de v(t), ou 2 × coefficient de t² pour une position
+function accCandidat(gx,gy,type,m){
+  if(!gx||!gy||gx.id!=='g0'||!m.u)return null;
+  const k=enMetres(),pos=['g1','g2','g14'],vit=['g3','g4','g5'];
+  if(type==='parabole'&&pos.includes(gy.id))return{a:Math.abs(2*m.a)*k,u:2*m.u.a*k,methode:'parabole '+gy.nom+'(t)'};
+  if((type==='affine'||type==='lineaire')&&vit.includes(gy.id))return{a:Math.abs(m.a)*k,u:m.u.a*k,methode:'affine '+gy.nom+'(t)'};
+  return null;
+}
+function retenirAcc(id,si){
+  const gr=graphs.find(g=>g.id===id),s=gr?.series[si];if(!s?.acc)return;
+  if(currentVideoLabel&&mesures.some(m=>m.video===currentVideoLabel&&m.mobile===$('id-mobile').value)&&!confirm('Un lâcher a déjà été retenu pour cette vidéo. L\'ajouter quand même ?'))return;
+  const th=lireTheorie(),mobile=$('id-mobile').value,lacher=parseInt($('id-lacher').value)||1;
+  mesures.push({mobile,lacher,sina:th.sina,usina:th.usina,a:s.acc.a,ua:s.acc.u,methode:s.acc.methode,video:currentVideoLabel,n:getPts(gr,s.gy).length});
+  $('id-lacher').value=lacher+1;
+  sauverMesures();majMesures();
+  const el=$('ret-'+id+'-s'+si);
+  if(el)el.textContent=' ✓ ajouté : '+libMobile(mobile)+', lâcher '+lacher+(th.sina==null?' (sin α non renseigné : onglet 6)':'');
+}
+
+// Conserver runModel comme alias pour la compatibilité (inutilisé désormais)
+function onModeleChange(id){
+  const type=$('msel-'+id).value;
+  const container=$('mparams-'+id);
+  container.innerHTML='';
+  if(!type||type==='none')return;
+  const params=MODELE_PARAMS[type]||[];
+  params.forEach(p=>{
+    const wrap=document.createElement('span');wrap.className='model-param';wrap.id=`mpwrap-${id}-${p.n}`;
+    const cbWrap=document.createElement('label');cbWrap.style.cssText='display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--ink3);cursor:pointer;';
+    const cb=document.createElement('input');cb.type='checkbox';cb.style.cssText='width:12px;height:12px;cursor:pointer;accent-color:var(--blue);';
+    cb.id=`mpfix-${id}-${p.n}`;cb.title='Fixer ce paramètre';
+    cb.addEventListener('change',()=>updateParamState(id,p.n));
+    cbWrap.appendChild(cb);cbWrap.appendChild(document.createTextNode('fix'));
+    const lbl=document.createElement('label');lbl.textContent=p.n+'=';lbl.style.cssText='font-size:11px;color:var(--ink3);';
+    const inp=document.createElement('input');inp.type='number';inp.step='any';inp.id=`mpval-${id}-${p.n}`;
+    inp.style.cssText='font-family:var(--font);font-size:11px;border:.5px solid var(--border);border-radius:2px;background:var(--cream);color:var(--ink);padding:2px 5px;width:76px;min-height:0;';
+    inp.placeholder='—';
+    inp.addEventListener('change',()=>{if($(`mpfix-${id}-${p.n}`)?.checked)runModelSerie(...id.split('-s').map((v,i)=>i===0?v:parseInt(v)));});
+    wrap.appendChild(cbWrap);wrap.appendChild(lbl);wrap.appendChild(inp);
+    container.appendChild(wrap);
+  });
+}
+
+function updateParamState(sid,pn){
+  const inp=$(`mpval-${sid}-${pn}`);const cb=$(`mpfix-${sid}-${pn}`);if(!inp||!cb)return;
+  inp.style.background=cb.checked?'var(--amber-bg)':'var(--cream)';
+  inp.style.borderColor=cb.checked?'#f0d090':'var(--border)';
+  if(cb.checked&&inp.value.trim()===''){
+    cb.checked=false;inp.style.background='var(--cream)';inp.style.borderColor='var(--border)';return;
+  }
+  // sid = "gr1-s0" → graphId="gr1", si=0
+  const parts=sid.split('-s');const graphId=parts[0],si=parseInt(parts[1]);
+  runModelSerie(graphId,si);
+}
+
+// Lire les paramètres fixés (checkbox cochée ET valeur saisie)
+function getFixedParams(id,type){
+  const params=MODELE_PARAMS[type]||[];
+  const fixed={};
+  params.forEach(p=>{
+    const cb=$(`mpfix-${id}-${p.n}`),inp=$(`mpval-${id}-${p.n}`);
+    if(cb?.checked&&inp&&inp.value.trim()!==''){fixed[p.n]=parseFloat(inp.value);}
+  });
+  return fixed;
+}
+
+// Mettre à jour les valeurs calculées dans les champs
+function fillParamValues(id,type,m){
+  const params=MODELE_PARAMS[type]||[];
+  params.forEach(p=>{
+    const inp=$(`mpval-${id}-${p.n}`);const cb=$(`mpfix-${id}-${p.n}`);
+    if(!inp)return;
+    const val=m[p.n];
+    if(!cb?.checked&&val!=null&&isFinite(val)){
+      inp.value=parseFloat(val.toPrecision(6));
+      inp.style.background='var(--cream)';inp.style.borderColor='var(--border)';
+    }
+  });
+}
+
+// Moindres carrés linéaires y = Σ p_j·f_j(x), paramètres fixés soustraits.
+// u(p_j) = √(s²·[(FᵀF)⁻¹]_jj) avec s² = Σ résidus² / (n − nombre de paramètres libres)
+const POLY={
+  constante:{noms:['a'],f:[x=>1]},
+  lineaire:{noms:['a'],f:[x=>x]},
+  affine:{noms:['a','b'],f:[x=>x,x=>1]},
+  parabole:{noms:['a','b','c'],f:[x=>x*x,x=>x,x=>1]},
+  parabole2:{noms:['a'],f:[x=>x*x]},
+};
+function inverser(M){
+  const n=M.length,A=M.map((row,i)=>[...row,...M.map((_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let piv=col;for(let r=col+1;r<n;r++)if(Math.abs(A[r][col])>Math.abs(A[piv][col]))piv=r;
+    if(Math.abs(A[piv][col])<1e-300)return null;
+    [A[col],A[piv]]=[A[piv],A[col]];
+    const d=A[col][col];for(let c=0;c<2*n;c++)A[col][c]/=d;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=A[r][col];if(f)for(let c=0;c<2*n;c++)A[r][c]-=f*A[col][c];}
+  }
+  return A.map(row=>row.slice(n));
+}
+function moindresCarres(pts,P,fixed){
+  const libres=P.noms.map((_,j)=>j).filter(j=>fixed[P.noms[j]]===undefined);
+  const yr=pts.map(p=>p.y-P.noms.reduce((s,nm,j)=>fixed[nm]!==undefined?s+fixed[nm]*P.f[j](p.x):s,0));
+  const res={u:{}},n=pts.length,k=libres.length;
+  P.noms.forEach(nm=>{if(fixed[nm]!==undefined){res[nm]=fixed[nm];res.u[nm]=0;}});
+  if(!k)return res;
+  if(n<k)return null;
+  const M=libres.map(a=>libres.map(b=>pts.reduce((s,p)=>s+P.f[a](p.x)*P.f[b](p.x),0)));
+  const B=libres.map(a=>pts.reduce((s,p,i)=>s+P.f[a](p.x)*yr[i],0));
+  const Mi=inverser(M);if(!Mi)return null;
+  const sol=Mi.map(row=>row.reduce((s,v,j)=>s+v*B[j],0));
+  libres.forEach((j,i)=>res[P.noms[j]]=sol[i]);
+  const ss=pts.reduce((s,p,i)=>{const f=libres.reduce((t,j,ii)=>t+sol[ii]*P.f[j](p.x),0);return s+(yr[i]-f)**2;},0);
+  const s2=n>k?ss/(n-k):NaN;
+  libres.forEach((j,i)=>res.u[P.noms[j]]=Math.sqrt(s2*Mi[i][i]));
+  return res;
+}
+function ajuster(type,pts,fixed={}){
+  let r={};
+  function S(fn){return pts.reduce((s,p)=>s+fn(p),0);}
+  const n=pts.length;
+  if(POLY[type]){
+    const P=POLY[type],m=moindresCarres(pts,P,fixed);
+    if(!m)return{invalid:true,msg:'Pas assez de points pour ce modèle.'};
+    const fn=x=>P.noms.reduce((s,nm,j)=>s+m[nm]*P.f[j](x),0);
+    const sg=v=>(v>=0?'+ ':'- ')+fc(Math.abs(v));
+    const label={constante:`y=${fc(m.a)}`,lineaire:`y=${fc(m.a)}·x`,affine:`y=${fc(m.a)}·x ${sg(m.b)}`,
+      parabole:`y=${fc(m.a)}·x² ${sg(m.b)}·x ${sg(m.c)}`,parabole2:`y=${fc(m.a)}·x²`}[type];
+    r={...m,fn,label};
+  } else if(type==='puissance'){
+    const v=pts.filter(p=>p.x>0&&p.y>0);if(v.length<2)return{invalid:true};
+    const lpts=v.map(p=>({x:Math.log(p.x),y:Math.log(p.y)}));
+    const af=ajuster('affine',lpts,fixed.n!==undefined?{a:fixed.n}:{});
+    const nn=af.a,a=Math.exp(af.b);
+    r={a,n:nn,fn:x=>a*Math.pow(x,nn),label:`y=${fc(a)}·x^${fc(nn)}`};
+  } else if(type==='exponentiel'){
+    const v=pts.filter(p=>p.y>0);if(v.length<2)return{invalid:true};
+    const lpts=v.map(p=>({x:p.x,y:Math.log(p.y)}));
+    const af=ajuster('affine',lpts);
+    const k=af.a,a=Math.exp(af.b);
+    r={a,k,fn:x=>a*Math.exp(k*x),label:`y=${fc(a)}·e^(${fc(k)}·x)`};
+  } else if(type==='reciproque'){
+    const v=pts.filter(p=>p.x!==0);if(v.length<2)return{invalid:true};
+    const a=fixed.a??S(p=>(1/p.x)*p.y)/S(p=>(1/p.x)**2);
+    r={a,fn:x=>a/x,label:`y=${fc(a)}/x`};
+  } else if(type==='logarithme'){
+    const v=pts.filter(p=>p.x>0);if(v.length<2)return{invalid:true};
+    const lpts=v.map(p=>({x:Math.log(p.x),y:p.y}));
+    const af=ajuster('affine',lpts);
+    r={a:af.a,b:af.b,fn:x=>af.a*Math.log(x)+af.b,label:`y=${fc(af.a)}·ln(x) ${af.b>=0?'+':'-'} ${fc(Math.abs(af.b))}`};
+  } else if(type==='sinusoide'){
+    // Estimation initiale ω par FFT approchée (pas de valeur fixée) ou utilise valeur fixée
+    const xvals=pts.map(p=>p.x),yvals=pts.map(p=>p.y);
+    const B0=yvals.reduce((s,v)=>s+v,0)/n;
+    const A0=(Math.max(...yvals)-Math.min(...yvals))/2;
+    const Tguess=(Math.max(...xvals)-Math.min(...xvals))||1;
+    const w0=fixed.ω??(2*Math.PI/Tguess);
+    const phi0=fixed.φ??0;
+    // Ajustement par moindres carrés linéarisé : y-B = A·sin(ωx+φ) → A·sin·cos(φ)+A·cos·sin(φ)
+    // Si ω et φ fixés : linéaire en A et B
+    const w=fixed.ω??w0,phi=fixed.φ??phi0;
+    const sw=pts.map(p=>Math.sin(w*p.x+phi));
+    const A=fixed.A??S((p,i)=>(p.y-B0)*sw[i])/S((_,i)=>sw[i]*sw[i]);
+    const B=fixed.B??B0;
+    r={A,ω:w,φ:phi,B,fn:x=>A*Math.sin(w*x+phi)+B,label:`y=${fc(A)}·sin(${fc(w)}·x+${fc(phi)})+${fc(B)}`};
+  }
+
+  if(!r.fn)return{invalid:true};
+  r.r2=calcR2(pts,r.fn);r.outliers=[];
+  if(pts.length>=4){
+    let bestGain=0,bestIdx=-1,bestR2=0;
+    for(let i=0;i<pts.length;i++){const sans=pts.filter((_,j)=>j!==i),r2s=calcR2(sans,r.fn);if(r2s-r.r2>bestGain){bestGain=r2s-r.r2;bestIdx=i;bestR2=r2s;}}
+    if(bestGain>0.1)r.outliers=[{idx:bestIdx+1,r2new:bestR2,gain:bestGain}];
+  }
+  return r;
+}
+function sum(arr,fn){return arr.reduce((s,x)=>s+fn(x),0);}
+function calcR2(pts,fn){
+  const mY=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+  let ss_res=0,ss_tot=0;
+  pts.forEach(p=>{try{ss_res+=(p.y-fn(p.x))**2;}catch{}ss_tot+=(p.y-mY)**2;});
+  return ss_tot>0?1-ss_res/ss_tot:1;
+}
+function calcSigma(pts,fn){
+  // Écart-type résiduel : σ = √(Σ(y-f(x))²/n)
+  const n=pts.length;if(!n)return 0;
+  let ss=0;pts.forEach(p=>{try{ss+=(p.y-fn(p.x))**2;}catch{}});
+  return Math.sqrt(ss/n);
+}
+
+// ══ DESSIN GRAPHIQUE ══
+function drawGraph(gr){
+  const cv=gr.canvas,W=cv.getBoundingClientRect().width||700,H=260,dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';
+  gr.overlay.width=Math.round(W*dpr);gr.overlay.height=Math.round(H*dpr);gr.overlay.style.width=W+'px';gr.overlay.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const pad={t:20,r:28,b:44,l:62},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const gx=GRANDEURS.find(g=>g.id===gr.gx);
+  const xl=(gx?.nom||'x')+(gx?.unite?' ('+gx.unite+')':'');
+
+  // Calculer les données de toutes les séries
+  const allSeriesPts=gr.series.map(s=>getPts(gr,s.gy));
+  const hasData=allSeriesPts.some(pts=>pts.length>0);
+
+  if(!hasData){
+    ctx.fillStyle='#87704c';ctx.font='11px "Bricolage Grotesque",system-ui,sans-serif';ctx.textAlign='center';
+    ctx.fillText('Aucune donnée',W/2,H/2);
+    drawAxesG(ctx,pad,cw,ch,W,H,xl,'—',0,10,0,10);return;
+  }
+
+  // Bornes globales sur toutes les séries
+  let xMin=gr.scaleXmin,xMax=gr.scaleXmax,yMin=gr.scaleYmin,yMax=gr.scaleYmax;
+  if(xMin===null||xMax===null){
+    const allX=allSeriesPts.flat().map(p=>p.x);
+    const rawXmin=Math.min(...allX),rawXmax=Math.max(...allX);
+    const dx=rawXmax-rawXmin||1;
+    xMin=niceFloor(rawXmin-dx*.05,dx);xMax=niceCeil(rawXmax+dx*.05,dx);
+  }
+  if(yMin===null||yMax===null){
+    let rawYmin=Infinity,rawYmax=-Infinity;
+    allSeriesPts.forEach((pts,si)=>{
+      pts.forEach(p=>{rawYmin=Math.min(rawYmin,p.y);rawYmax=Math.max(rawYmax,p.y);});
+      const m=gr.series[si].modele;
+      if(m&&!m.invalid){for(let i=0;i<=50;i++){const xv=xMin+(xMax-xMin)*i/50;try{const yv=m.fn(xv);if(isFinite(yv)){rawYmin=Math.min(rawYmin,yv);rawYmax=Math.max(rawYmax,yv);}}catch{}}}
+    });
+    if(!isFinite(rawYmin)){rawYmin=0;rawYmax=1;}
+    const dy=rawYmax-rawYmin||1;
+    yMin=niceFloor(rawYmin-dy*.08,dy);yMax=niceCeil(rawYmax+dy*.12,dy);
+  }
+  gr._xMin=xMin;gr._xMax=xMax;gr._yMin=yMin;gr._yMax=yMax;
+
+  // Label Y = liste des noms de séries
+  const ylArr=gr.series.map(s=>{const gy=GRANDEURS.find(g=>g.id===s.gy);return gy?.nom||'y';});
+  const yl=ylArr.join(', ')+(gr.series[0]&&GRANDEURS.find(g=>g.id===gr.series[0].gy)?.unite?' ('+GRANDEURS.find(g=>g.id===gr.series[0].gy).unite+')':'');
+
+  function xp(v){return pad.l+(v-xMin)/(xMax-xMin)*cw;}
+  function yp(v){return pad.t+ch-(v-yMin)/(yMax-yMin)*ch;}
+  drawAxesG(ctx,pad,cw,ch,W,H,xl,ylArr.length===1?yl:ylArr.join(', '),xMin,xMax,yMin,yMax);
+
+  // Dessiner chaque série
+  let legendHtml='';
+  gr.series.forEach((s,si)=>{
+    const couleur=COLORS[si%COLORS.length];
+    const pts=allSeriesPts[si];
+    const gy=GRANDEURS.find(g=>g.id===s.gy);
+    const nomS=(gy?.nom||'y')+(gy?.unite?' ('+gy.unite+')':'');
+
+    // Courbe du modèle
+    if(s.modele&&!s.modele.invalid){
+      ctx.beginPath();let first=true;
+      for(let i=0;i<=400;i++){const xv=xMin+(xMax-xMin)*i/400;try{const yv=s.modele.fn(xv);if(!isFinite(yv)){first=true;continue;}const x=xp(xv),y=yp(yv);if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}catch{first=true;}}
+      ctx.strokeStyle=couleur;ctx.lineWidth=1.5;ctx.setLineDash([6,3]);ctx.stroke();ctx.setLineDash([]);
+    }
+
+    // Points
+    pts.forEach((p,i)=>{
+      const x=xp(p.x),y=yp(p.y);
+      const isOut=s.modele&&s.modele.outliers?.some(o=>o.idx===i+1);
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fillStyle=isOut?'#c0392b':couleur;ctx.fill();
+      if(isOut){ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.strokeStyle='#c0392b';ctx.lineWidth=1.5;ctx.stroke();}
+      ctx.strokeStyle='rgba(253,250,240,.95)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle=isOut?'#c0392b':couleur;ctx.font='9px "Bricolage Grotesque",system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(i+1,x,y-9);
+    });
+
+    legendHtml+=`<span><span class="leg-dot" style="background:${couleur}"></span>${nomS}</span>`;
+    if(s.modele&&!s.modele.invalid){
+      legendHtml+=`<span style="color:${couleur};opacity:.8;font-size:10px;">· ajusté</span>`;
+    }
+  });
+  $('leg-'+gr.id).innerHTML=legendHtml;
+  gUpdateScaleLabels(gr);
+}
+function drawAxesG(ctx,pad,cw,ch,W,H,xl,yl,xMin,xMax,yMin,yMax){
+  function xp(v){return pad.l+(v-xMin)/(xMax-xMin)*cw;}function yp(v){return pad.t+ch-(v-yMin)/(yMax-yMin)*ch;}
+  for(let i=0;i<=4;i++){const v=yMin+(yMax-yMin)*i/4,y=yp(v);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.strokeStyle=CHART_GRID;ctx.lineWidth=.5;ctx.stroke();ctx.fillStyle=CHART_AXIS;ctx.font='9px "Bricolage Grotesque",system-ui,sans-serif';ctx.textAlign='right';ctx.fillText(fmtN(v),pad.l-5,y+3);}
+  for(let i=0;i<=5;i++){const v=xMin+(xMax-xMin)*i/5,x=xp(v);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ch);ctx.strokeStyle=CHART_GRID;ctx.lineWidth=.5;ctx.stroke();ctx.fillStyle=CHART_AXIS;ctx.font='9px "Bricolage Grotesque",system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(fmtN(v),x,pad.t+ch+14);}
+  ctx.fillStyle=CHART_AXIS;ctx.font='10px "Bricolage Grotesque",system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(xl,pad.l+cw/2,H-4);
+  ctx.save();ctx.translate(13,pad.t+ch/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText(yl,0,0);ctx.restore();
+}
+function handleCursor(gr,e){
+  const rect=gr.canvas.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const pad={t:20,r:28,b:44,l:62},cw=rect.width-pad.l-pad.r,ch=rect.height-pad.t-pad.b;
+  if(mx<pad.l||mx>pad.l+cw||my<pad.t||my>pad.t+ch){$('cur-'+gr.id).style.display='none';gr.overlay.getContext('2d').clearRect(0,0,gr.overlay.width,gr.overlay.height);return;}
+  const xMin=gr._xMin??0,xMax=gr._xMax??10,yMin=gr._yMin??0,yMax=gr._yMax??10;
+  const xVal=xMin+(mx-pad.l)/cw*(xMax-xMin),yVal=yMax-(my-pad.t)/ch*(yMax-yMin);
+  const gx=GRANDEURS.find(g=>g.id===gr.gx);const gyNom=gr.series.map(s=>GRANDEURS.find(g=>g.id===s.gy)?.nom||'y').join(' / ');
+  const cur=$('cur-'+gr.id);cur.style.display='block';cur.textContent=`${gx?.nom||'x'} = ${fmtN4(xVal)}    ${gyNom} = ${fmtN4(yVal)}`;
+  const oct=gr.overlay.getContext('2d'),dpr=window.devicePixelRatio||1;oct.clearRect(0,0,gr.overlay.width,gr.overlay.height);
+  const px=mx*dpr,py=my*dpr,pl=pad.l*dpr,pt=pad.t*dpr,pcw=cw*dpr,pch=ch*dpr;
+  oct.save();oct.strokeStyle='rgba(24,95,165,0.5)';oct.lineWidth=dpr;oct.setLineDash([4*dpr,3*dpr]);
+  oct.beginPath();oct.moveTo(px,pt);oct.lineTo(px,pt+pch);oct.stroke();oct.beginPath();oct.moveTo(pl,py);oct.lineTo(pl+pcw,py);oct.stroke();
+  oct.setLineDash([]);oct.beginPath();oct.arc(px,py,4*dpr,0,Math.PI*2);oct.fillStyle='rgba(24,95,165,0.75)';oct.fill();oct.restore();
+}
+function autoScale(gr){
+  if(!gr)return;
+  // Collecter tous les points de toutes les séries
+  let allX=[],allY=[];
+  gr.series.forEach(s=>{
+    const pts=getPts(gr,s.gy);
+    pts.forEach(p=>{allX.push(p.x);allY.push(p.y);});
+  });
+  if(!allX.length){gUpdateScaleLabels(gr);return;}
+  const dx=Math.max(...allX)-Math.min(...allX)||1,dy=Math.max(...allY)-Math.min(...allY)||1;
+  gr.scaleXmin=niceFloor(Math.min(...allX)-dx*.05,dx);gr.scaleXmax=niceCeil(Math.max(...allX)+dx*.05,dx);
+  gr.scaleYmin=niceFloor(Math.min(...allY)-dy*.08,dy);gr.scaleYmax=niceCeil(Math.max(...allY)+dy*.12,dy);
+  gUpdateScaleLabels(gr);drawGraph(gr);
+}
+function gAutoScale(id){const gr=graphs.find(g=>g.id===id);if(gr)autoScale(gr);}
+function gScaleStep(id,axis,dir){
+  const gr=graphs.find(g=>g.id===id);if(!gr)return;
+  let allX=[],allY=[];
+  gr.series.forEach(s=>{const pts=getPts(gr,s.gy);pts.forEach(p=>{allX.push(p.x);allY.push(p.y);});});
+  if(!allX.length)return;
+  const spanX=(gr.scaleXmax??Math.max(...allX))-(gr.scaleXmin??Math.min(...allX));
+  const spanY=(gr.scaleYmax??Math.max(...allY))-(gr.scaleYmin??Math.min(...allY));
+  function cands(ref,span){const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));const v=[];for(let e=-3;e<=3;e++)for(const f of[1,2,2.5,5])v.push(parseFloat((f*Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1))+e)).toPrecision(4)));for(let m=-20;m<=20;m++)v.push(parseFloat((ref+m*mag*.5).toPrecision(5)));return[...new Set(v)].sort((a,b)=>a-b);}
+  if(axis==='xmin'){const cur=gr.scaleXmin??niceFloor(Math.min(...allX)-spanX*.05,spanX);const c=cands(cur,spanX).filter(v=>v<(gr.scaleXmax??Math.max(...allX)));const i=c.findIndex(v=>v>=cur);gr.scaleXmin=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='xmax'){const cur=gr.scaleXmax??niceCeil(Math.max(...allX)+spanX*.05,spanX);const c=cands(cur,spanX).filter(v=>v>(gr.scaleXmin??Math.min(...allX)));const i=c.findIndex(v=>v>=cur);gr.scaleXmax=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='ymin'){const cur=gr.scaleYmin??niceFloor(Math.min(...allY)-spanY*.08,spanY);const c=cands(cur,spanY).filter(v=>v<(gr.scaleYmax??Math.max(...allY)));const i=c.findIndex(v=>v>=cur);gr.scaleYmin=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  else if(axis==='ymax'){const cur=gr.scaleYmax??niceCeil(Math.max(...allY)+spanY*.12,spanY);const c=cands(cur,spanY).filter(v=>v>(gr.scaleYmin??Math.min(...allY)));const i=c.findIndex(v=>v>=cur);gr.scaleYmax=c[Math.max(0,Math.min(c.length-1,i+dir))];}
+  gUpdateScaleLabels(gr);drawGraph(gr);
+}
+function gUpdateScaleLabels(gr){['xmin','xmax','ymin','ymax'].forEach(k=>{const el=$('lbl-'+gr.id+'-'+k);if(el)el.textContent=gr['scale'+k.charAt(0).toUpperCase()+k.slice(1)]!==null?fmtN(gr['scale'+k.charAt(0).toUpperCase()+k.slice(1)]):'auto';});}
+
+// ══ CHRONO — tableau de sélection des points ══
+// points[i].vecActif : true par défaut, false si décoché
+function refreshChronoTable(){
+  const tb=$('tbody-chrono');
+  if(!derived.length){
+    tb.innerHTML='<tr><td class="no-data" colspan="8">Aucun point enregistré.</td></tr>';
+    return;
+  }
+  // Mettre à jour les en-têtes avec les unités
+  const u=calibUnit;
+  $('chrono-th-x').textContent=`x (${u})`;
+  $('chrono-th-y').textContent=`y (${u})`;
+  $('chrono-th-v').textContent=`V (${u}/s)`;
+  $('chrono-th-a').textContent=`A (${u}/s²)`;
+
+  tb.innerHTML=derived.map((d,i)=>{
+    if(points[i].vecActif===undefined)points[i].vecActif=true;
+    const checked=points[i].vecActif?'checked':'';
+    const dim=points[i].vecActif?'':'opacity:.4;';
+    return`<tr style="${dim}">
+      <td><input type="checkbox" ${checked} style="width:14px;height:14px;accent-color:var(--blue);cursor:pointer;"
+        onchange="toggleVec(${i},this.checked)"></td>
+      <td>${i+1}</td>
+      <td>${points[i].frame+1}</td>
+      <td>${fmtT(d.t)}</td>
+      <td style="color:var(--accent)">${fmtN4(d.x)}</td>
+      <td style="color:var(--blue)">${fmtN4(d.y)}</td>
+      <td>${d.V!=null&&isFinite(d.V)?fmtN4(d.V):'—'}</td>
+      <td>${d.A!=null&&isFinite(d.A)?fmtN4(d.A):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleVec(i,val){
+  if(points[i])points[i].vecActif=val;
+  refreshChronoTable();
+}
+
+function updateTraitementHint(){} // plus utilisé
+
+// ══ CHRONOPHOTOGRAPHIE ══
+$('btn-chrono').addEventListener('click',genChrono);
+async function genChrono(){
+  if(!points.length||!videoLoaded)return;
+  const vid=$('vid'),prog=$('chrono-progress'),canvas=$('canvas-chrono');
+  const bgMode=$('chrono-bg').value;
+  const labelStyle=$('chrono-label-style').value;
+  const colorPts=$('chrono-color-pts').value;
+  const showTraj=$('chrono-traj').checked;
+  const showV=$('chrono-vec-v').checked,showA=$('chrono-vec-a').checked;
+  const colorV=$('chrono-color-v').value,colorA=$('chrono-color-a').value;
+  const echelle=parseFloat($('chrono-vec-echelle').value)||30;
+
+  prog.classList.remove('hidden');prog.textContent='Chargement du fond…';
+  $('btn-chrono').disabled=true;$('btn-chrono-dl').disabled=true;
+
+  const vw=vid.videoWidth,vh=vid.videoHeight;
+  canvas.width=vw;canvas.height=vh;canvas.style.width='100%';canvas.classList.remove('hidden');$('chrono-vide').classList.add('hidden');
+  const ctx=canvas.getContext('2d');
+
+  // ── Étape 1 : une seule frame de fond (ou couleur unie) ──
+  ctx.globalAlpha=1;
+  if(bgMode==='black'){
+    ctx.fillStyle='#000';ctx.fillRect(0,0,vw,vh);
+  } else if(bgMode==='white'){
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,vw,vh);
+  } else {
+    // première ou dernière frame
+    const targetFrame=bgMode==='first'?points[0].frame:points[points.length-1].frame;
+    await seekVid(vid,(targetFrame+0.5)/fps);
+    ctx.drawImage(vid,0,0,vw,vh);
+  }
+
+  // ── Ratio overlay → vidéo ──
+  // Les xPx/yPx sont dans le repère de l'overlay (taille affichée)
+  // On les convertit en coordonnées pixel vidéo
+  const ovW=$('overlay-canvas').width||vw;
+  const ovH=$('overlay-canvas').height||vh;
+  const scaleX=vw/ovW, scaleY=vh/ovH;
+  const lw=Math.max(1.5,vw/640);
+
+  // ── Étape 2 : Trajectoire ──
+  if(showTraj&&points.length>1){
+    ctx.beginPath();
+    points.forEach((p,i)=>{
+      const px2=p.xPx*scaleX,py2=p.yPx*scaleY;
+      i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+    });
+    ctx.strokeStyle=colorPts==='#ffffff'?'rgba(255,255,255,0.6)':colorPts;
+    ctx.lineWidth=lw;ctx.setLineDash([Math.round(vw/160),Math.round(vw/200)]);
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // ── Étape 3 : Vecteurs ──
+  const pxPerUVid=pxPerUnit*scaleX;
+  const scV=echelle*pxPerUVid/100, scA=echelle*pxPerUVid/200;
+
+  function arrowChrono(x1,y1,vxPx,vyPx,color){
+    const x2=x1+vxPx,y2=y1+vyPx,len=Math.sqrt(vxPx*vxPx+vyPx*vyPx);if(len<3)return;
+    const hl=Math.min(16,len*.3),ang=Math.atan2(vyPx,vxPx);
+    ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=lw;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-hl*Math.cos(ang-Math.PI/7),y2-hl*Math.sin(ang-Math.PI/7));
+    ctx.lineTo(x2-hl*Math.cos(ang+Math.PI/7),y2-hl*Math.sin(ang+Math.PI/7));
+    ctx.closePath();ctx.fill();ctx.restore();
+  }
+
+  if((showV||showA)&&derived.length){
+    derived.forEach((d,i)=>{
+      if(!points[i].vecActif)return; // point décoché → pas de vecteur
+      const ox=points[i].xPx*scaleX, oy=points[i].yPx*scaleY;
+      const c0=Math.cos(axeAngle),s0=Math.sin(axeAngle);
+      if(showV&&d.Vx!=null&&d.Vy!=null)arrowChrono(ox,oy,(d.Vx*c0-d.Vy*s0)*scV,-(d.Vx*s0+d.Vy*c0)*scV,colorV);
+      if(showA&&d.Ax!=null&&d.Ay!=null)arrowChrono(ox,oy,(d.Ax*c0-d.Ay*s0)*scA,-(d.Ax*s0+d.Ay*c0)*scA,colorA);
+    });
+  }
+
+  // ── Étape 4 : Marqueurs (croix + label) ──
+  if(labelStyle!=='none'){
+    const arm=Math.max(6,vw/120);
+    const fontSize=Math.max(12,vw/65);
+    const lw2=Math.max(1.5,vw/480);
+
+    points.forEach((p,i)=>{
+      const px2=p.xPx*scaleX, py2=p.yPx*scaleY;
+      const label=labelStyle==='M'?'M'+i:(i+1).toString();
+      ctx.save();
+      // Halo noir
+      ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=lw2+3;
+      ctx.beginPath();ctx.moveTo(px2-arm,py2);ctx.lineTo(px2+arm,py2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(px2,py2-arm);ctx.lineTo(px2,py2+arm);ctx.stroke();
+      // Croix couleur choisie
+      ctx.strokeStyle=colorPts;ctx.lineWidth=lw2;
+      ctx.beginPath();ctx.moveTo(px2-arm,py2);ctx.lineTo(px2+arm,py2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(px2,py2-arm);ctx.lineTo(px2,py2+arm);ctx.stroke();
+      // Label
+      ctx.font=`bold ${fontSize}px "Bricolage Grotesque",system-ui,sans-serif`;
+      ctx.textAlign='left';ctx.textBaseline='bottom';
+      const tx=px2+arm+2,ty=py2-2;
+      ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=3;ctx.strokeText(label,tx,ty);
+      ctx.fillStyle=colorPts;ctx.fillText(label,tx,ty);
+      ctx.restore();
+    });
+  }
+
+  prog.textContent='✓ Chronophotographie générée.';chronoDone=true;updateSteps();
+  $('btn-chrono').disabled=false;$('btn-chrono-dl').disabled=false;
+}
+function seekVid(vid,t){return new Promise(res=>{vid.onseeked=()=>{vid.onseeked=null;res();};vid.currentTime=t;});}
+$('btn-chrono-dl').addEventListener('click',()=>{
+  const a=document.createElement('a');a.href=$('canvas-chrono').toDataURL('image/png');
+  a.download='chronophoto_'+new Date().toISOString().slice(0,16).replace('T','_')+'.png';a.click();
+});
+
+function refreshAllInterp(){} // interprétation automatique retirée (version simplifiée)
+
+function buildSession(){
+  return {version:1,video:currentVideoLabel,calibration:{pts:calibPts,pxPerUnit,originPx,calibUnit,dist:parseFloat($('calib-dist').value)||1},axeAngle,fps,masse:$('masse').value,autoStep:$('auto-step').value,points};
+}
+const AUTOSAVE_KEY='pointage-postbac-autosave-v1';
+function autosave(){
+  try{
+    if(points.length||calibDone)localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(buildSession()));
+    else localStorage.removeItem(AUTOSAVE_KEY);
+  }catch(e){}
+}
+function checkAutosave(){
+  let s=null;try{s=JSON.parse(localStorage.getItem(AUTOSAVE_KEY)||'null');}catch(e){}
+  if(!s||!s.points||!s.points.length)return;
+  $('restore-info').textContent=s.points.length+' point'+(s.points.length>1?'s':'')+(s.video?' · vidéo « '+s.video+' »':'');
+  $('restore-bar').classList.remove('hidden');
+  $('btn-restore').onclick=()=>{
+    $('restore-bar').classList.add('hidden');
+    if(s.video&&currentVideoLabel&&s.video!==currentVideoLabel&&!confirm('Cette session a été pointée sur « '+s.video+' », mais la vidéo chargée est « '+currentVideoLabel+' ». Restaurer quand même ?'))return;
+    try{applySession(s,true);}catch(err){alert('Session illisible : '+err.message);}
+  };
+  $('btn-restore-dismiss').onclick=()=>{$('restore-bar').classList.add('hidden');try{localStorage.removeItem(AUTOSAVE_KEY);}catch(e){}};
+}
+$('btn-export-session').addEventListener('click',()=>{
+  const session=buildSession();
+  telecharger(JSON.stringify(session,null,2),nomFichier()+'_session.json','application/json');
+});
+
+$('btn-import-session').addEventListener('click',()=>$('input-session').click());
+$('input-session').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{applySession(JSON.parse(ev.target.result));}
+    catch(err){alert('Erreur lors du chargement : '+err.message);}
+  };
+  reader.readAsText(f);e.target.value='';
+});
+
+function applySession(s, silent){
+  if(!s.version||!s.calibration||!s.points)throw new Error('Format invalide');
+  calibPts=s.calibration.pts||[];
+  pxPerUnit=s.calibration.pxPerUnit;
+  originPx=s.calibration.originPx||{x:0,y:0};
+  calibUnit=s.calibration.calibUnit||'m';
+  calibDone=!!(pxPerUnit&&pxPerUnit>0);
+  if(s.fps)$('fps').value=fps=s.fps;
+  if(s.masse)$('masse').value=s.masse;
+  if(s.autoStep)$('auto-step').value=s.autoStep;
+  if(s.calibration.dist)$('calib-dist').value=s.calibration.dist;
+  $('calib-unite').value=calibUnit;
+  points=s.points||[];history=points.slice();
+  axeAngle=s.axeAngle||0;
+  if(calibDone){
+    recalculerPoints();majApresRepere();
+    $('pill-calib').textContent='✓ Session chargée — étalon : '+pxPerUnit.toFixed(2)+' px/'+calibUnit;
+    $('pill-calib').className='info-pill ok';
+    $('btn-calib-reset').disabled=false;$('btn-point').disabled=false;
+    $('btn-add-graph').disabled=false;
+    buildGrandeurs();buildColToggles();refreshTableHeader();
+  }
+  if(points.length){
+    $('btn-undo').disabled=false;$('btn-clear-pts').disabled=false;
+    $('btn-export-csv').disabled=false;$('btn-export-session').disabled=false;$('btn-chrono').disabled=false;
+    computeDerived();refreshTableHeader();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();updateTraitementHint();
+  }
+  drawOverlay();
+  if(!silent)alert('Session chargée : '+points.length+' points.');
+}
+
+// ══ MESURES ET INCERTITUDES ══
+const MESURES_KEY='pointage-postbac-mesures-v1';
+const CHAMPS_MES=['th-h','th-uh','th-L','th-uL','th-g','id-groupe','id-binome','id-mobile','id-lacher'];
+let mesures=[];
+const MOBILES={chariot:'Chariot','chariot-leste':'Chariot lesté',balle:'Balle de tennis',autre:'Autre'};
+function libMobile(m){return MOBILES[m]||m;}
+function sauverMesures(){
+  try{const champs={};CHAMPS_MES.forEach(id=>champs[id]=$(id).value);localStorage.setItem(MESURES_KEY,JSON.stringify({mesures,champs}));}catch(e){}
+}
+function chargerMesures(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(MESURES_KEY)||'null');}catch(e){}
+  if(o){mesures=Array.isArray(o.mesures)?o.mesures:[];if(o.champs)CHAMPS_MES.forEach(id=>{if(o.champs[id]!=null&&o.champs[id]!=='')$(id).value=o.champs[id];});}
+  majMesures();
+}
+function lireTheorie(){
+  const v=id=>parseFloat($(id).value);
+  const h=v('th-h'),L=v('th-L'),uh=v('th-uh')||0,uL=v('th-uL')||0,g=valG();
+  if(!(h>0&&L>0&&h<=L))return{sina:null,usina:null,g};
+  const sina=h/L,usina=sina*Math.sqrt((uh/h)**2+(uL/L)**2);
+  return{sina,usina,g,ath:g*sina,uath:g*usina};
+}
+function majTheorie(){
+  const th=lireTheorie();
+  let html;
+  if(th.sina==null)html='Renseignez h et L (h ≤ L).';
+  else{
+    html=`sin α = h/L = ${fmtU(th.sina,th.usina)}    (α = ${(Math.asin(th.sina)*180/Math.PI).toFixed(2)}°)<br>`
+      +`<b>a<sub>th</sub> = g·sin α = ${fmtU(th.ath,th.uath)} m/s²</b>`
+      +`<br><span class="hint">u(sin α)/sin α = √[(u(h)/h)² + (u(L)/L)²] ; u(a<sub>th</sub>) = g·u(sin α), g supposé exact.</span>`;
+  }
+  if(axeAngle!==0){
+    const incl=Math.atan2(Math.abs(Math.sin(axeAngle)),Math.abs(Math.cos(axeAngle)));
+    html+=`<br><span class="hint">Inclinaison lue sur la vidéo (axe x) : sin = ${Math.sin(incl).toFixed(3)}, fiable seulement si la caméra est horizontale.</span>`;
+  }
+  $('th-res').innerHTML=html;
+}
+function groupesMesures(){
+  const gps=new Map();
+  mesures.forEach(m=>{
+    const cle=m.mobile+'|'+(m.sina==null?'?':m.sina.toFixed(4));
+    if(!gps.has(cle))gps.set(cle,{mobile:m.mobile,sina:m.sina,usina:m.usina,list:[]});
+    gps.get(cle).list.push(m);
+  });
+  const g=valG();
+  return[...gps.values()].map(G=>{
+    const a=G.list.map(m=>m.a),n=a.length,moy=a.reduce((s,v)=>s+v,0)/n;
+    const sd=n>1?Math.sqrt(a.reduce((s,v)=>s+(v-moy)**2,0)/(n-1)):null;
+    const u=n>1?sd/Math.sqrt(n):G.list[0].ua;
+    const r={...G,n,moy,sd,u};
+    if(G.sina!=null){
+      r.ath=g*G.sina;r.uath=g*(G.usina||0);
+      const den=Math.sqrt(u*u+r.uath*r.uath);r.z=den>0?Math.abs(moy-r.ath)/den:null;
+      r.mu=(g*G.sina-moy)/(g*Math.sqrt(1-G.sina*G.sina));
+    }
+    return r;
+  });
+}
+function majMesures(){
+  majTheorie();
+  const tb=$('tbody-mes');
+  $('btn-mes-csv').disabled=$('btn-mes-clear').disabled=!mesures.length;
+  if(!mesures.length)tb.innerHTML='<tr><td class="no-data" colspan="8">Aucun lâcher retenu.</td></tr>';
+  else tb.innerHTML=mesures.map((m,i)=>`<tr><td>${i+1}</td><td>${libMobile(m.mobile)}</td><td>${m.lacher}</td><td>${m.sina==null?'—':m.sina.toFixed(4)}</td><td>${fmtN4(m.a)}</td><td>${fmtN4(m.ua)}</td><td>${m.methode}</td><td><button class="danger" onclick="supprimerMesure(${i})" aria-label="Supprimer la mesure ${i+1}">✕</button></td></tr>`).join('');
+  const gps=groupesMesures(),ts=$('tbody-stats');
+  if(!gps.length)ts.innerHTML='<tr><td class="no-data" colspan="11">—</td></tr>';
+  else ts.innerHTML=gps.map(G=>{
+    const concl=G.z==null?'<span class="hint">sin α manquant</span>':G.z<=2?'<span class="verdict-ok">compatible avec g·sin α</span>':'<span class="verdict-ko">incompatible : interroger le modèle</span>';
+    return`<tr><td>${libMobile(G.mobile)}</td><td>${G.sina==null?'—':fmtU(G.sina,G.usina)}</td><td>${G.n}</td><td><b>${fmtU(G.moy,G.u)}</b></td><td>${G.sd==null?'—':fmtN4(G.sd)}</td><td>${fmtN4(G.u)}${G.n<2?' <span class="hint">(ajust.)</span>':''}</td><td>${G.ath==null?'—':fmtN4(G.ath)}</td><td>${G.uath==null?'—':fmtN4(G.uath)}</td><td><b>${G.z==null?'—':G.z.toFixed(1)}</b></td><td>${G.mu==null?'—':G.mu.toFixed(3)}</td><td>${concl}</td></tr>`;
+  }).join('');
+  // sélecteur du graphique a(sin α)
+  const sel=$('sina-mobile'),cur=sel.value,mobs=[...new Set(mesures.map(m=>m.mobile))];
+  sel.innerHTML=mobs.map(m=>`<option value="${m}">${libMobile(m)}</option>`).join('');
+  if(mobs.includes(cur))sel.value=cur;
+  updateSteps();
+  if(ongletActif===6)dessinerSinA();
+}
+function supprimerMesure(i){mesures.splice(i,1);sauverMesures();majMesures();}
+$('btn-mes-clear').addEventListener('click',()=>{if(!confirm('Vider toute la série de mesures ?'))return;mesures=[];sauverMesures();majMesures();});
+$('btn-mes-csv').addEventListener('click',()=>{
+  const fr=$('csv-sep').value==='fr',sep=fr?';':',';
+  const f=v=>(v==null||!isFinite(v))?'':(fr?String(v).replace('.',','):String(v));
+  const grp=$('id-groupe').value,bin=$('id-binome').value;
+  const rows=[['groupe','binome','mobile','lacher','sin_alpha','u_sin_alpha','a (m/s2)','u_ajust_a (m/s2)','methode','nb_points','video'].join(sep)];
+  mesures.forEach(m=>rows.push([grp,bin,m.mobile,m.lacher,f(m.sina),f(m.usina),f(m.a),f(m.ua),m.methode,m.n,'"'+(m.video||'').replace(/"/g,"'")+'"'].join(sep)));
+  telecharger('\ufeff'+rows.join('\n')+'\n',prefixeFichier()+'_mesures.csv','text/csv;charset=utf-8');
+});
+$('sina-mobile').addEventListener('change',()=>dessinerSinA());
+CHAMPS_MES.forEach(id=>$(id).addEventListener('input',()=>{
+  sauverMesures();
+  if(id.startsWith('th-'))majMesures();
+  if(id==='th-g'&&points.length){computeDerived();refreshTable();refreshAllGraphs();}
+}));
+// a en fonction de sin α : moyennes par inclinaison, barres d'incertitude, droite des moindres carrés
+function dessinerSinA(essai=0){
+  const cv=$('cv-sina');
+  if(!cv.offsetWidth){if(ongletActif===6&&essai<20)setTimeout(()=>dessinerSinA(essai+1),100);return;}
+  const W=cv.getBoundingClientRect().width,H=260,dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const pad={t:20,r:28,b:44,l:62},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const mob=$('sina-mobile').value;
+  const pts=groupesMesures().filter(G=>G.mobile===mob&&G.sina!=null).map(G=>({x:G.sina,y:G.moy,u:G.u}));
+  const fit=new Set(pts.map(p=>p.x.toFixed(4))).size>=2?moindresCarres(pts,POLY.affine,{}):null;
+  let xMax=Math.max(0.1,...pts.map(p=>p.x))*1.15,yMax=Math.max(1,...pts.map(p=>p.y+(p.u||0)))*1.15;
+  xMax=niceCeil(xMax,xMax);yMax=niceCeil(yMax,yMax);
+  const yMin=fit&&fit.b<0?fit.b-0.05*yMax:0;
+  const xp=v=>pad.l+v/xMax*cw,yp=v=>pad.t+ch-(v-yMin)/(yMax-yMin)*ch;
+  drawAxesG(ctx,pad,cw,ch,W,H,'sin α','a (m/s²)',0,xMax,yMin,yMax);
+  if(fit){
+    ctx.beginPath();ctx.moveTo(xp(0),yp(fit.b));ctx.lineTo(xp(xMax),yp(fit.a*xMax+fit.b));
+    ctx.strokeStyle=COLORS[1];ctx.lineWidth=1.5;ctx.setLineDash([6,3]);ctx.stroke();ctx.setLineDash([]);
+  }
+  pts.forEach(p=>{
+    if(p.u){ctx.beginPath();ctx.moveTo(xp(p.x),yp(p.y-p.u));ctx.lineTo(xp(p.x),yp(p.y+p.u));ctx.strokeStyle=COLORS[0];ctx.lineWidth=1;ctx.stroke();}
+    ctx.beginPath();ctx.arc(xp(p.x),yp(p.y),5,0,Math.PI*2);ctx.fillStyle=COLORS[0];ctx.fill();
+  });
+  const g=valG();
+  $('sina-res').innerHTML=!pts.length?'Aucune mesure avec sin α renseigné pour ce mobile.'
+    :!fit?'Il faut au moins deux inclinaisons différentes pour un même mobile.'
+    :`a = p·sin α + b : <b>p = ${fmtU(fit.a,fit.u.a)} m/s²</b> (à comparer à g = ${g}) ; b = ${fmtU(fit.b,fit.u.b)} m/s²`
+      +(pts.length<3?' <span class="verdict-ko">— incertitudes non significatives avec 2 points</span>':'')
+      +`<br>Avec un frottement solide, a ≈ g·sin α − μ·g·cos α : une ordonnée à l'origine négative traduit le frottement.`;
+}
+
+// ══ UTILS ══
+// valeur ± incertitude, incertitude à 2 chiffres significatifs
+function fmtU(v,u){
+  if(v==null||!isFinite(v))return'—';
+  if(!u||!isFinite(u))return fc(v);
+  const e=Math.floor(Math.log10(u)),d=Math.max(0,1-e);
+  if(d>8)return v.toExponential(2)+' ± '+u.toExponential(1);
+  return v.toFixed(d)+' ± '+u.toFixed(d);
+}
+function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
+function r2(v){return Math.round(v*100)/100;}
+function fmt2(v){return(v==null||!isFinite(v))?'—':v.toFixed(2);}
+// t : autant de décimales que la résolution temporelle 1/fps (25 img/s → 0,04 s → 2 décimales)
+function fmtT(v){if(v==null||!isFinite(v))return'—';const d=Math.max(1,Math.ceil(Math.log10(fps||25)));return v.toFixed(d);}
+function fmtN4(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.0001&&a>0))return v.toExponential(3);if(a>=100)return v.toFixed(2);return v.toFixed(4);}
+function fmtN(v){if(!isFinite(v)||v==null)return'—';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(2);if(a>=1000)return v.toFixed(0);if(a>=100)return v.toFixed(1);if(a>=10)return v.toFixed(2);return v.toFixed(3);}
+function fc(v){if(!isFinite(v))return'?';const a=Math.abs(v);if(a>=10000||(a<0.001&&a>0))return v.toExponential(3);return v.toPrecision(4);}
+function niceFloor(v,span){const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));const step=[1,2,2.5,5,10].map(f=>f*mag).reduce((a,b)=>Math.abs(b-span/5)<Math.abs(a-span/5)?b:a);return Math.floor(v/step)*step;}
+function niceCeil(v,span){const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(span)||1)));const step=[1,2,2.5,5,10].map(f=>f*mag).reduce((a,b)=>Math.abs(b-span/5)<Math.abs(a-span/5)?b:a);return Math.ceil(v/step)*step;}
+
+// Init
+window._crosshair=null;
+$('masse').addEventListener('change',()=>{if(points.length){computeDerived();buildColToggles();refreshTableHeader();refreshTable();refreshAllGraphs();refreshChronoTable();refreshAllInterp();}autosave();});
+
+// ══ RÉINITIALISATION ══
+function confirmDiscard(){
+  return !points.length||confirm('Charger une nouvelle vidéo effacera le pointage en cours ('+points.length+' points). Continuer ?');
+}
+function resetAll(clearStorage){
+  points=[];history=[];derived=[];lignes=[];window._crosshair=null;
+  calibMode=false;calibPts=[];calibDone=false;pxPerUnit=null;originPx={x:0,y:0};
+  axeAngle=0;axeMode=false;axePts=[];majPillAxe();$('btn-axe-start').disabled=true;$('btn-axe-reset').disabled=true;
+  graphs.forEach(g=>{const el=$('gc-'+g.id);if(el)el.remove();});graphs=[];
+  chronoDone=false;$('canvas-chrono').classList.add('hidden');$('chrono-vide').classList.remove('hidden');$('chrono-progress').classList.add('hidden');
+  ['btn-undo','btn-clear-pts','btn-export-csv','btn-export-session','btn-point','btn-add-graph','btn-calib-ok','btn-calib-reset','btn-chrono','btn-chrono-dl'].forEach(id=>$(id).disabled=true);
+  $('btn-calib-ok').classList.add('hidden');$('btn-calib-start').disabled=!videoLoaded;
+  $('pill-calib').textContent=videoLoaded?'Cliquez deux points de la mire.':'Vidéo non chargée';$('pill-calib').className='info-pill warn';logCalib('');
+  GRANDEURS=[];activeCols=new Set(['Vx','Ax']);
+  buildColToggles();refreshTableHeader();refreshTable();refreshChronoTable();refreshAllInterp();
+  $('restore-bar').classList.add('hidden');
+  if(videoLoaded)drawOverlay();
+  if(clearStorage){try{localStorage.removeItem(AUTOSAVE_KEY);}catch(e){}}
+}
+$('btn-reset-all').addEventListener('click',()=>{
+  if(!confirm('Tout réinitialiser : points, étalonnage, graphiques et chronophotographie ?'))return;
+  resetAll(true);
+});
+
+// ══ PROGRESSION DES ÉTAPES ══
+// ══ ONGLETS ══
+let ongletActif=1;
+function demarrerEtalonnage(){
+  if(!videoLoaded||calibDone)return;
+  calibMode=true;window._crosshair=null;$('btn-point').disabled=true;
+  const k=calibPts.length;
+  $('pill-calib').textContent=k===0?'Cliquez le point 1 sur la vidéo…':k===1?'Cliquez le point 2…':'2 points : indiquez la distance puis cliquez ✓ Valider.';
+  $('pill-calib').className='info-pill warn';
+  if(k>=2){$('btn-calib-ok').classList.remove('hidden');$('btn-calib-ok').disabled=false;}
+  $('btn-calib-reset').disabled=k===0;
+  drawOverlay();
+}
+// « Recommencer » : en onglet 2, on reprend directement les clics d'étalonnage
+$('btn-calib-reset').addEventListener('click',()=>{if(ongletActif===2)demarrerEtalonnage();});
+function afficherOnglet(n){
+  ongletActif=n;
+  const app=$('app');app.dataset.onglet=n;app.classList.toggle('large',n>=4);
+  document.querySelectorAll('.onglet').forEach(b=>{const on=+b.dataset.onglet===n;b.classList.toggle('actif',on);b.setAttribute('aria-selected',on);});
+  document.querySelectorAll('.panneau').forEach(p=>p.classList.toggle('hidden',+p.dataset.panneau!==n));
+  // onglet 2 : les clics sur la vidéo placent directement les points d'étalonnage
+  if(n!==2&&axeMode){axeMode=false;axePts=[];majPillAxe();drawOverlay();}
+  if(n===2)demarrerEtalonnage();
+  else if(calibMode&&!calibDone){calibMode=false;drawOverlay();}
+  if(n<=3&&videoLoaded)resizeCanvases();
+  if(n===5)requestAnimationFrame(()=>graphs.forEach(gr=>drawGraph(gr)));
+  if(n===6){majMesures();requestAnimationFrame(()=>dessinerSinA());}
+}
+document.querySelectorAll('.onglet').forEach(b=>b.addEventListener('click',()=>afficherOnglet(+b.dataset.onglet)));
+// ✓ sur les onglets terminés
+function updateSteps(){
+  const set=(n,ok)=>{const b=document.querySelector('.onglet[data-onglet="'+n+'"]');if(b)b.classList.toggle('fait',!!ok);};
+  set(1,videoLoaded);set(2,calibDone);
+  const np=points.length;$('nb-pts-onglet').textContent=np?np:'';
+  $('nb-mes-onglet').textContent=mesures.length?mesures.length:'';
+  $('btn-export-tp').disabled=np<2;
+}
+
+
+</script>
+</body>
+</html>
