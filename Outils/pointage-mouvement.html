@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pointage vidéo (v2) – Mécanique</title>
+<title>Pointage vidéo – Mécanique (lycée)</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -726,7 +726,8 @@ function computeDerived(){
   if(!points.length){derived=[];lignes=[];return;}
   const n=points.length,m=parseFloat($('masse').value),hasM=isFinite(m)&&m>0,g=9.81;
   const t0=points[0].t_raw;
-  const ts=points.map(p=>p.t_raw-t0),xs=points.map(p=>r2(p.xReal)),ys=points.map(p=>r2(p.yReal));
+  // Pas d'arrondi ici : x et y gardent toute la précision du pointage (l'arrondi au cm faussait V et A pour les petits mouvements)
+  const ts=points.map(p=>p.t_raw-t0),xs=points.map(p=>p.xReal),ys=points.map(p=>p.yReal);
   const Vx=ts.map((_,i)=>{
     if(i===0||i===n-1)return null;
     return(xs[i+1]-xs[i-1])/(ts[i+1]-ts[i-1]);
@@ -784,7 +785,7 @@ function refreshTable(){
       const v=getColVal(d,c.id);
       return`<td${(c.id==='V'||c.id==='A')?' style="font-weight:500"':''}>${v!=null&&isFinite(v)?fmtN4(v):'—'}</td>`;
     }).join('');
-    return`<tr><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmt2(d.x)}</td><td style="color:var(--blue)">${fmt2(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
+    return`<tr><td>${points[i].frame+1}</td><td>${fmtT(d.t)}</td><td style="color:var(--accent)">${fmtXY(d.x)}</td><td style="color:var(--blue)">${fmtXY(d.y)}</td>${vals}<td><button onclick="deletePoint(${i})">✕</button></td></tr>`;
   }).join('');
 }
 function getColVal(d,id){return{V:d.V,A:d.A,d:d.d,alpha:d.alpha,Ec:d.Ec,Ep:d.Ep,Em:d.Em,Vx:d.Vx,Vy:d.Vy,Ax:d.Ax,Ay:d.Ay}[id];}
@@ -1410,8 +1411,8 @@ function refreshChronoTable(){
       <td>${i+1}</td>
       <td>${points[i].frame+1}</td>
       <td>${fmtT(d.t)}</td>
-      <td style="color:var(--accent)">${fmt2(d.x)}</td>
-      <td style="color:var(--blue)">${fmt2(d.y)}</td>
+      <td style="color:var(--accent)">${fmtXY(d.x)}</td>
+      <td style="color:var(--blue)">${fmtXY(d.y)}</td>
       <td>${d.V!=null&&isFinite(d.V)?fmtN4(d.V):'—'}</td>
       <td>${d.A!=null&&isFinite(d.A)?fmtN4(d.A):'—'}</td>
     </tr>`;
@@ -1611,7 +1612,8 @@ function applySession(s, silent){
 
 // ══ UTILS ══
 function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
-function r2(v){return Math.round(v*100)/100;}
+// x, y : nombre de décimales adapté à la résolution de l'étalonnage (1 px), au moins 2
+function fmtXY(v){if(v==null||!isFinite(v))return'—';const res=pxPerUnit?1/pxPerUnit:0.01;const d=Math.min(5,Math.max(2,Math.ceil(-Math.log10(res))));return v.toFixed(d);}
 function fmt2(v){return(v==null||!isFinite(v))?'—':v.toFixed(2);}
 // t : autant de décimales que la résolution temporelle 1/fps (25 img/s → 0,04 s → 2 décimales)
 function fmtT(v){if(v==null||!isFinite(v))return'—';const d=Math.max(1,Math.ceil(Math.log10(fps||25)));return v.toFixed(d);}

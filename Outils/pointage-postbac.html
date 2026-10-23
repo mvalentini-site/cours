@@ -1937,7 +1937,6 @@ function fmtU(v,u){
   return v.toFixed(d)+' ± '+u.toFixed(d);
 }
 function fmtTime(s){const m=Math.floor(s/60);return m+'m'+(s%60).toFixed(2)+'s';}
-function r2(v){return Math.round(v*100)/100;}
 function fmt2(v){return(v==null||!isFinite(v))?'—':v.toFixed(2);}
 // t : autant de décimales que la résolution temporelle 1/fps (25 img/s → 0,04 s → 2 décimales)
 function fmtT(v){if(v==null||!isFinite(v))return'—';const d=Math.max(1,Math.ceil(Math.log10(fps||25)));return v.toFixed(d);}
