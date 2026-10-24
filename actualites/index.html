@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actualité scientifique</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css">
+<style>
+  /* Les numéros sont dans data/actualites.json (un par semaine, le lundi) ; cette page ne fait que les afficher. */
+  .page{max-width:900px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 96px;}
+  .lead{font-size:16px;color:var(--faded);max-width:62ch;margin-bottom:22px;}
+  .filtres{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .filtres button{font:inherit;font-size:14px;padding:5px 14px;border:1px solid var(--rule);border-radius:999px;background:var(--surface);color:var(--ink);cursor:pointer;}
+  .filtres button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+  .numero{padding-top:30px;margin-top:30px;border-top:1px solid var(--rule);}
+  .numero>h2{font-size:clamp(22px,2.6vw,28px);font-weight:800;letter-spacing:-.015em;line-height:1.15;margin-bottom:4px;}
+  .numero>.edito{font-size:15px;color:var(--faded);margin-bottom:16px;max-width:66ch;}
+  .actu{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--c,var(--accent));border-radius:4px;padding:16px 18px;margin-bottom:14px;}
+  .actu .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
+  .actu .tag{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--c,var(--accent));border:1px solid currentColor;border-radius:999px;padding:1px 9px;}
+  .actu h3{font-size:19px;font-weight:700;line-height:1.25;margin-bottom:8px;}
+  .actu p{font-size:15px;margin-bottom:8px;max-width:70ch;}
+  .actu .cours{font-size:14px;color:var(--faded);}
+  .actu .cours b{color:var(--ink);font-weight:600;}
+  .actu .question{font-size:15px;background:var(--paper2);border-radius:3px;padding:8px 12px;margin:10px 0 8px;}
+  .actu .source{font-size:13px;color:var(--faded2);}
+  .actu .source a{color:var(--faded);}
+  .vide{font-size:15px;color:var(--faded);margin-top:24px;}
+  [hidden]{display:none!important;}
+</style>
+</head>
+<body class="niveau-actus">
+
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#accueil">Accueil</a><span>/</span><b>Actualité scientifique</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils">Outils</a>
+  </nav>
+</header>
+
+<div class="page">
+  <div class="kicker">Physique-chimie · Chaque lundi</div>
+  <h1>Actualité scientifique</h1>
+  <p class="lead">Chaque semaine, quelques découvertes récentes en physique et en chimie, expliquées simplement et reliées à ce que tu apprends en classe. Une question à la fin de chaque article pour réfléchir, seul ou en classe.</p>
+  <div class="filtres" role="group" aria-label="Filtrer par niveau">
+    <button type="button" data-f="tous" aria-pressed="true">Tous</button>
+    <button type="button" data-f="college" aria-pressed="false">Collège</button>
+    <button type="button" data-f="lycee" aria-pressed="false">Lycée</button>
+  </div>
+  <div id="numeros"><p class="vide">Chargement…</p></div>
+</div>
+
+<script>
+const COULEURS = { physique:'var(--blue)', chimie:'var(--green)', univers:'var(--purple)', terre:'var(--brown)', sante:'var(--red)', technologie:'var(--olive)' };
+const COLLEGE = ['5e','4e','3e'], LYCEE = ['2nde','1re','Tle'];
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dateFr(iso){ return new Date(iso+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}); }
+let numeros = [], filtre = 'tous';
+
+function visible(a){
+  if(filtre==='tous') return true;
+  const n = a.niveaux||[];
+  return n.some(x => (filtre==='college' ? COLLEGE : LYCEE).includes(x));
+}
+function actuHTML(a){
+  const c = COULEURS[a.domaine] || 'var(--accent)';
+  return '<article class="actu" style="--c:'+c+'">'
+    +'<div class="tags">'+(a.niveaux||[]).map(n=>'<span class="tag">'+esc(n)+'</span>').join('')
+    +(a.domaine?'<span class="tag">'+esc(a.domaine)+'</span>':'')+'</div>'
+    +'<h3>'+esc(a.titre)+'</h3>'
+    +(a.texte||[]).map(p=>'<p>'+esc(p)+'</p>').join('')
+    +(a.cours?'<p class="cours"><b>En classe :</b> '+esc(a.cours)+'</p>':'')
+    +(a.question?'<p class="question"><b>À toi :</b> '+esc(a.question)+'</p>':'')
+    +'<p class="source">Source : <a href="'+esc(a.url)+'" target="_blank" rel="noopener">'+esc(a.source)+'</a>'
+    +(a.date_source?', '+esc(dateFr(a.date_source)):'')+'</p>'
+    +'</article>';
+}
+function render(){
+  const box = document.getElementById('numeros');
+  const html = numeros.map(n=>{
+    const as = (n.articles||[]).filter(visible);
+    if(!as.length) return '';
+    return '<section class="numero" id="n'+esc(n.date)+'"><h2>Semaine du '+esc(dateFr(n.date))+'</h2>'
+      +(n.edito?'<p class="edito">'+esc(n.edito)+'</p>':'')+as.map(actuHTML).join('')+'</section>';
+  }).join('');
+  box.innerHTML = html || '<p class="vide">'+(numeros.length ? 'Aucun article pour ce niveau.' : 'Le premier numéro arrive lundi.')+'</p>';
+}
+document.querySelectorAll('.filtres button').forEach(b=>b.addEventListener('click',()=>{
+  filtre = b.dataset.f;
+  document.querySelectorAll('.filtres button').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true' : 'false'));
+  render();
+}));
+fetch('../data/actualites.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{
+  numeros = (d.numeros||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  render();
+}).catch(()=>{ document.getElementById('numeros').innerHTML='<p class="vide">Impossible de charger les actualités.</p>'; });
+</script>
+</body>
+</html>

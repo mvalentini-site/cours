@@ -200,7 +200,8 @@ const TABS_LEFT = [
   { id:'1ere-ens', label:'Ens. Sci.', title:'Enseignement scientifique',  color:'#2a5c3a' },
   { id:'5eme',     label:'5ème',      title:'5ème',                       color:'#6b3a1c' },
   { id:'4eme',     label:'4ème',      title:'4ème',                       color:'#6b1c4a' },
-  { id:'outils',   label:'Outils',    title:'Outils interactifs',         color:'#3a3a1c' }
+  { id:'outils',   label:'Outils',    title:'Outils interactifs',         color:'#3a3a1c' },
+  { id:'actus',    label:'Actus',     title:'Actualité scientifique',     color:'#1c4a6b' }
 ];
 const TABS_RIGHT = [
   { id:'postbac',  label:'Post Bac.', title:'Post-bac',                   color:'#3a1c6b' },
@@ -235,6 +236,9 @@ const SOMMAIRES = {
 };
 
 const PAGES = {
+  'actus': [
+    { file:'actualites/index.html', title:'Les découvertes de la semaine', sub:'Physique · chimie · Univers · expliquées simplement et reliées au cours', tag:'Chaque lundi', color:'#1c4a6b' }
+  ],
   'profs': [
     { ico:'ia', file:'Outils/generateur-prompt.html', title:'Prompt d\'évaluation', sub:'Nouveau sujet · variante · version adaptée', tag:'IA', color:'#2f4a5c' },
     { ico:'correction', file:'Outils/generateur-prompt-correction.html', title:'Prompt de correction', sub:'Corrigé · barème · compétences · plusieurs sujets', tag:'IA', color:'#2f4a5c' }

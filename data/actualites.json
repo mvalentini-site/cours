@@ -1,0 +1,4 @@
+{
+  "_note": "Actualité scientifique du site (page actualites/index.html). Un numéro par semaine, ajouté le lundi par la tâche planifiée actualite-scientifique-site. Champs d'un article : titre, texte (liste de paragraphes), niveaux (5e, 4e, 3e, 2nde, 1re, Tle), domaine (physique, chimie, univers, terre, sante, technologie), cours (lien avec le programme), question, source, url, date_source (AAAA-MM-JJ).",
+  "numeros": []
+}
