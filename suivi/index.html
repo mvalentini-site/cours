@@ -27,14 +27,12 @@
 .ev-titre{font-size:18px;font-weight:600;letter-spacing:-.01em;line-height:1.25;}
 .ev-note{font-size:26px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;}
 .ev-note small{font-size:15px;font-weight:400;color:var(--faded);}
-.ev-head::after{content:'›';font-size:22px;color:var(--faded2);transition:transform .15s;}
-.ev.open .ev-head::after{transform:rotate(90deg);}
-.ev-body{display:none;padding:0 18px 18px;border-top:1px solid var(--rule);}
-.ev.open .ev-body{display:block;}
-.ev-appr{margin:14px 0;font-size:15px;padding-left:12px;border-left:3px solid var(--blue);}
-.ev-rem{font-size:14px;color:var(--faded);margin:10px 0;}
-.pages{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
-.pages img{width:100%;height:auto;border:1px solid var(--rule);background:#fff;}
+.ev-head::after{content:'↗';font-size:18px;color:var(--faded2);transition:color .12s;}
+.ev:hover{border-color:var(--ink);background:#fff;}
+.ev:hover .ev-head::after{color:var(--ink);}
+.ev-head:disabled{cursor:default;}
+.ev-head:disabled::after{content:'';}
+.ev-info{font-size:13px;color:var(--faded);margin-top:2px;}
 .etat{margin-top:30px;padding:18px;background:var(--surface);border:1px solid var(--rule);font-size:15px;}
 .vide{font-size:15px;color:var(--faded);}
 </style>
@@ -89,52 +87,40 @@ async function ouvrir() {
   }
   document.title = 'Suivi – ' + fiche.prenom;
   document.getElementById('titre').textContent = fiche.prenom + ' ' + fiche.initiale + '.';
-  document.getElementById('lead').textContent = "Tes évaluations corrigées et tes documents. Clique sur une ligne pour l'ouvrir.";
+  document.getElementById('lead').textContent = "Tes évaluations corrigées et tes documents. Clique sur une ligne pour ouvrir le corrigé dans un nouvel onglet.";
   const liste = el('div', 'evals');
   if (!fiche.evaluations.length) liste.append(el('p', 'vide', "Aucune évaluation corrigée pour l'instant."));
   for (const ev of [...fiche.evaluations].reverse()) {
     const bloc = el('section', 'ev');
     const tete = el('button', 'ev-head');
     tete.type = 'button';
-    tete.setAttribute('aria-expanded', 'false');
     const txt = el('div', 'ev-txt');
+    const info = el('div', 'ev-info', ev.fichier ? '' : 'Corrigé pas encore en ligne');
     txt.append(el('div', 'ev-kicker', ev.matiere ? ev.matiere + ' · ' + ev.eval + (ev.rattrapage ? ' (rattrapage)' : '') : ev.eval),
-               el('div', 'ev-titre', ev.titre));
+               el('div', 'ev-titre', ev.titre), info);
     tete.append(txt);
     if (ev.note) {  // un document déposé par le professeur n'a pas de note
       const note = el('div', 'ev-note', ev.note);
       note.append(el('small', null, ' / ' + ev.total));
       tete.append(note);
     }
-    const corps = el('div', 'ev-body');
-    if (ev.appreciation) corps.append(el('p', 'ev-appr', ev.appreciation));
-    if (ev.remediation) corps.append(el('p', 'ev-rem', 'Remédiation : +' + ev.remediation + ' point(s), compris dans la note.'));
-    const pages = el('div', 'pages');
-    corps.append(pages);
-    let charge = false;
+    tete.disabled = !ev.fichier;
+    // Le PDF est déchiffré ici puis ouvert dans un nouvel onglet ; l'onglet est ouvert tout de suite, pendant le clic,
+    // sinon le navigateur le bloque comme fenêtre surgissante.
     tete.addEventListener('click', async () => {
-      const ouvert = bloc.classList.toggle('open');
-      tete.setAttribute('aria-expanded', ouvert);
-      if (!ouvert || charge) return;
-      charge = true;
-      if (!ev.pages.length) return pages.append(el('p', 'vide', "Corrigé non disponible en ligne."));
-      const attente = el('p', 'vide', 'Chargement…');
-      pages.append(attente);
+      const onglet = window.open('', '_blank');
+      if (onglet) onglet.document.write('<p style="font-family:system-ui,sans-serif;padding:24px">Ouverture du document…</p>');
+      info.textContent = 'Ouverture…';
       try {
-        for (const [i, f] of ev.pages.entries()) {
-          const img = el('img');
-          img.alt = 'Page ' + (i + 1);
-          img.src = URL.createObjectURL(new Blob([await lire(cle, f)], {type: 'image/jpeg'}));
-          pages.append(img);
-        }
-        attente.remove();
+        const lien = URL.createObjectURL(new Blob([await lire(cle, ev.fichier)], {type: ev.type}));
+        if (onglet) onglet.location.href = lien; else location.href = lien;
+        info.textContent = '';
       } catch (e) {
-        attente.textContent = "Le document n'a pas pu être chargé. Réessaie plus tard.";
-        pages.querySelectorAll('img').forEach(i => i.remove());
-        charge = false;
+        if (onglet) onglet.close();
+        info.textContent = "Le document n'a pas pu être ouvert. Réessaie plus tard.";
       }
     });
-    bloc.append(tete, corps);
+    bloc.append(tete);
     liste.append(bloc);
   }
   document.getElementById('contenu').replaceChildren(liste);
