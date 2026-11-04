@@ -12,17 +12,16 @@
 /* ===== Suivi personnel : complète parcours.css =====
    Le lien de l'élève est suivi/#<code>. Le code ne quitte jamais le navigateur (partie après #) :
    il donne le nom des fichiers (sha256 « suivi-id: ») et la clé qui les déchiffre (sha256 « suivi-cle: »).
-   Fichiers écrits par outils/suivi.py (dossier Évaluations et corrections), à ne pas modifier à la main. */
+   Fichiers écrits par outils/suivi.py (dossier Évaluations et corrections), à ne pas modifier à la main.
+   Les corrigés sont des PDF : affichés dans la page avec pdf.js, et téléchargeables. */
 .topbar .brand{text-decoration:none;font-weight:600;letter-spacing:-.01em;white-space:nowrap;}
 .suivi{max-width:820px;margin:0 auto;padding:44px clamp(16px,4vw,48px) 80px;}
 .suivi h1{margin-bottom:8px;}
 .lead{font-size:16px;color:var(--faded);max-width:60ch;}
 .evals{margin-top:30px;display:flex;flex-direction:column;gap:12px;}
-.ev{background:var(--surface);border:1px solid var(--rule);border-radius:4px;transition:border-color .15s,background .15s;
-  animation:apparait .35s ease-out backwards;}
+.ev{background:var(--surface);border:1px solid var(--rule);border-radius:4px;animation:apparait .35s ease-out backwards;}
 .ev:nth-child(2){animation-delay:.05s} .ev:nth-child(3){animation-delay:.1s} .ev:nth-child(n+4){animation-delay:.15s}
 @keyframes apparait{from{opacity:0;transform:translateY(6px)}}
-#titre,#lead{transition:opacity .25s;}
 @media (prefers-reduced-motion:reduce){.ev{animation:none}}
 .ev-head{display:flex;gap:16px;align-items:center;width:100%;padding:16px 18px;background:none;border:0;
   font:inherit;color:inherit;text-align:left;cursor:pointer;}
@@ -32,12 +31,19 @@
 .ev-titre{font-size:18px;font-weight:600;letter-spacing:-.01em;line-height:1.25;}
 .ev-note{font-size:26px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;}
 .ev-note small{font-size:15px;font-weight:400;color:var(--faded);}
-.ev-head::after{content:'↗';font-size:18px;color:var(--faded2);transition:color .12s;}
-.ev:hover{border-color:var(--ink);background:#fff;}
-.ev:hover .ev-head::after{color:var(--ink);}
-.ev-head:disabled{cursor:default;}
-.ev-head:disabled::after{content:'';}
-.ev-info{font-size:13px;color:var(--faded);margin-top:2px;}
+.ev-head::after{content:'›';font-size:22px;color:var(--faded2);transition:transform .15s;}
+.ev.open .ev-head::after{transform:rotate(90deg);}
+.ev-body{display:none;padding:0 18px 18px;border-top:1px solid var(--rule);}
+.ev.open .ev-body{display:block;animation:apparait .25s ease-out;}
+.ev-appr{margin:14px 0;font-size:15px;padding-left:12px;border-left:3px solid var(--blue);}
+.ev-rem{font-size:14px;color:var(--faded);margin:10px 0;}
+.ev-actions{margin:14px 0 4px;}
+.telecharger{font:inherit;font-size:14px;font-weight:600;padding:8px 14px;border:1px solid var(--ink);border-radius:999px;
+  background:var(--ink);color:var(--paper);cursor:pointer;}
+.telecharger:hover{background:var(--ink2);}
+.telecharger:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+.pages{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+.pages canvas,.pages img{width:100%;height:auto;border:1px solid var(--rule);background:#fff;}
 .etat{margin-top:30px;padding:18px;background:var(--surface);border:1px solid var(--rule);font-size:15px;}
 .vide{font-size:15px;color:var(--faded);}
 </style>
@@ -54,19 +60,13 @@
   <div id="contenu"></div>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-// Page affichée dans le nouvel onglet le temps de déchiffrer le PDF : mêmes couleurs que le site, pour une transition douce.
-const ATTENTE = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TITRE</title><style>
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-  background:#f6f1e4;color:#5f4e33;font:16px 'Bricolage Grotesque',system-ui,sans-serif;animation:fade .25s ease-out}
-.rond{width:34px;height:34px;border:3px solid rgba(28,18,8,.12);border-top-color:#1c1208;border-radius:50%;animation:tour .8s linear infinite}
-@keyframes tour{to{transform:rotate(360deg)}} @keyframes fade{from{opacity:0}}
-</style></head><body><div class="rond"></div><div>Ouverture de ton corrigé…</div></body></html>`;
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const enc = new TextEncoder();
 const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
 const sha = s => crypto.subtle.digest('SHA-256', enc.encode(s));
+const EXT = {'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/png': '.png'};
 
 async function lire(cle, fichier) {
   const r = await fetch('d/' + fichier, {cache: 'no-cache'});
@@ -87,6 +87,22 @@ function message(titre, texte) {
   document.getElementById('contenu').replaceChildren(el('div', 'etat', texte));
 }
 
+// Chaque page du PDF dessinée à la largeur de la colonne (nette sur écran haute densité).
+async function afficherPdf(octets, zone) {
+  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(octets)}).promise;
+  const largeur = zone.clientWidth * (window.devicePixelRatio || 1);
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const page = await pdf.getPage(n);
+    const vue = page.getViewport({scale: largeur / page.getViewport({scale: 1}).width});
+    const toile = el('canvas');
+    toile.width = vue.width;
+    toile.height = vue.height;
+    toile.setAttribute('aria-label', 'Page ' + n);
+    zone.append(toile);
+    await page.render({canvasContext: toile.getContext('2d'), viewport: vue}).promise;
+  }
+}
+
 async function ouvrir() {
   const code = decodeURIComponent(location.hash.slice(1)).trim().toLowerCase();
   if (!code) return message('Ton suivi', "Pour voir tes évaluations, ouvre le lien personnel de ton étiquette (scanne son QR code).");
@@ -101,42 +117,75 @@ async function ouvrir() {
   }
   document.title = 'Suivi – ' + fiche.prenom;
   document.getElementById('titre').textContent = fiche.prenom + ' ' + fiche.initiale + '.';
-  document.getElementById('lead').textContent = "Tes évaluations corrigées et tes documents. Clique sur une ligne pour ouvrir le corrigé dans un nouvel onglet.";
+  document.getElementById('lead').textContent = "Tes évaluations corrigées et tes documents. Clique sur une ligne pour voir ton corrigé.";
   const liste = el('div', 'evals');
   if (!fiche.evaluations.length) liste.append(el('p', 'vide', "Aucune évaluation corrigée pour l'instant."));
   for (const ev of [...fiche.evaluations].reverse()) {
     const bloc = el('section', 'ev');
     const tete = el('button', 'ev-head');
     tete.type = 'button';
+    tete.setAttribute('aria-expanded', 'false');
     const txt = el('div', 'ev-txt');
-    const info = el('div', 'ev-info', ev.fichier ? '' : 'Corrigé pas encore en ligne');
     txt.append(el('div', 'ev-kicker', ev.matiere ? ev.matiere + ' · ' + ev.eval + (ev.rattrapage ? ' (rattrapage)' : '') : ev.eval),
-               el('div', 'ev-titre', ev.titre), info);
+               el('div', 'ev-titre', ev.titre));
     tete.append(txt);
     if (ev.note) {  // un document déposé par le professeur n'a pas de note
       const note = el('div', 'ev-note', ev.note);
       note.append(el('small', null, ' / ' + ev.total));
       tete.append(note);
     }
-    tete.disabled = !ev.fichier;
-    // Le PDF est déchiffré ici puis ouvert dans un nouvel onglet ; l'onglet est ouvert tout de suite, pendant le clic,
-    // sinon le navigateur le bloque comme fenêtre surgissante.
+    const corps = el('div', 'ev-body');
+    if (ev.appreciation) corps.append(el('p', 'ev-appr', ev.appreciation));
+    if (ev.remediation) corps.append(el('p', 'ev-rem', 'Remédiation : +' + ev.remediation + ' point(s), compris dans la note.'));
+    const pages = el('div', 'pages');
+    let octets = null;  // fichier déchiffré, gardé pour le bouton de téléchargement
+    const charger = async () => octets || (octets = await lire(cle, ev.fichier));
+    if (ev.fichier) {
+      const actions = el('div', 'ev-actions');
+      const bouton = el('button', 'telecharger', ev.type === 'application/pdf' ? 'Télécharger le PDF' : "Télécharger l'image");
+      bouton.type = 'button';
+      bouton.addEventListener('click', async () => {
+        try {
+          const a = el('a');
+          a.href = URL.createObjectURL(new Blob([await charger()], {type: ev.type}));
+          a.download = (ev.matiere ? ev.eval + ' - ' : '') + ev.titre.replace(/[\\/:*?"<>|]/g, '-') + (EXT[ev.type] || '');
+          document.body.append(a);
+          a.click();
+          a.remove();
+        } catch (e) {
+          bouton.textContent = 'Téléchargement impossible, réessaie';
+        }
+      });
+      actions.append(bouton);
+      corps.append(actions);
+    }
+    corps.append(pages);
+    let affiche = false;
     tete.addEventListener('click', async () => {
-      const onglet = window.open('', '_blank');
-      if (onglet) onglet.document.write(ATTENTE.replace('TITRE', ev.titre.replace(/[<&]/g, '')));
-      info.textContent = 'Ouverture…';
+      const ouvert = bloc.classList.toggle('open');
+      tete.setAttribute('aria-expanded', ouvert);
+      if (!ouvert || affiche) return;
+      affiche = true;
+      if (!ev.fichier) return pages.append(el('p', 'vide', "Corrigé pas encore en ligne."));
+      const attente = el('p', 'vide', 'Chargement…');
+      pages.append(attente);
       try {
-        const debut = Date.now();
-        const lien = URL.createObjectURL(new Blob([await lire(cle, ev.fichier)], {type: ev.type}));
-        await new Promise(r => setTimeout(r, Math.max(0, 450 - (Date.now() - debut))));  // pas de simple clignotement de l'attente
-        if (onglet) onglet.location.href = lien; else location.href = lien;
-        info.textContent = '';
+        const contenu = await charger();
+        if (ev.type === 'application/pdf') {
+          await afficherPdf(contenu, pages);
+        } else {
+          const img = el('img');
+          img.alt = ev.titre;
+          img.src = URL.createObjectURL(new Blob([contenu], {type: ev.type}));
+          pages.append(img);
+        }
+        attente.remove();
       } catch (e) {
-        if (onglet) onglet.close();
-        info.textContent = "Le document n'a pas pu être ouvert. Réessaie plus tard.";
+        pages.replaceChildren(el('p', 'vide', "Le corrigé n'a pas pu être affiché. Réessaie plus tard, ou télécharge-le."));
+        affiche = false;
       }
     });
-    bloc.append(tete);
+    bloc.append(tete, corps);
     liste.append(bloc);
   }
   document.getElementById('contenu').replaceChildren(liste);
