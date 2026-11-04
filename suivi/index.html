@@ -89,7 +89,7 @@ async function ouvrir() {
   }
   document.title = 'Suivi – ' + fiche.prenom;
   document.getElementById('titre').textContent = fiche.prenom + ' ' + fiche.initiale + '.';
-  document.getElementById('lead').textContent = "Tes évaluations corrigées. Clique sur une évaluation pour voir ton corrigé.";
+  document.getElementById('lead').textContent = "Tes évaluations corrigées et tes documents. Clique sur une ligne pour l'ouvrir.";
   const liste = el('div', 'evals');
   if (!fiche.evaluations.length) liste.append(el('p', 'vide', "Aucune évaluation corrigée pour l'instant."));
   for (const ev of [...fiche.evaluations].reverse()) {
@@ -98,11 +98,14 @@ async function ouvrir() {
     tete.type = 'button';
     tete.setAttribute('aria-expanded', 'false');
     const txt = el('div', 'ev-txt');
-    txt.append(el('div', 'ev-kicker', ev.matiere + ' · ' + ev.eval + (ev.rattrapage ? ' (rattrapage)' : '')),
+    txt.append(el('div', 'ev-kicker', ev.matiere ? ev.matiere + ' · ' + ev.eval + (ev.rattrapage ? ' (rattrapage)' : '') : ev.eval),
                el('div', 'ev-titre', ev.titre));
-    const note = el('div', 'ev-note', ev.note);
-    note.append(el('small', null, ' / ' + ev.total));
-    tete.append(txt, note);
+    tete.append(txt);
+    if (ev.note) {  // un document déposé par le professeur n'a pas de note
+      const note = el('div', 'ev-note', ev.note);
+      note.append(el('small', null, ' / ' + ev.total));
+      tete.append(note);
+    }
     const corps = el('div', 'ev-body');
     if (ev.appreciation) corps.append(el('p', 'ev-appr', ev.appreciation));
     if (ev.remediation) corps.append(el('p', 'ev-rem', 'Remédiation : +' + ev.remediation + ' point(s), compris dans la note.'));
@@ -115,18 +118,19 @@ async function ouvrir() {
       if (!ouvert || charge) return;
       charge = true;
       if (!ev.pages.length) return pages.append(el('p', 'vide', "Corrigé non disponible en ligne."));
-      const attente = el('p', 'vide', 'Chargement du corrigé…');
+      const attente = el('p', 'vide', 'Chargement…');
       pages.append(attente);
       try {
         for (const [i, f] of ev.pages.entries()) {
           const img = el('img');
-          img.alt = 'Corrigé, page ' + (i + 1);
+          img.alt = 'Page ' + (i + 1);
           img.src = URL.createObjectURL(new Blob([await lire(cle, f)], {type: 'image/jpeg'}));
           pages.append(img);
         }
         attente.remove();
       } catch (e) {
-        attente.textContent = "Le corrigé n'a pas pu être chargé. Réessaie plus tard.";
+        attente.textContent = "Le document n'a pas pu être chargé. Réessaie plus tard.";
+        pages.querySelectorAll('img').forEach(i => i.remove());
         charge = false;
       }
     });
