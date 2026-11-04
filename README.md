@@ -24,6 +24,11 @@ Site GitHub Pages : https://mvalentini-site.github.io/cours/ (dépôt `mvalentin
 └── Outils/                       ← outils interactifs (pointage vidéo, Mariotte, Melde…) et leurs vidéos
 ```
 
+## Suivi des élèves (`suivi/`)
+Page personnelle de chaque élève : `https://mvalentini.fr/suivi/#<code>` (non référencée, `noindex`).
+`suivi/d/*.bin` est chiffré (AES-GCM, clé tirée du code du lien) et généré par
+`G:\Mon Drive\Évaluations et corrections\outils\suivi.py` : ne pas modifier à la main. Aucune donnée en clair dans le dépôt.
+
 ## Créer un chapitre
 1. Copier `gabarit/chapitre-modele.html` dans `NIVEAU/chXX-nom/index.html`.
 2. Sur `<body>`, poser `class="niveau-1spe|niveau-ens|niveau-5e"` et `data-page="identifiant-unique"`.

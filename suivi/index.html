@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Mon suivi</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css">
+<style>
+/* ===== Suivi personnel : complète parcours.css =====
+   Le lien de l'élève est suivi/#<code>. Le code ne quitte jamais le navigateur (partie après #) :
+   il donne le nom des fichiers (sha256 « suivi-id: ») et la clé qui les déchiffre (sha256 « suivi-cle: »).
+   Fichiers écrits par outils/suivi.py (dossier Évaluations et corrections), à ne pas modifier à la main. */
+.topbar .brand{text-decoration:none;font-weight:600;letter-spacing:-.01em;white-space:nowrap;}
+.suivi{max-width:820px;margin:0 auto;padding:44px clamp(16px,4vw,48px) 80px;}
+.suivi h1{margin-bottom:8px;}
+.lead{font-size:16px;color:var(--faded);max-width:60ch;}
+.evals{margin-top:30px;display:flex;flex-direction:column;gap:12px;}
+.ev{background:var(--surface);border:1px solid var(--rule);border-radius:4px;}
+.ev-head{display:flex;gap:16px;align-items:center;width:100%;padding:16px 18px;background:none;border:0;
+  font:inherit;color:inherit;text-align:left;cursor:pointer;}
+.ev-head:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+.ev-txt{flex:1;min-width:0;}
+.ev-kicker{font-size:13px;color:var(--faded);}
+.ev-titre{font-size:18px;font-weight:600;letter-spacing:-.01em;line-height:1.25;}
+.ev-note{font-size:26px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;}
+.ev-note small{font-size:15px;font-weight:400;color:var(--faded);}
+.ev-head::after{content:'›';font-size:22px;color:var(--faded2);transition:transform .15s;}
+.ev.open .ev-head::after{transform:rotate(90deg);}
+.ev-body{display:none;padding:0 18px 18px;border-top:1px solid var(--rule);}
+.ev.open .ev-body{display:block;}
+.ev-appr{margin:14px 0;font-size:15px;padding-left:12px;border-left:3px solid var(--blue);}
+.ev-rem{font-size:14px;color:var(--faded);margin:10px 0;}
+.pages{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+.pages img{width:100%;height:auto;border:1px solid var(--rule);background:#fff;}
+.etat{margin-top:30px;padding:18px;background:var(--surface);border:1px solid var(--rule);font-size:15px;}
+.vide{font-size:15px;color:var(--faded);}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../">Cahier de physique-chimie</a>
+</header>
+
+<main class="suivi">
+  <div class="kicker">Mon suivi</div>
+  <h1 id="titre">Chargement…</h1>
+  <p class="lead" id="lead"></p>
+  <div id="contenu"></div>
+</main>
+
+<script>
+const enc = new TextEncoder();
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+const sha = s => crypto.subtle.digest('SHA-256', enc.encode(s));
+
+async function lire(cle, fichier) {
+  const r = await fetch('d/' + fichier, {cache: 'no-cache'});
+  if (!r.ok) throw new Error(r.status);
+  const b = new Uint8Array(await r.arrayBuffer());
+  return crypto.subtle.decrypt({name: 'AES-GCM', iv: b.slice(0, 12)}, cle, b.slice(12));
+}
+
+function el(tag, cls, txt) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+
+function message(titre, texte) {
+  document.getElementById('titre').textContent = titre;
+  document.getElementById('contenu').replaceChildren(el('div', 'etat', texte));
+}
+
+async function ouvrir() {
+  const code = decodeURIComponent(location.hash.slice(1)).trim().toLowerCase();
+  if (!code) return message('Ton suivi', "Pour voir tes évaluations, ouvre le lien personnel de ton étiquette (scanne son QR code).");
+  if (!crypto.subtle) return message('Navigateur trop ancien', "Ouvre ce lien dans un navigateur à jour (Chrome, Firefox, Safari).");
+  const id = hex(await sha('suivi-id:' + code)).slice(0, 20);
+  const cle = await crypto.subtle.importKey('raw', await sha('suivi-cle:' + code), 'AES-GCM', false, ['decrypt']);
+  let fiche;
+  try {
+    fiche = JSON.parse(new TextDecoder().decode(await lire(cle, id + '.bin')));
+  } catch (e) {
+    return message('Lien inconnu', "Ce lien ne correspond à aucun élève. Vérifie qu'il est complet, ou demande ton étiquette à ton professeur.");
+  }
+  document.title = 'Suivi – ' + fiche.prenom;
+  document.getElementById('titre').textContent = fiche.prenom + ' ' + fiche.initiale + '.';
+  document.getElementById('lead').textContent = "Tes évaluations corrigées. Clique sur une évaluation pour voir ton corrigé.";
+  const liste = el('div', 'evals');
+  if (!fiche.evaluations.length) liste.append(el('p', 'vide', "Aucune évaluation corrigée pour l'instant."));
+  for (const ev of [...fiche.evaluations].reverse()) {
+    const bloc = el('section', 'ev');
+    const tete = el('button', 'ev-head');
+    tete.type = 'button';
+    tete.setAttribute('aria-expanded', 'false');
+    const txt = el('div', 'ev-txt');
+    txt.append(el('div', 'ev-kicker', ev.matiere + ' · ' + ev.eval + (ev.rattrapage ? ' (rattrapage)' : '')),
+               el('div', 'ev-titre', ev.titre));
+    const note = el('div', 'ev-note', ev.note);
+    note.append(el('small', null, ' / ' + ev.total));
+    tete.append(txt, note);
+    const corps = el('div', 'ev-body');
+    if (ev.appreciation) corps.append(el('p', 'ev-appr', ev.appreciation));
+    if (ev.remediation) corps.append(el('p', 'ev-rem', 'Remédiation : +' + ev.remediation + ' point(s), compris dans la note.'));
+    const pages = el('div', 'pages');
+    corps.append(pages);
+    let charge = false;
+    tete.addEventListener('click', async () => {
+      const ouvert = bloc.classList.toggle('open');
+      tete.setAttribute('aria-expanded', ouvert);
+      if (!ouvert || charge) return;
+      charge = true;
+      if (!ev.pages.length) return pages.append(el('p', 'vide', "Corrigé non disponible en ligne."));
+      const attente = el('p', 'vide', 'Chargement du corrigé…');
+      pages.append(attente);
+      try {
+        for (const [i, f] of ev.pages.entries()) {
+          const img = el('img');
+          img.alt = 'Corrigé, page ' + (i + 1);
+          img.src = URL.createObjectURL(new Blob([await lire(cle, f)], {type: 'image/jpeg'}));
+          pages.append(img);
+        }
+        attente.remove();
+      } catch (e) {
+        attente.textContent = "Le corrigé n'a pas pu être chargé. Réessaie plus tard.";
+        charge = false;
+      }
+    });
+    bloc.append(tete, corps);
+    liste.append(bloc);
+  }
+  document.getElementById('contenu').replaceChildren(liste);
+}
+
+window.addEventListener('hashchange', () => location.reload());
+ouvrir();
+</script>
+</body>
+</html>

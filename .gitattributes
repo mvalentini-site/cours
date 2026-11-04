@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Fichiers chiffrés du suivi élèves : jamais de conversion de fins de ligne
+suivi/d/*.bin binary
