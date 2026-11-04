@@ -42,8 +42,22 @@
   background:var(--ink);color:var(--paper);cursor:pointer;}
 .telecharger:hover{background:var(--ink2);}
 .telecharger:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
-.pages{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
-.pages canvas,.pages img{width:100%;height:auto;border:1px solid var(--rule);background:#fff;}
+/* Visionneuse : une page à la fois, on fait défiler de gauche à droite (glisser au doigt, flèches, clavier) */
+.visio{position:relative;margin-top:14px;}
+.pages{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;
+  border:1px solid var(--rule);background:var(--paper2);}
+.pages::-webkit-scrollbar{display:none;}
+.pages:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(28,61,110,.3);}
+.page{flex:0 0 100%;scroll-snap-align:center;display:flex;justify-content:center;}
+.page canvas,.page img{display:block;width:100%;height:auto;background:#fff;}
+.fleche{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:0;
+  background:rgba(28,18,8,.72);color:var(--paper);font-size:22px;line-height:1;cursor:pointer;transition:opacity .15s;}
+.fleche:hover{background:var(--ink);}
+.fleche:disabled{opacity:0;pointer-events:none;}
+.fleche.prec{left:8px;} .fleche.suiv{right:8px;}
+.compteur{text-align:center;font-size:14px;color:var(--faded);margin-top:8px;}
+.visio.une .fleche,.visio.une .compteur{display:none;}
+.pages > .vide{padding:18px;}
 .etat{margin-top:30px;padding:18px;background:var(--surface);border:1px solid var(--rule);font-size:15px;}
 .vide{font-size:15px;color:var(--faded);}
 </style>
@@ -87,8 +101,8 @@ function message(titre, texte) {
   document.getElementById('contenu').replaceChildren(el('div', 'etat', texte));
 }
 
-// Chaque page du PDF dessinée à la largeur de la colonne (nette sur écran haute densité).
-async function afficherPdf(octets, zone) {
+// Chaque page du PDF dessinée à la largeur de la visionneuse (nette sur écran haute densité), une diapositive par page.
+async function afficherPdf(octets, zone, maj) {
   const pdf = await pdfjsLib.getDocument({data: new Uint8Array(octets)}).promise;
   const largeur = zone.clientWidth * (window.devicePixelRatio || 1);
   for (let n = 1; n <= pdf.numPages; n++) {
@@ -97,10 +111,45 @@ async function afficherPdf(octets, zone) {
     const toile = el('canvas');
     toile.width = vue.width;
     toile.height = vue.height;
-    toile.setAttribute('aria-label', 'Page ' + n);
-    zone.append(toile);
+    toile.setAttribute('aria-label', 'Page ' + n + ' sur ' + pdf.numPages);
+    const diapo = el('div', 'page');
+    diapo.append(toile);
+    zone.append(diapo);
+    maj();
     await page.render({canvasContext: toile.getContext('2d'), viewport: vue}).promise;
   }
+}
+
+// Visionneuse : flèches, compteur « 2 / 4 », glisser au doigt (défilement aimanté), flèches du clavier.
+function visionneuse() {
+  const boite = el('div', 'visio une');
+  const pages = el('div', 'pages');
+  pages.tabIndex = 0;
+  pages.setAttribute('aria-label', 'Pages du corrigé');
+  const prec = el('button', 'fleche prec', '‹');
+  const suiv = el('button', 'fleche suiv', '›');
+  prec.type = suiv.type = 'button';
+  prec.setAttribute('aria-label', 'Page précédente');
+  suiv.setAttribute('aria-label', 'Page suivante');
+  const compteur = el('div', 'compteur');
+  const courante = () => Math.round(pages.scrollLeft / Math.max(1, pages.clientWidth));
+  const maj = () => {
+    const nb = pages.querySelectorAll('.page').length, i = courante();
+    boite.classList.toggle('une', nb < 2);
+    compteur.textContent = 'Page ' + (i + 1) + ' / ' + nb;
+    prec.disabled = i <= 0;
+    suiv.disabled = i >= nb - 1;
+  };
+  const aller = d => pages.scrollTo({left: (courante() + d) * pages.clientWidth});
+  prec.addEventListener('click', () => aller(-1));
+  suiv.addEventListener('click', () => aller(1));
+  pages.addEventListener('scroll', maj, {passive: true});
+  pages.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') { aller(-1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { aller(1); e.preventDefault(); }
+  });
+  boite.append(pages, prec, suiv, compteur);
+  return {boite, pages, maj};
 }
 
 async function ouvrir() {
@@ -137,7 +186,7 @@ async function ouvrir() {
     const corps = el('div', 'ev-body');
     if (ev.appreciation) corps.append(el('p', 'ev-appr', ev.appreciation));
     if (ev.remediation) corps.append(el('p', 'ev-rem', 'Remédiation : +' + ev.remediation + ' point(s), compris dans la note.'));
-    const pages = el('div', 'pages');
+    const {boite, pages, maj} = visionneuse();
     let octets = null;  // fichier déchiffré, gardé pour le bouton de téléchargement
     const charger = async () => octets || (octets = await lire(cle, ev.fichier));
     if (ev.fichier) {
@@ -159,7 +208,7 @@ async function ouvrir() {
       actions.append(bouton);
       corps.append(actions);
     }
-    corps.append(pages);
+    corps.append(boite);
     let affiche = false;
     tete.addEventListener('click', async () => {
       const ouvert = bloc.classList.toggle('open');
@@ -171,15 +220,18 @@ async function ouvrir() {
       pages.append(attente);
       try {
         const contenu = await charger();
+        attente.remove();
         if (ev.type === 'application/pdf') {
-          await afficherPdf(contenu, pages);
+          await afficherPdf(contenu, pages, maj);
         } else {
           const img = el('img');
           img.alt = ev.titre;
           img.src = URL.createObjectURL(new Blob([contenu], {type: ev.type}));
-          pages.append(img);
+          const diapo = el('div', 'page');
+          diapo.append(img);
+          pages.append(diapo);
+          maj();
         }
-        attente.remove();
       } catch (e) {
         pages.replaceChildren(el('p', 'vide', "Le corrigé n'a pas pu être affiché. Réessaie plus tard, ou télécharge-le."));
         affiche = false;
