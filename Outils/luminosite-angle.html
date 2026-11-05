@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luminosité et orientation – capteurs de la tablette</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/parcours.css?v=4">
+<style>
+body{--accent:var(--blue);--crumb:#a9c4ea;}
+main{min-width:0}
+.panneau h3{font-size:17px;font-weight:600;margin-bottom:10px;}
+.panneau p{font-size:16px;max-width:76ch;margin-bottom:12px;color:var(--ink);}
+
+.grille{display:grid;gap:16px;margin:16px 0;align-items:start;grid-template-columns:.85fr 1.15fr;}
+@media(max-width:900px){.grille{grid-template-columns:1fr;}}
+.carte{background:var(--paper);border:1px solid var(--rule);padding:16px 18px;}
+
+.btn{font:inherit;font-size:16px;padding:10px 18px;border:1px solid var(--rule);background:var(--surface);
+  color:var(--ink);cursor:pointer;border-radius:4px;min-height:44px;}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--ink);outline:none;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn.plein{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600;}
+.btn.rouge{background:var(--red);border-color:var(--red);color:var(--paper);font-weight:600;}
+.boutons{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px;}
+
+.demarrage{text-align:center;padding:28px 18px;}
+.demarrage .btn{font-size:19px;padding:14px 30px;}
+.demarrage p{margin:12px auto 0;}
+
+.video-wrap{position:relative;background:#111;border:1px solid var(--rule);overflow:hidden;aspect-ratio:4/3;}
+.video-wrap video{width:100%;height:100%;object-fit:cover;display:block;}
+.video-wrap .zone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid #ffd24a;
+  box-shadow:0 0 0 2000px rgba(0,0,0,.35);pointer-events:none;}
+.video-wrap .sat{position:absolute;left:8px;top:8px;background:var(--red);color:#fff;font-size:13px;padding:3px 8px;border-radius:3px;display:none;}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px;}
+.stat{background:var(--surface);border:1px solid var(--rule);padding:9px 12px;}
+.stat .k{font-size:12px;color:var(--faded);line-height:1.3;}
+.stat .v{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:2px;font-variant-numeric:tabular-nums;}
+.stat .u{font-size:13px;color:var(--faded);font-weight:400;}
+
+.champ{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);margin-bottom:12px;}
+.champ .haut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
+.champ .haut b{color:var(--ink);font-weight:600;font-size:14px;}
+.champ input[type=range]{width:100%;accent-color:var(--accent);}
+.champ select{font:inherit;font-size:15px;color:var(--ink);padding:8px 9px;border:1px solid rgba(28,18,8,.22);background:#fff;border-radius:3px;width:100%;}
+.case{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-bottom:10px;}
+.case input{width:20px;height:20px;accent-color:var(--accent);}
+
+canvas#graphe{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid var(--rule);touch-action:none;}
+.petit{font-size:13px;color:var(--faded);margin-top:8px;}
+.etat{font-size:13.5px;margin-top:8px;padding:8px 12px;background:var(--paper2);border-left:3px solid var(--accent);}
+.etat.alerte{border-left-color:var(--red);}
+.astuce{margin:14px 0 0;padding:12px 16px;background:var(--paper2);border-left:3px solid var(--accent);font-size:15px;max-width:80ch;}
+.astuce b{font-weight:600;}
+.cache{display:none!important;}
+.rec{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:6px;animation:clign 1s infinite;}
+@keyframes clign{50%{opacity:.25}}
+</style>
+</head>
+<body class="une-colonne en-onglets">
+<header class="topbar">
+  <div class="crumb"><a href="../index.html#outils">Outils</a><span>/</span><b>Luminosité et orientation</b></div>
+  <nav>
+    <a href="../index.html#accueil">Accueil</a>
+    <a href="../index.html#1ere-spe">1res Spé</a>
+    <a href="../index.html#1ere-ens">Ens. Sci.</a>
+    <a href="../index.html#5eme">5ème</a>
+    <a href="../index.html#4eme">4ème</a>
+    <a href="../index.html#outils" aria-current="page">Outils</a>
+  </nav>
+</header>
+<div class="layout">
+  <aside>
+    <div class="kicker">Outil · Capteurs de la tablette</div>
+    <h1>Luminosité et orientation</h1>
+    <div class="meta">La caméra mesure la luminosité, le gyroscope mesure l'angle :
+      on trace la luminosité en fonction de l'angle d'orientation de la tablette.</div>
+  </aside>
+<main>
+<section class="panneau">
+
+  <div class="carte demarrage" id="ecranDemarrage">
+    <button class="btn plein" id="btnDemarrer">▶ Démarrer les capteurs</button>
+    <p class="petit">La tablette va demander l'autorisation d'utiliser l'appareil photo et les capteurs de mouvement : répondre « Autoriser ».</p>
+    <div class="etat alerte cache" id="msgDemarrage"></div>
+  </div>
+
+  <div class="grille cache" id="ecranMesure">
+    <!-- colonne gauche : caméra + valeurs -->
+    <div>
+      <div class="video-wrap">
+        <video id="video" playsinline muted autoplay></video>
+        <div class="zone" id="zone"></div>
+        <div class="sat" id="sat">Saturation !</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">Angle θ</div><div class="v"><span id="vAngle">—</span> <span class="u">°</span></div></div>
+        <div class="stat"><div class="k">Luminosité relative</div><div class="v"><span id="vLum">—</span> <span class="u" id="uLum">%</span></div></div>
+      </div>
+      <div class="boutons">
+        <button class="btn" id="btnZero">Zéro ici (θ = 0)</button>
+        <button class="btn" id="btnCamera">Changer de caméra</button>
+      </div>
+      <div class="etat" id="etatExpo">—</div>
+
+      <div class="carte" style="margin-top:14px">
+        <h3>Réglages</h3>
+        <div class="champ">
+          <div class="haut"><span>Angle mesuré</span></div>
+          <select id="modeAngle">
+            <option value="tilt">Inclinaison de l'écran par rapport à l'horizontale (0° = à plat)</option>
+            <option value="alpha">Rotation à plat sur la table (comme une boussole)</option>
+            <option value="volant">Rotation tablette debout (comme un volant)</option>
+            <option value="beta">Inclinaison avant / arrière</option>
+            <option value="gamma">Inclinaison gauche / droite</option>
+          </select>
+        </div>
+        <div class="champ">
+          <div class="haut"><span>Taille de la zone de mesure</span><b id="zoneVal">40 %</b></div>
+          <input type="range" id="zoneTaille" min="10" max="100" step="5" value="40">
+        </div>
+        <div class="champ" id="blocExpo">
+          <div class="haut"><span>Temps d'exposition (si réglable)</span><b id="expoVal">—</b></div>
+          <input type="range" id="expo" min="0" max="1000" step="1" value="500" disabled>
+        </div>
+        <label class="case"><input type="checkbox" id="lineaire" checked> Convertir en intensité (pixels sRGB → linéaire)</label>
+        <label class="case"><input type="checkbox" id="lisser" checked> Lisser la mesure (moyenne glissante)</label>
+      </div>
+    </div>
+
+    <!-- colonne droite : graphe -->
+    <div>
+      <canvas id="graphe" width="1000" height="680"></canvas>
+      <div class="boutons">
+        <button class="btn plein" id="btnRec">● Enregistrer en continu</button>
+        <button class="btn" id="btnPoint">+ Ajouter un point</button>
+        <button class="btn" id="btnEffacer">Effacer</button>
+      </div>
+      <div class="boutons" style="margin-top:4px">
+        <button class="btn" id="btnCSV">Télécharger CSV</button>
+        <button class="btn" id="btnCopier">Copier (pour tableur)</button>
+        <button class="btn" id="btnPleinEcran">Plein écran</button>
+      </div>
+      <div class="champ" style="margin-top:10px">
+        <div class="haut"><span>Superposer un modèle (ajusté au maximum mesuré)</span></div>
+        <select id="modele">
+          <option value="">Aucun</option>
+          <option value="cos">I = I<sub>max</sub> · cos θ (loi de Lambert)</option>
+          <option value="cos2">I = I<sub>max</sub> · cos² θ (loi de Malus)</option>
+        </select>
+      </div>
+      <div class="petit" id="nbPoints">0 point</div>
+
+      <div class="astuce">
+        <b>Conseils.</b> Choisir l'angle mesuré, poser la tablette dans la position de départ puis appuyer sur <b>Zéro ici</b>.
+        Lancer l'enregistrement et tourner <b>lentement</b> la tablette.
+        L'appareil photo règle souvent sa luminosité tout seul (exposition automatique), ce qui écrase les variations :
+        si c'est signalé ci-contre, utiliser une source peu intense et éviter que l'image sature (bandeau rouge).
+        <br><br>
+        <b>Exemples.</b> Lampe au-dessus de la tablette posée à plat, caméra avant, mode « inclinaison » : loi en cos θ (saisons, éclairement).
+        Polariseur sur la lampe et analyseur collé sur la caméra, mode « rotation à plat » : loi de Malus en cos² θ.
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const deg = Math.PI/180;
+
+/* ───────── état ───────── */
+let stream=null, track=null, facing='user';
+let ori={alpha:null,beta:null,gamma:null}, grav=null;
+let angleBrut=null, angleCont=null, zero=0;          // angle déroulé (continu)
+let lum=null, lumLisse=null, saturation=0;
+let enregistre=false, points=[], t0=0, dernierAjout=0;
+let expoManuelle=false;
+
+/* ───────── démarrage : permissions ───────── */
+$('btnDemarrer').addEventListener('click', async ()=>{
+  const msg=$('msgDemarrage'); msg.classList.add('cache');
+  const erreurs=[];
+  if(!window.isSecureContext) erreurs.push("La page n'est pas servie en HTTPS : l'appareil photo sera refusé. Ouvrir la page depuis le site (https://mvalentini.fr).");
+  // iOS : la demande doit partir directement du clic, avant tout await
+  const pOri = (typeof DeviceOrientationEvent!=='undefined' && DeviceOrientationEvent.requestPermission) ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted');
+  const pMot = (typeof DeviceMotionEvent!=='undefined' && DeviceMotionEvent.requestPermission) ? DeviceMotionEvent.requestPermission() : Promise.resolve('granted');
+  try{ if(await pOri!=='granted') erreurs.push("Capteurs d'orientation refusés."); }catch(e){ erreurs.push("Capteurs d'orientation : "+e.message); }
+  try{ await pMot; }catch(e){}
+  window.addEventListener('deviceorientation', e=>{ ori={alpha:e.alpha,beta:e.beta,gamma:e.gamma}; });
+  window.addEventListener('devicemotion', e=>{ const g=e.accelerationIncludingGravity; if(g&&g.x!=null) grav={x:g.x,y:g.y,z:g.z}; });
+  try{ await ouvrirCamera(); }
+  catch(e){ erreurs.push("Appareil photo indisponible : "+(e.name==='NotAllowedError'?'accès refusé.':e.message)); }
+  if(erreurs.length){ msg.innerHTML=erreurs.join('<br>'); msg.classList.remove('cache'); }
+  if(stream){
+    $('ecranDemarrage').classList.add('cache'); $('ecranMesure').classList.remove('cache');
+    garderEcranAllume();
+    setTimeout(()=>{ if(ori.beta==null && !grav) etat("Aucune donnée d'orientation reçue : cet appareil n'a peut-être pas de gyroscope (ordinateur ?).",true); },2500);
+    requestAnimationFrame(boucle);
+  }
+});
+
+async function ouvrirCamera(){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({audio:false,
+    video:{facingMode:{ideal:facing}, width:{ideal:640}, height:{ideal:480}}});
+  const v=$('video'); v.srcObject=stream; await v.play().catch(()=>{});
+  v.style.transform = facing==='user' ? 'scaleX(-1)' : '';
+  track = stream.getVideoTracks()[0];
+  await reglerExposition();
+}
+
+/* essai de verrouillage de l'exposition (souvent possible sur Android / Chrome, rarement sur iPad) */
+async function reglerExposition(){
+  expoManuelle=false;
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  const r=$('expo');
+  try{
+    const adv={};
+    if(caps.exposureMode && caps.exposureMode.includes('manual')) adv.exposureMode='manual';
+    if(caps.whiteBalanceMode && caps.whiteBalanceMode.includes('manual')) adv.whiteBalanceMode='manual';
+    if(caps.focusMode && caps.focusMode.includes('manual')) adv.focusMode='manual';
+    if(adv.exposureMode){
+      if(caps.exposureTime){
+        r.min=caps.exposureTime.min; r.max=caps.exposureTime.max; r.step=caps.exposureTime.step||1;
+        const s=track.getSettings();
+        r.value = s.exposureTime || (caps.exposureTime.min+caps.exposureTime.max)/2;
+        adv.exposureTime=+r.value; r.disabled=false; majExpoVal();
+      }
+      await track.applyConstraints({advanced:[adv]});
+      expoManuelle=true;
+      etat("✔ Exposition verrouillée : la mesure de luminosité est fiable. Régler le temps d'exposition pour éviter la saturation.");
+    }
+  }catch(e){ expoManuelle=false; }
+  if(!expoManuelle){
+    r.disabled=true; $('expoVal').textContent='non réglable';
+    etat("⚠ Exposition automatique non désactivable sur cet appareil : la caméra compense en partie les variations de lumière. Résultats qualitatifs, utiliser une source faible.",true);
+  }
+}
+function majExpoVal(){ $('expoVal').textContent=(+$('expo').value).toFixed(0); }
+$('expo').addEventListener('input', async ()=>{
+  majExpoVal();
+  try{ await track.applyConstraints({advanced:[{exposureMode:'manual',exposureTime:+$('expo').value}]}); }catch(e){}
+});
+$('btnCamera').addEventListener('click', async ()=>{
+  facing = facing==='user'?'environment':'user';
+  try{ await ouvrirCamera(); }catch(e){ etat("Impossible de changer de caméra : "+e.message,true); }
+});
+function etat(txt,alerte){ const el=$('etatExpo'); el.textContent=txt; el.classList.toggle('alerte',!!alerte); }
+
+async function garderEcranAllume(){
+  try{ if('wakeLock' in navigator){ await navigator.wakeLock.request('screen');
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') navigator.wakeLock.request('screen').catch(()=>{}); }); } }catch(e){}
+}
+
+/* ───────── angle ───────── */
+function angleSource(){
+  const m=$('modeAngle').value;
+  const {alpha,beta,gamma}=ori;
+  if(m==='alpha') return alpha;
+  if(m==='beta') return beta;
+  if(m==='gamma') return gamma;
+  if(m==='tilt'){
+    if(beta!=null&&gamma!=null) return Math.acos(Math.max(-1,Math.min(1,Math.cos(beta*deg)*Math.cos(gamma*deg))))/deg;
+    if(grav){ const n=Math.hypot(grav.x,grav.y,grav.z); return n?Math.acos(Math.abs(grav.z)/n)/deg:null; }
+    return null;
+  }
+  if(m==='volant'){
+    if(grav) return Math.atan2(grav.x,grav.y)/deg;
+    if(beta!=null&&gamma!=null){ // vecteur gravité dans le repère de l'appareil à partir de beta, gamma
+      const gx=-Math.cos(beta*deg)*Math.sin(gamma*deg), gy=Math.sin(beta*deg);
+      return Math.atan2(gx,gy)/deg;
+    }
+    return null;
+  }
+  return null;
+}
+// les modes alpha et volant tournent sur 360° : on « déroule » pour éviter les sauts 359° → 0°
+const modesCirculaires={alpha:1,volant:1};
+function majAngle(){
+  const a=angleSource(); if(a==null) return;
+  if(modesCirculaires[$('modeAngle').value]){
+    if(angleBrut==null){ angleCont=a; }
+    else{ let d=a-angleBrut; while(d>180)d-=360; while(d<-180)d+=360; angleCont+=d; }
+  } else angleCont=a;
+  angleBrut=a;
+}
+function angleAffiche(){
+  if(angleCont==null) return null;
+  let th=angleCont-zero;
+  // sens de rotation « naturel » pour la boussole (alpha croît dans le sens trigo vu du dessus)
+  return th;
+}
+$('btnZero').addEventListener('click',()=>{ if(angleCont!=null) zero=angleCont; });
+$('modeAngle').addEventListener('change',()=>{ angleBrut=null; angleCont=null; zero=0;
+  if(points.length && confirm("Changer d'angle mesuré : effacer les points déjà enregistrés ?")) effacer(); });
+
+/* ───────── luminosité ───────── */
+const cv=document.createElement('canvas'); cv.width=cv.height=64;
+const cx=cv.getContext('2d',{willReadFrequently:true});
+const LIN=new Float32Array(256);
+for(let i=0;i<256;i++){ const c=i/255; LIN[i]= c<=0.04045? c/12.92 : Math.pow((c+0.055)/1.055,2.4); }
+
+function mesurerLum(){
+  const v=$('video'); if(!v.videoWidth) return;
+  const f=$('zoneTaille').value/100;
+  const vw=v.videoWidth, vh=v.videoHeight;
+  // zone carrée au centre, côté = f × petit côté de l'image affichée
+  const cote=f*Math.min(vw,vh);
+  cx.drawImage(v,(vw-cote)/2,(vh-cote)/2,cote,cote,0,0,64,64);
+  const d=cx.getImageData(0,0,64,64).data;
+  const lin=$('lineaire').checked;
+  let s=0, sat=0, n=d.length/4;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    if(r>=250||g>=250||b>=250) sat++;
+    s += lin ? (0.2126*LIN[r]+0.7152*LIN[g]+0.0722*LIN[b]) : (0.2126*r+0.7152*g+0.0722*b)/255;
+  }
+  lum = 100*s/n;
+  saturation = sat/n;
+  lumLisse = ($('lisser').checked && lumLisse!=null) ? lumLisse+0.25*(lum-lumLisse) : lum;
+}
+function majZone(){
+  const f=$('zoneTaille').value/100, w=$('video').parentElement;
+  // la vidéo est en object-fit:cover dans un cadre 4/3 : on approxime avec le petit côté du cadre
+  const c=f*Math.min(w.clientWidth,w.clientHeight);
+  $('zone').style.width=$('zone').style.height=c+'px';
+  $('zoneVal').textContent=Math.round(f*100)+' %';
+}
+$('zoneTaille').addEventListener('input',majZone); window.addEventListener('resize',majZone);
+
+/* ───────── boucle ───────── */
+function boucle(ts){
+  majAngle(); mesurerLum();
+  const th=angleAffiche();
+  $('vAngle').textContent = th==null?'—':th.toFixed(1);
+  $('vLum').textContent = lumLisse==null?'—':lumLisse.toFixed(1);
+  $('sat').style.display = saturation>0.02?'block':'none';
+  if(enregistre && th!=null && lumLisse!=null && ts-dernierAjout>50){ ajouter(th); dernierAjout=ts; }
+  dessiner();
+  majZone();
+  requestAnimationFrame(boucle);
+}
+
+/* ───────── enregistrement ───────── */
+function ajouter(th){
+  if(!points.length) t0=performance.now();
+  points.push({t:(performance.now()-t0)/1000, a:th, I:lumLisse});
+  $('nbPoints').textContent=points.length+(points.length>1?' points':' point');
+}
+$('btnRec').addEventListener('click',()=>{
+  enregistre=!enregistre;
+  $('btnRec').innerHTML = enregistre? '<span class="rec"></span>Arrêter' : '● Enregistrer en continu';
+  $('btnRec').classList.toggle('rouge',enregistre); $('btnRec').classList.toggle('plein',!enregistre);
+});
+$('btnPoint').addEventListener('click',()=>{ const th=angleAffiche(); if(th!=null&&lumLisse!=null) ajouter(th); });
+function effacer(){ points=[]; $('nbPoints').textContent='0 point'; }
+$('btnEffacer').addEventListener('click',()=>{ if(!points.length||confirm('Effacer tous les points ?')) effacer(); });
+
+function texteDonnees(sep,dec){
+  const f=x=>dec===','?String(x).replace('.',','):String(x);
+  let s=['t (s)','theta (deg)','I (relative)'].join(sep)+'\n';
+  for(const p of points) s+=[f(p.t.toFixed(3)),f(p.a.toFixed(2)),f(p.I.toFixed(3))].join(sep)+'\n';
+  return s;
+}
+$('btnCSV').addEventListener('click',()=>{
+  const blob=new Blob(['﻿'+texteDonnees(';',',')],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='luminosite-angle.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+$('btnCopier').addEventListener('click',async ()=>{
+  try{ await navigator.clipboard.writeText(texteDonnees('\t',',')); $('btnCopier').textContent='Copié ✔'; }
+  catch(e){ $('btnCopier').textContent='Copie impossible'; }
+  setTimeout(()=>$('btnCopier').textContent='Copier (pour tableur)',1500);
+});
+$('btnPleinEcran').addEventListener('click',()=>{
+  const el=document.documentElement;
+  if(document.fullscreenElement) document.exitFullscreen();
+  else (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+});
+
+/* ───────── graphe ───────── */
+const g=$('graphe'), gx=g.getContext('2d');
+function pas(etendue){ const b=Math.pow(10,Math.floor(Math.log10(etendue/6))); for(const m of [1,2,5,10]) if(etendue/(m*b)<=8) return m*b; return 10*b; }
+function dessiner(){
+  const W=g.width,H=g.height, L=86,R=24,T=24,B=72;
+  gx.clearRect(0,0,W,H);
+  gx.font='22px "Bricolage Grotesque",system-ui,sans-serif';
+  const th=angleAffiche();
+  // bornes
+  let amin=-10,amax=90,Imax=10;
+  const tous=points.slice(); if(th!=null&&lumLisse!=null) tous.push({a:th,I:lumLisse});
+  if(tous.length){
+    amin=Math.min(...tous.map(p=>p.a)); amax=Math.max(...tous.map(p=>p.a));
+    if(amax-amin<20){ const c=(amax+amin)/2; amin=c-10; amax=c+10; }
+    const m=(amax-amin)*0.05; amin-=m; amax+=m;
+    Imax=Math.max(1,...tous.map(p=>p.I))*1.1;
+  }
+  const X=a=>L+(a-amin)/(amax-amin)*(W-L-R), Y=I=>H-B-I/Imax*(H-T-B);
+  // quadrillage
+  gx.strokeStyle='rgba(28,18,8,.10)'; gx.fillStyle='#87704c'; gx.lineWidth=1;
+  const pa=pas(amax-amin), pI=pas(Imax);
+  gx.textAlign='center';
+  for(let a=Math.ceil(amin/pa)*pa;a<=amax;a+=pa){ gx.beginPath(); gx.moveTo(X(a),T); gx.lineTo(X(a),H-B); gx.stroke(); gx.fillText(+a.toFixed(6),X(a),H-B+28); }
+  gx.textAlign='right';
+  for(let I=0;I<=Imax;I+=pI){ gx.beginPath(); gx.moveTo(L,Y(I)); gx.lineTo(W-R,Y(I)); gx.stroke(); gx.fillText(+I.toFixed(6),L-10,Y(I)+7); }
+  gx.strokeStyle='#1c1208'; gx.lineWidth=2; gx.beginPath(); gx.moveTo(L,T); gx.lineTo(L,H-B); gx.lineTo(W-R,H-B); gx.stroke();
+  gx.fillStyle='#1c1208'; gx.textAlign='center'; gx.fillText('θ (°)',(L+W-R)/2,H-14);
+  gx.save(); gx.translate(24,(T+H-B)/2); gx.rotate(-Math.PI/2); gx.fillText('Luminosité relative',0,0); gx.restore();
+  // modèle
+  const mod=$('modele').value;
+  if(mod && points.length){
+    const Im=Math.max(...points.map(p=>p.I));
+    gx.strokeStyle='#b23a2a'; gx.lineWidth=2.5; gx.setLineDash([10,7]); gx.beginPath();
+    for(let i=0;i<=300;i++){ const a=amin+(amax-amin)*i/300; let c=Math.cos(a*deg); c= mod==='cos'? Math.max(0,c) : c*c;
+      const y=Y(Im*c); i?gx.lineTo(X(a),y):gx.moveTo(X(a),y); }
+    gx.stroke(); gx.setLineDash([]);
+  }
+  // points
+  gx.fillStyle='#1c3d6e';
+  for(const p of points){ gx.beginPath(); gx.arc(X(p.a),Y(p.I),4,0,7); gx.fill(); }
+  // point courant
+  if(th!=null&&lumLisse!=null){
+    gx.strokeStyle='#e0a400'; gx.lineWidth=3; gx.beginPath(); gx.arc(X(th),Y(lumLisse),10,0,7); gx.stroke();
+  }
+}
+dessiner();
+</script>
+</body>
+</html>
