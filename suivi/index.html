@@ -103,7 +103,9 @@ function message(titre, texte) {
 
 // Chaque page du PDF dessinée à la largeur de la visionneuse (nette sur écran haute densité), une diapositive par page.
 async function afficherPdf(octets, zone, maj) {
-  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(octets)}).promise;
+  // pdf.js transfère le tampon à son worker (il devient vide ici) : on lui passe une copie, l'original reste
+  // intact pour le bouton « Télécharger le PDF »
+  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(octets.slice(0))}).promise;
   const largeur = zone.clientWidth * (window.devicePixelRatio || 1);
   for (let n = 1; n <= pdf.numPages; n++) {
     const page = await pdf.getPage(n);
