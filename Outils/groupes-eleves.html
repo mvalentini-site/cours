@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Groupes de la classe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Mise en page : barre d'outils, puis grille de 8 groupes (2 colonnes : 8 7 / 6 5 / 4 3 / 2 1, 1 colonne sur téléphone) ; on glisse les cartes élèves d'un groupe à l'autre */
+:root{
+  --paper:#f6f7f4; --surface:#ffffff; --ink:#1d2430; --faded:#667080; --rule:#d9dde3;
+  --accent:#2f5fa8; --accent-soft:#e3ebf7; --mark:#b5651d; --drop:#eef4e8; --drop-line:#4f8a3a;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --text:"Inter", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#14171c; --surface:#1d222a; --ink:#e7eaef; --faded:#98a2b1; --rule:#323945;
+  --accent:#86a9e6; --accent-soft:#24314a; --mark:#e3a065; --drop:#1e2b1c; --drop-line:#8cc475; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#14171c; --surface:#1d222a; --ink:#e7eaef; --faded:#98a2b1; --rule:#323945;
+  --accent:#86a9e6; --accent-soft:#24314a; --mark:#e3a065; --drop:#1e2b1c; --drop-line:#8cc475; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--text);font-size:15px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.page{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(24px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sous{margin:4px 0 0;color:var(--faded);font-size:14px}
+.outils{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:14px;font-weight:500;padding:8px 14px;min-height:40px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+button:hover{border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.principal{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.etat{min-height:1.4em;font-size:13.5px;color:var(--drop-line)}
+
+.grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:440px){.grille{grid-template-columns:1fr}}
+.groupe{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0;
+  transition:background .12s,border-color .12s}
+.groupe.cible{background:var(--drop);border-color:var(--drop-line)}
+.groupe h2{display:flex;align-items:baseline;justify-content:space-between;margin:0;font-family:var(--display);font-weight:600;font-size:19px}
+.groupe h2 .num{font-weight:800;color:var(--accent)}
+.compte{font-family:var(--text);font-size:12.5px;font-weight:500;color:var(--faded);font-variant-numeric:tabular-nums}
+.compte.alerte{color:var(--mark)}
+.liste{display:flex;flex-direction:column;gap:6px;min-height:52px;padding:2px;border-radius:6px}
+.liste:empty::after{content:"Déposer un élève ici";display:grid;place-items:center;height:48px;border:1.5px dashed var(--rule);border-radius:6px;color:var(--faded);font-size:13px}
+
+.eleve{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);
+  cursor:grab;user-select:none;touch-action:none;min-width:0}
+.eleve:hover{border-color:var(--accent)}
+.eleve:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.poignee{color:var(--faded);font-size:13px;letter-spacing:-2px;flex:none}
+.nom{flex:1;min-width:0;overflow-wrap:anywhere}
+.nom b{font-weight:600;letter-spacing:.02em}
+.val{flex:none;font-size:12px;color:var(--faded);font-variant-numeric:tabular-nums;background:var(--accent-soft);padding:1px 6px;border-radius:10px}
+.eleve.fantome-source{opacity:.35}
+.fantome{position:fixed;z-index:50;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transform:rotate(-1.5deg);background:var(--surface)}
+.repere{height:3px;border-radius:2px;background:var(--drop-line);margin:-2px 0}
+.nom[contenteditable="true"]{outline:1px dashed var(--accent);cursor:text;user-select:text}
+
+.aide{color:var(--faded);font-size:13px;margin:0;max-width:75ch}
+.aide kbd{font-family:var(--text);font-size:12px;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+textarea#export{width:100%;min-height:120px;font:13px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--rule);border-radius:6px;padding:8px;background:var(--surface);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.groupe{transition:none}.fantome{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div>
+      <h1>Groupes de la classe</h1>
+      <p class="sous">8 groupes · glisser un élève pour le changer de groupe</p>
+    </div>
+    <div class="outils">
+      <button id="btn-copier" class="principal" type="button">Copier pour le tableur</button>
+      <button id="btn-melanger" type="button">Mélanger au hasard</button>
+      <button id="btn-reinit" type="button">Revenir aux groupes d'origine</button>
+    </div>
+  </header>
+  <div class="etat" id="etat" role="status" aria-live="polite"></div>
+  <div class="grille" id="grille"></div>
+  <p class="aide">Double-cliquer sur un nom pour le corriger (<kbd>Entrée</kbd> pour valider). Au clavier : sélectionner une carte avec <kbd>Tab</kbd>, puis <kbd>←</kbd> <kbd>→</kbd> pour changer de groupe et <kbd>↑</kbd> <kbd>↓</kbd> pour changer d'ordre. Les changements restent enregistrés dans ce navigateur.</p>
+  <textarea id="export" hidden readonly aria-label="Texte à copier"></textarea>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NB_GROUPES = 8;
+  var CLE = "groupes-eleves-v1";
+  // [nom, prénom, groupe]
+  var ORIGINE = [
+    ["TRUJILLO","Heloise",8],["ZANNONE","Louka",8],["ZIDHANE","Leïna",8],
+    ["SPINETTA","Lea",7],["TAVERNIER","Maxence",7],["TOUAHRI","Aya",7],
+    ["BENOIT","Julien",6],["SAURA","Valentino",6],["SIBELLAS","Clement",6],
+    ["ERNWEIN","Julia",5],["BOUVIER","Leia",5],["FORCOS","Andi",5],
+    ["DEMIANE","Maria",4],["DURY","Tess",4],["EMILE","Léo",4],
+    ["CHABRIER","Lise",3],["VOGT","Mila",3],["DEGOIS","Léandre",3],
+    ["BERTINI","Terrence",2],["FEDELE","Matteo",2],["CANTALOUVE","Cyllia",2],
+    ["AGARD","Arthur",1],["ALI SADONI","Dania",1],["OURI","Khalil",1]
+  ];
+
+  function etatInitial(){
+    var g = {}; for (var i=1;i<=NB_GROUPES;i++) g[i]=[];
+    var eleves = {};
+    ORIGINE.forEach(function(r,idx){
+      var id = "e"+idx;
+      eleves[id] = {nom:r[0], prenom:r[1]};
+      g[r[2]].push(id);
+    });
+    return {eleves:eleves, groupes:g};
+  }
+  var etat;
+  try { etat = JSON.parse(localStorage.getItem(CLE)); } catch(e){ etat = null; }
+  if (!etat || !etat.groupes || !etat.eleves) etat = etatInitial();
+  // ne garder que nom et prénom (efface d'anciennes données enregistrées dans le navigateur)
+  Object.keys(etat.eleves).forEach(function(id){ var e=etat.eleves[id]; etat.eleves[id]={nom:e.nom, prenom:(e.nom==="FORCOS" && /Constanti/.test(e.prenom)) ? "Andi" : e.prenom}; });
+  sauver();
+  function sauver(){ try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch(e){} }
+
+  var grille = document.getElementById("grille");
+  var zoneEtat = document.getElementById("etat");
+  var minuterie;
+  function annoncer(t){ zoneEtat.textContent=t; clearTimeout(minuterie); minuterie=setTimeout(function(){zoneEtat.textContent="";},3500); }
+
+  // ordre d'affichage : 8, 7, 6 … 1 comme dans le tableur
+  function ordreGroupes(){ var o=[]; for (var i=NB_GROUPES;i>=1;i--) o.push(String(i)); return o; }
+
+  function rendre(focusId){
+    grille.textContent = "";
+    var tailles = ordreGroupes().map(function(k){return etat.groupes[k].length;});
+    var max = Math.max.apply(null,tailles), min = Math.min.apply(null,tailles);
+    ordreGroupes().forEach(function(k){
+      var sec = document.createElement("section");
+      sec.className = "groupe"; sec.dataset.groupe = k;
+      var n = etat.groupes[k].length;
+      var h = document.createElement("h2");
+      h.innerHTML = '<span>Groupe <span class="num">'+k+'</span></span><span class="compte'+(max!==min && (n===max||n===min)?' alerte':'')+'">'+n+' élève'+(n>1?'s':'')+'</span>';
+      var ul = document.createElement("div"); ul.className="liste";
+      etat.groupes[k].forEach(function(id){ ul.appendChild(carte(id)); });
+      sec.appendChild(h); sec.appendChild(ul); grille.appendChild(sec);
+    });
+    if (focusId){ var c = grille.querySelector('[data-id="'+focusId+'"]'); if (c) c.focus(); }
+  }
+
+  function carte(id){
+    var e = etat.eleves[id];
+    var d = document.createElement("div");
+    d.className = "eleve"; d.dataset.id=id; d.tabIndex=0;
+    d.setAttribute("role","button");
+    d.setAttribute("aria-label", e.nom+" "+e.prenom);
+    var p = document.createElement("span"); p.className="poignee"; p.textContent="⋮⋮"; p.setAttribute("aria-hidden","true");
+    var nm = document.createElement("span"); nm.className="nom";
+    var b = document.createElement("b"); b.textContent=e.nom;
+    nm.appendChild(b); nm.appendChild(document.createTextNode(" "+e.prenom));
+    d.appendChild(p); d.appendChild(nm);
+    return d;
+  }
+
+  function groupeDe(id){ for (var k in etat.groupes){ var i=etat.groupes[k].indexOf(id); if(i>=0) return [k,i]; } return null; }
+  function deplacer(id, versGroupe, index){
+    var o = groupeDe(id); if(!o) return;
+    etat.groupes[o[0]].splice(o[1],1);
+    var liste = etat.groupes[versGroupe];
+    if (index==null || index>liste.length) index = liste.length;
+    liste.splice(index,0,id);
+    sauver(); rendre(id);
+    if (o[0]!==versGroupe) annoncer(etat.eleves[id].nom+" "+etat.eleves[id].prenom+" → groupe "+versGroupe);
+  }
+
+  /* ---- Glisser-déposer (souris, stylet et tactile) ---- */
+  var drag = null;
+  grille.addEventListener("pointerdown", function(ev){
+    var c = ev.target.closest(".eleve");
+    if (!c || ev.button!==0) return;
+    if (c.querySelector('[contenteditable="true"]')) return;
+    drag = {id:c.dataset.id, src:c, x0:ev.clientX, y0:ev.clientY, actif:false, pid:ev.pointerId};
+  });
+  window.addEventListener("pointermove", function(ev){
+    if (!drag || ev.pointerId!==drag.pid) return;
+    if (!drag.actif){
+      if (Math.hypot(ev.clientX-drag.x0, ev.clientY-drag.y0) < 5) return;
+      drag.actif = true;
+      var r = drag.src.getBoundingClientRect();
+      drag.dx = drag.x0-r.left; drag.dy = drag.y0-r.top;
+      drag.fantome = drag.src.cloneNode(true);
+      drag.fantome.classList.add("fantome");
+      drag.fantome.style.width = r.width+"px";
+      document.body.appendChild(drag.fantome);
+      drag.src.classList.add("fantome-source");
+      drag.repere = document.createElement("div"); drag.repere.className="repere";
+    }
+    ev.preventDefault();
+    drag.fantome.style.left = (ev.clientX-drag.dx)+"px";
+    drag.fantome.style.top = (ev.clientY-drag.dy)+"px";
+    var el = document.elementFromPoint(ev.clientX, ev.clientY);
+    var sec = el && el.closest(".groupe");
+    grille.querySelectorAll(".groupe.cible").forEach(function(s){ if(s!==sec) s.classList.remove("cible"); });
+    if (!sec){ if (drag.repere.parentNode) drag.repere.remove(); drag.cible=null; return; }
+    sec.classList.add("cible");
+    var liste = sec.querySelector(".liste");
+    var cartes = Array.prototype.filter.call(liste.querySelectorAll(".eleve"), function(c){return c!==drag.src;});
+    var idx = cartes.length;
+    for (var i=0;i<cartes.length;i++){ var b=cartes[i].getBoundingClientRect(); if (ev.clientY < b.top+b.height/2){ idx=i; break; } }
+    if (idx<cartes.length) liste.insertBefore(drag.repere, cartes[idx]); else liste.appendChild(drag.repere);
+    drag.cible = {groupe:sec.dataset.groupe, index:idx};
+  }, {passive:false});
+  function finir(ev){
+    if (!drag || (ev && ev.pointerId!==drag.pid)) return;
+    var d = drag; drag = null;
+    if (!d.actif) return;
+    d.fantome.remove(); if (d.repere.parentNode) d.repere.remove();
+    d.src.classList.remove("fantome-source");
+    grille.querySelectorAll(".groupe.cible").forEach(function(s){ s.classList.remove("cible"); });
+    if (ev.type==="pointerup" && d.cible) deplacer(d.id, d.cible.groupe, d.cible.index);
+  }
+  window.addEventListener("pointerup", finir);
+  window.addEventListener("pointercancel", finir);
+
+  /* ---- Clavier ---- */
+  grille.addEventListener("keydown", function(ev){
+    var c = ev.target.closest(".eleve"); if(!c || ev.target.isContentEditable) return;
+    var id = c.dataset.id, o = groupeDe(id), ordre = ordreGroupes(), pos = ordre.indexOf(o[0]);
+    if (ev.key==="ArrowRight" && pos<ordre.length-1){ ev.preventDefault(); deplacer(id, ordre[pos+1]); }
+    else if (ev.key==="ArrowLeft" && pos>0){ ev.preventDefault(); deplacer(id, ordre[pos-1]); }
+    else if (ev.key==="ArrowUp" && o[1]>0){ ev.preventDefault(); deplacer(id, o[0], o[1]-1); }
+    else if (ev.key==="ArrowDown" && o[1]<etat.groupes[o[0]].length-1){ ev.preventDefault(); deplacer(id, o[0], o[1]+1); }
+  });
+
+  /* ---- Corriger un nom (double-clic) ---- */
+  grille.addEventListener("dblclick", function(ev){
+    var nm = ev.target.closest(".nom"); if(!nm) return;
+    var c = nm.closest(".eleve"), e = etat.eleves[c.dataset.id];
+    nm.textContent = e.nom+" "+e.prenom;
+    nm.contentEditable = "true"; nm.focus();
+    var sel = window.getSelection(), r = document.createRange(); r.selectNodeContents(nm); sel.removeAllRanges(); sel.addRange(r);
+    function valider(garder){
+      nm.removeEventListener("blur", surBlur); nm.removeEventListener("keydown", surTouche);
+      if (garder){
+        var t = nm.textContent.replace(/\s+/g," ").trim();
+        if (t){
+          // le nom = mots en majuscules au début, le reste = prénom
+          var mots = t.split(" "), i = 0;
+          while (i<mots.length-1 && mots[i]===mots[i].toUpperCase() && /\p{L}/u.test(mots[i])) i++;
+          if (i===0) i = 1;
+          e.nom = mots.slice(0,i).join(" "); e.prenom = mots.slice(i).join(" ");
+          sauver();
+        }
+      }
+      rendre(c.dataset.id);
+    }
+    function surBlur(){ valider(true); }
+    function surTouche(k){ if(k.key==="Enter"){k.preventDefault(); valider(true);} else if(k.key==="Escape"){ valider(false);} }
+    nm.addEventListener("blur", surBlur); nm.addEventListener("keydown", surTouche);
+  });
+
+  /* ---- Boutons ---- */
+  function texteExport(){
+    var lignes = ["Nom\tPrénom\tGroupe"];
+    ordreGroupes().forEach(function(k){ etat.groupes[k].forEach(function(id){ var e=etat.eleves[id]; lignes.push(e.nom+"\t"+e.prenom+"\t"+k); }); });
+    return lignes.join("\n");
+  }
+  document.getElementById("btn-copier").addEventListener("click", function(){
+    var t = texteExport(), zone = document.getElementById("export");
+    function repli(){ zone.hidden=false; zone.value=t; zone.focus(); zone.select(); annoncer("Copie automatique refusée : le texte est sélectionné ci-dessous, faire Ctrl+C."); }
+    try {
+      navigator.clipboard.writeText(t).then(function(){ zone.hidden=true; annoncer("Copié : coller dans le tableur (3 colonnes Nom, Prénom, Groupe)."); }, repli);
+    } catch(e){ repli(); }
+  });
+  document.getElementById("btn-melanger").addEventListener("click", function(){
+    var ids = []; ordreGroupes().forEach(function(k){ ids = ids.concat(etat.groupes[k]); });
+    for (var i=ids.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=ids[i]; ids[i]=ids[j]; ids[j]=t; }
+    for (var g=1; g<=NB_GROUPES; g++) etat.groupes[g]=[];
+    ids.forEach(function(id,n){ etat.groupes[(n%NB_GROUPES)+1].push(id); });
+    sauver(); rendre(); annoncer("Groupes mélangés au hasard.");
+  });
+  var confirmer = false, tConf;
+  document.getElementById("btn-reinit").addEventListener("click", function(){
+    var b = this;
+    if (!confirmer){ confirmer=true; b.textContent="Confirmer le retour ?"; tConf=setTimeout(function(){confirmer=false;b.textContent="Revenir aux groupes d'origine";},4000); return; }
+    clearTimeout(tConf); confirmer=false; b.textContent="Revenir aux groupes d'origine";
+    etat = etatInitial(); sauver(); rendre(); annoncer("Groupes d'origine rétablis.");
+  });
+
+  rendre();
+})();
+</script>
+</body>
+</html>
