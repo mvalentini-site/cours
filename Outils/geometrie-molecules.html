@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modéliser une molécule – géométrie et VSEPR</title>
+<title>Modéliser une molécule – géométrie et polarité</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/parcours.css?v=4">
 <style>
@@ -57,6 +57,34 @@ sub{font-size:.72em}
 .fiche .calc b{font-size:18px;}
 .fiche .geo{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.01em;}
 .fiche .lien{font-size:15px;line-height:1.45;margin:-4px 0 12px;padding:0 4px;}
+.fiche .pol{border-top:1px solid var(--rule);margin-top:14px;padding-top:12px;}
+.fiche .pol ul{list-style:none;padding:0;margin:0 0 10px;font-size:14.5px;line-height:1.5;}
+.fiche .pol li b.oui{color:#b4451a}
+.fiche .pol .g{font-size:14.5px;margin-bottom:8px;}
+
+.delta{position:absolute;transform:translate(-50%,-50%);font-size:16px;font-weight:800;pointer-events:none;white-space:nowrap;
+  background:rgba(255,253,246,.8);padding:0 4px;border-radius:3px;font-style:italic;}
+.delta.plus{color:#c2410c}.delta.moins{color:#1d4ed8}
+.gpt{position:absolute;pointer-events:none;white-space:nowrap;font-size:14px;font-weight:700;transform:translate(-7px,-7px);}
+.gpt i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2.5px solid currentColor;background:#fffdf6;vertical-align:top;}
+.gpt span{position:absolute;right:20px;top:8px;background:rgba(255,253,246,.85);padding:0 4px;border-radius:3px;}
+.gpt.plus{color:#c2410c}.gpt.moins{color:#1d4ed8}.gpt.les2{color:#7e22ce}
+.gpt.moins span{top:-16px}.gpt.les2 span{top:-3px}
+.badge{position:absolute;right:10px;top:40px;font-size:15px;font-weight:700;padding:5px 10px;border-radius:4px;pointer-events:none;
+  background:rgba(255,253,246,.92);border:2px solid var(--rule);color:var(--faded);}
+.badge.polaire{border-color:#c2410c;color:#c2410c}.badge.apolaire{border-color:#4b7f52;color:#3d6b43}
+
+.choix button.construire{border-style:dashed;}
+.constructeur{margin-bottom:16px;}
+.constructeur h3{font-size:17px;font-weight:600;margin-bottom:10px;}
+.ctr{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;margin-bottom:12px;}
+.ctr .champ{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--faded);}
+.ctr .ligs{display:flex;flex-wrap:wrap;gap:6px;}
+.constructeur select{font:inherit;font-size:15px;padding:8px 10px;min-height:44px;border:1px solid var(--rule);background:#fffdf6;color:var(--ink);border-radius:4px;}
+.constructeur select:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+.etat{font-size:15px;line-height:1.45;padding:9px 12px;background:var(--paper2);border-left:3px solid var(--rule);}
+.etat.ok{border-left-color:#4b7f52}.etat.ko{border-left-color:#c2410c}
+
 .reponse.masque{filter:blur(6px);user-select:none;}
 .reponse.masque *{pointer-events:none}
 
@@ -79,21 +107,31 @@ sub{font-size:.72em}
     <div class="kicker">Outil · Chapitre 5 · De la structure à la polarité</div>
     <h1>Modéliser une molécule</h1>
     <div class="meta">Du schéma de Lewis (dessiné à plat) à la vraie forme de la molécule dans l'espace :
-      les doublets d'électrons autour de l'atome central se repoussent et s'éloignent le plus possible les uns des autres (méthode VSEPR).</div>
+      les doublets d'électrons autour de l'atome central se repoussent et s'éloignent le plus possible les uns des autres (méthode VSEPR).
+      Puis, de la géométrie à la polarité : liaisons polarisées, centres G⁺ et G⁻, molécule polaire ou apolaire.</div>
   </aside>
 <main>
 <section class="panneau">
   <div class="choix" id="choix" role="group" aria-label="Choisir une molécule"></div>
 
+  <div class="carte constructeur" id="constructeur" hidden>
+    <h3>Construire ta molécule</h3>
+    <div class="ctr">
+      <label class="champ">Atome central<select id="ctrCentre"></select></label>
+      <div class="champ">Atomes liés à l'atome central (4 au maximum)
+        <div class="ligs" id="ctrLigs"></div>
+      </div>
+    </div>
+    <div class="etat" id="ctrEtat" aria-live="polite"></div>
+  </div>
+
   <div class="grille">
     <div>
       <div class="vue" id="vue">
-        <div class="atomes">
-          <span><i style="background:#eeeeee"></i>H</span><span><i style="background:#2b2b2b"></i>C</span>
-          <span><i style="background:#2f55d4"></i>N</span><span><i style="background:#d62a1e"></i>O</span>
-          <span><i style="background:#2f9a3a"></i>Cl</span><span><i style="background:#b48ee8"></i>doublet non liant</span>
-        </div>
+        <div class="atomes" id="atomes"></div>
         <div class="aide">Glisser pour tourner</div>
+        <div id="etiqs"></div>
+        <div class="badge" id="badge" hidden></div>
         <div class="etiquette" id="etiqAngle"></div>
         <div class="legende" id="legende"></div>
       </div>
@@ -107,6 +145,11 @@ sub{font-size:.72em}
         <label class="case"><input type="checkbox" id="cbAngle" checked>Angle</label>
         <label class="case"><input type="checkbox" id="cbRotation" checked>Rotation automatique</label>
         <label class="case"><input type="checkbox" id="cbMasquer">Masquer les réponses</label>
+      </div>
+      <div class="cases" role="group" aria-label="Polarité">
+        <label class="case"><input type="checkbox" id="cbLiaisons">Liaisons polarisées (δ+ / δ−)</label>
+        <label class="case"><input type="checkbox" id="cbG">Centres G⁺ et G⁻</label>
+        <label class="case"><input type="checkbox" id="cbPolaire">Polaire / apolaire</label>
       </div>
     </div>
 
@@ -135,8 +178,8 @@ const TETRA = 109.47;
 /* angle polaire des 3 H de NH3 (mesuré depuis le doublet) pour un angle H-N-H de 107° */
 const thNH3 = 180 - Math.acos(Math.sqrt((Math.cos(107*D)+0.5)/1.5))/D;
 
-const COUL = { H:0xeeeeee, C:0x2b2b2b, N:0x2f55d4, O:0xd62a1e, Cl:0x2f9a3a };
-const RAY  = { H:0.27, C:0.40, N:0.40, O:0.40, Cl:0.52 };
+const COUL = { H:0xeeeeee, C:0x2b2b2b, N:0x2f55d4, O:0xd62a1e, F:0xa6dc6a, S:0xe3c22b, Cl:0x2f9a3a, Br:0x8a2a1a };
+const RAY  = { H:0.27, C:0.40, N:0.40, O:0.40, F:0.36, S:0.50, Cl:0.52, Br:0.56 };
 const ECH = 1.45; /* agrandissement des longueurs de liaison */
 
 const at = (el,len,flat,fin,ordre=1) => ({type:'at',el,len,flat:flat.clone().normalize(),fin:fin.clone().normalize(),ordre});
@@ -174,7 +217,93 @@ const MOLS = [
     dom:[ at('Cl',1.78,X,X), at('H',1.09,Y,sph(X,Y,Z,TETRA,0)), at('H',1.09,X.clone().negate(),sph(X,Y,Z,TETRA,240)), at('H',1.09,Y.clone().negate(),sph(X,Y,Z,TETRA,120)) ],
     arc:[1,3],
   },
+  { id:'CCl4', f:'CCl<sub>4</sub>', nom:'Tétrachlorométhane', centre:'C', lies:4, nl:0, figure:'tétraèdre', geo:'tétraédrique', angleTxt:'Cl–C–Cl ≈ 109,5°',
+    plan:Z, zoom:.5,
+    dom:[ at('Cl',1.77,Y,Y), at('Cl',1.77,X.clone().negate(),sph(Y,X,Z,TETRA,210)), at('Cl',1.77,X,sph(Y,X,Z,TETRA,330)), at('Cl',1.77,Y.clone().negate(),sph(Y,X,Z,TETRA,90)) ],
+    arc:[1,2],
+  },
+  { id:'CHCl3', f:'CHCl<sub>3</sub>', nom:'Chloroforme', centre:'C', lies:4, nl:0, figure:'tétraèdre', geo:'tétraédrique', angleTxt:'Cl–C–Cl ≈ 109,5°',
+    plan:Z, zoom:.6,
+    dom:[ at('H',1.09,Y,Y), at('Cl',1.77,X.clone().negate(),sph(Y,X,Z,TETRA,210)), at('Cl',1.77,X,sph(Y,X,Z,TETRA,330)), at('Cl',1.77,Y.clone().negate(),sph(Y,X,Z,TETRA,90)) ],
+    arc:[1,2],
+  },
+  { id:'HCl', f:'HCl', nom:'Chlorure d\'hydrogène', centre:'Cl', lies:1, nl:3, figure:'tétraèdre', geo:'linéaire', angleTxt:'aucun (2 atomes seulement)',
+    plan:Z, arc:null,
+    lienTxt:'Sur ces 4 directions, 3 sont occupées par des <b>doublets non liants</b>. Il ne reste qu\'<b>un seul atome lié</b> : '
+      + 'deux atomes sont forcément alignés ↓',
+    dom:[ at('H',1.27,X,X), dnl(Y,sph(X,Y,Z,TETRA,0)), dnl(X.clone().negate(),sph(X,Y,Z,TETRA,120)), dnl(Y.clone().negate(),sph(X,Y,Z,TETRA,240)) ],
+  },
 ];
+
+/* électronégativités (Pauling) et seuil de polarisation utilisés en classe */
+const CHI = { H:2.20, C:2.55, N:3.04, O:3.44, F:3.98, S:2.58, Cl:3.16, Br:2.96 };
+const SEUIL = 0.4;
+const virg = x => String(x).replace('.',',');
+const fmtQ = q => (Math.abs(q)>1?Math.abs(q):'') + 'δ' + (q>0?'+':'−');
+
+/* ---------- construction d'une molécule (atome central + 4 atomes liés au plus) ---------- */
+/* nombre de liaisons formées (règle de l'octet / du duet) et rayons covalents (Å) */
+const VAL  = { H:1, C:4, N:3, O:2, F:1, S:2, Cl:1, Br:1 };
+const RCOV = { H:.31, C:.76, N:.71, O:.66, F:.57, S:1.05, Cl:1.02, Br:1.20 };
+const CENTRES = ['C','N','O','S','Cl'];
+const LIGANDS = ['H','F','Cl','Br','O','S','N'];
+const NOM_LIAISON = ['','simple','double','triple'];
+const CONNUES = {
+  'C:H,H,H,H':['CH<sub>4</sub>','Méthane'], 'C:Cl,H,H,H':['CH<sub>3</sub>Cl','Chlorométhane'], 'C:Cl,Cl,H,H':['CH<sub>2</sub>Cl<sub>2</sub>','Dichlorométhane'],
+  'C:Cl,Cl,Cl,H':['CHCl<sub>3</sub>','Chloroforme'], 'C:Cl,Cl,Cl,Cl':['CCl<sub>4</sub>','Tétrachlorométhane'], 'C:F,F,F,F':['CF<sub>4</sub>','Tétrafluorométhane'],
+  'C:F,H,H,H':['CH<sub>3</sub>F','Fluorométhane'], 'C:O,O':['CO<sub>2</sub>','Dioxyde de carbone'], 'C:H,H,O':['CH<sub>2</sub>O','Méthanal'],
+  'C:H,N':['HCN','Cyanure d\'hydrogène'], 'C:S,S':['CS<sub>2</sub>','Disulfure de carbone'], 'C:Cl,Cl,O':['COCl<sub>2</sub>','Phosgène'],
+  'C:O,S':['COS','Sulfure de carbonyle'],
+  'N:H,H,H':['NH<sub>3</sub>','Ammoniac'], 'N:N':['N<sub>2</sub>','Diazote'], 'N:Cl,Cl,Cl':['NCl<sub>3</sub>','Trichlorure d\'azote'],
+  'N:F,F,F':['NF<sub>3</sub>','Trifluorure d\'azote'], 'N:Cl,H,H':['NH<sub>2</sub>Cl','Chloramine'], 'N:Cl,O':['NOCl','Chlorure de nitrosyle'],
+  'O:H,H':['H<sub>2</sub>O','Eau'], 'O:O':['O<sub>2</sub>','Dioxygène'], 'O:F,F':['OF<sub>2</sub>','Difluorure d\'oxygène'],
+  'O:Cl,H':['HClO','Acide hypochloreux'], 'O:Cl,Cl':['Cl<sub>2</sub>O','Oxyde de dichlore'],
+  'S:H,H':['H<sub>2</sub>S','Sulfure d\'hydrogène'],
+  'Cl:H':['HCl','Chlorure d\'hydrogène'], 'Cl:Cl':['Cl<sub>2</sub>','Dichlore'], 'Cl:F':['ClF','Fluorure de chlore'], 'Cl:Br':['BrCl','Chlorure de brome'],
+};
+const ind = n => n>1 ? `<sub>${n}</sub>` : '';
+function formule(c, ligs){
+  const n = {}; ligs.forEach(l=>n[l]=(n[l]||0)+1);
+  if(n[c]){ n[c]++; return Object.keys(n).length===1 ? c+ind(n[c]) : null; }
+  const autres = Object.keys(n).filter(l=>l!=='H').sort();
+  if(n.H && autres.length===0 && c!=='C' && c!=='N') return 'H'+ind(n.H)+c;
+  return c + (n.H?'H'+ind(n.H):'') + autres.map(l=>l+ind(n[l])).join('');
+}
+const GEO = {
+  2:{figure:'droite',   noms:['linéaire','linéaire'], angles:['180°','aucun (2 atomes seulement)']},
+  3:{figure:'triangle', noms:['plane triangulaire','coudée','linéaire'], angles:['≈ 120°','un peu moins de 120° (doublet non liant)','aucun (2 atomes seulement)']},
+  4:{figure:'tétraèdre',noms:['tétraédrique','pyramidale','coudée','linéaire'], angles:['≈ 109,5°','≈ 107° (un peu moins de 109,5°)','≈ 104,5° (un peu moins de 109,5°)','aucun (2 atomes seulement)']},
+};
+/* emplacements : schéma de Lewis à plat → directions 3D ; ordre de remplissage des doublets non liants */
+function emplacements(n, nl){
+  const mX = X.clone().negate(), mY = Y.clone().negate();
+  if(n===2) return {flat:[mX,X], fin:[mX,X], dnl:[0]};
+  if(n===3) return {flat:[mX,X,Y], fin:[V(Math.cos(210*D),Math.sin(210*D),0),V(Math.cos(330*D),Math.sin(330*D),0),Y], dnl:[2,0]};
+  if(nl===1) return {flat:[Y,mX,X,mY], fin:[Y,sph(Y,X,Z,thNH3,210),sph(Y,X,Z,thNH3,330),sph(Y,X,Z,thNH3,90)], dnl:[0]};
+  if(nl===2) return {flat:[Y,mX,X,mY], fin:[V(0,Math.cos(57*D),Math.sin(57*D)),V(-Math.sin(52.25*D),-Math.cos(52.25*D),0),V(Math.sin(52.25*D),-Math.cos(52.25*D),0),V(0,Math.cos(57*D),-Math.sin(57*D))], dnl:[0,3]};
+  return {flat:[Y,mX,X,mY], fin:[Y,sph(Y,X,Z,TETRA,210),sph(Y,X,Z,TETRA,330),sph(Y,X,Z,TETRA,90)], dnl:[0,3,1]};
+}
+function fabriquer(c, ligs){
+  const val = VAL[c], somme = ligs.reduce((s,l)=>s+VAL[l],0), pl = v => v>1?'s':'';
+  if(!ligs.length) return {err:'Choisis au moins un atome lié à l\'atome central.'};
+  if(somme < val) return {err:`L'atome ${c} doit former <b>${val} liaison${pl(val)}</b> pour respecter la règle de l'octet : il en manque ${val-somme}. `
+    + `Ajoute un atome, ou choisis un atome qui forme une liaison double ou triple.`};
+  if(somme > val) return {err:`Trop de liaisons : ${somme} au lieu de <b>${val}</b> pour l'atome ${c}. Cette molécule n'existe pas.`};
+  const nl = 4-val, n = ligs.length+nl, e = emplacements(n, nl), dnlSlots = e.dnl.slice(0,nl);
+  const dom = []; let k = 0;
+  for(let i=0;i<n;i++){
+    if(dnlSlots.includes(i)){ dom.push(dnl(e.flat[i],e.fin[i])); continue; }
+    const l = ligs[k++], o = VAL[l];
+    dom.push(at(l, (RCOV[c]+RCOV[l])*(o===2?.87:o===3?.78:1), e.flat[i], e.fin[i], o));
+  }
+  const iat = dom.map((d,i)=>d.type==='at'?i:-1).filter(i=>i>=0);
+  const cle = c+':'+[...ligs].sort().join(','), connue = CONNUES[cle];
+  const maxL = Math.max(...dom.filter(d=>d.type==='at').map(d=>d.len));
+  const g = GEO[n], col = n===2 ? (ligs.length===2?0:1) : nl;
+  return { id:'perso', f: connue ? connue[0] : (formule(c,ligs) || c+'…'), nom: connue ? connue[1] : 'Molécule construite',
+    centre:c, lies:ligs.length, nl, figure:g.figure, geo:g.noms[col], angleTxt:g.angles[col],
+    plan: Z, zoom: Math.min(1, .95/maxL), dom, arc: iat.length>=2 ? [iat[0],iat[1]] : null, perso:true, liaisons:somme };
+}
 
 /* ---------- scène ---------- */
 const vue = $('vue');
@@ -196,17 +325,57 @@ const matLiaison = new THREE.MeshStandardMaterial({color:0x9a8f7d,roughness:.6})
 const matDnl = new THREE.MeshStandardMaterial({color:0xb48ee8,transparent:true,opacity:.5,roughness:.4,depthWrite:false});
 const matArc = new THREE.LineBasicMaterial({color:0xc07a00});
 const mats = {}; for(const k in COUL) mats[k] = new THREE.MeshStandardMaterial({color:COUL[k],roughness:.35,metalness:.05});
+const matPol = new THREE.MeshStandardMaterial({color:0xe08a1e,roughness:.5});
+const matGG = new THREE.LineDashedMaterial({color:0x7e22ce,dashSize:.1,gapSize:.07,depthTest:false,transparent:true});
+/* pointillés de construction : segment (2 charges), triangle (3), tétraèdre (4) */
+const matConsP = new THREE.LineDashedMaterial({color:0xc2410c,dashSize:.09,gapSize:.07,depthTest:false,transparent:true,opacity:.85});
+const matConsM = new THREE.LineDashedMaterial({color:0x1d4ed8,dashSize:.09,gapSize:.07,depthTest:false,transparent:true,opacity:.85});
+let consP, consM;
 
 let mol, objets, s = 1; /* s : avancement 0 (Lewis à plat) → 1 (3D) */
-let arcLigne;
+let arcLigne, ligneGG, qCentre = 0, lblCentre = null, lblGp, lblGm, lblGG;
+
+/* charges partielles : sur chaque liaison polarisée, δ− sur l'atome le plus électronégatif */
+function chargesPartielles(m){
+  let qc = 0;
+  for(const d of m.dom) if(d.type==='at'){
+    const dchi = CHI[d.el]-CHI[m.centre];
+    d.dchi = Math.abs(dchi);
+    d.pol = d.dchi >= SEUIL - 1e-9;
+    d.q = d.pol ? (dchi>0 ? -1 : 1) : 0;
+    qc -= d.q;
+  }
+  return qc;
+}
+/* barycentres G+ et G− (coordonnées locales) pour des directions données */
+function centres(u){
+  const gp = V(0,0,0), gm = V(0,0,0); let sp = 0, sm = 0;
+  const ajoute = (q,p)=>{ if(q>0){ gp.addScaledVector(p,q); sp += q; } else if(q<0){ gm.addScaledVector(p,-q); sm -= q; } };
+  ajoute(qCentre, V(0,0,0));
+  mol.dom.forEach((d,i)=>{ if(d.type==='at') ajoute(d.q, u(i).clone().multiplyScalar(d.len*ECH)); });
+  if(!sp) return null;
+  gp.divideScalar(sp); gm.divideScalar(sm);
+  return {gp, gm, confondus: gp.distanceTo(gm) < 0.03};
+}
+
+function etiq(cls, html){ const e = document.createElement('div'); e.className = cls; e.innerHTML = html; $('etiqs').appendChild(e); return e; }
 
 function construire(m){
   while(groupe.children.length) groupe.remove(groupe.children[0]);
+  $('etiqs').innerHTML = '';
   mol = m; objets = [];
+  groupe.scale.setScalar(m.zoom || 1);
+  const els = [...new Set([m.centre, ...m.dom.filter(d=>d.type==='at').map(d=>d.el)])];
+  $('atomes').innerHTML = els.map(e=>`<span><i style="background:#${COUL[e].toString(16).padStart(6,'0')}"></i>${e}</span>`).join('')
+    + (m.nl ? '<span><i style="background:#b48ee8"></i>doublet non liant</span>' : '');
+  qCentre = chargesPartielles(m);
+  m.final = centres(i=>m.dom[i].fin);
   const c = new THREE.Mesh(geoSphere, mats[m.centre]); c.scale.setScalar(RAY[m.centre]); groupe.add(c);
+  lblCentre = qCentre ? etiq('delta '+(qCentre>0?'plus':'moins'), fmtQ(qCentre)) : null;
   for(const d of m.dom){
     const o = {d};
     if(d.type==='at'){
+      if(d.q) o.lbl = etiq('delta '+(d.q>0?'plus':'moins'), fmtQ(d.q));
       o.atome = new THREE.Mesh(geoSphere, mats[d.el]); o.atome.scale.setScalar(RAY[d.el]); groupe.add(o.atome);
       o.tiges = [];
       for(let i=0;i<d.ordre;i++){ const t = new THREE.Mesh(geoCyl, matLiaison); groupe.add(t); o.tiges.push(t); }
@@ -217,6 +386,12 @@ function construire(m){
     objets.push(o);
   }
   arcLigne = new THREE.Line(new THREE.BufferGeometry(), matArc); groupe.add(arcLigne);
+  ligneGG = new THREE.Line(new THREE.BufferGeometry(), matGG); ligneGG.renderOrder = 10; groupe.add(ligneGG);
+  consP = new THREE.LineSegments(new THREE.BufferGeometry(), matConsP); consP.renderOrder = 9; groupe.add(consP);
+  consM = new THREE.LineSegments(new THREE.BufferGeometry(), matConsM); consM.renderOrder = 9; groupe.add(consM);
+  lblGp = etiq('gpt plus','<i></i><span>G⁺</span>');
+  lblGm = etiq('gpt moins','<i></i><span>G⁻</span>');
+  lblGG = etiq('gpt les2','<i></i><span>G⁺ = G⁻</span>');
   majVisibilite();
 }
 
@@ -240,9 +415,9 @@ function majPositions(){
       o.atome.position.copy(p);
       if(o.tiges.length===1) placerTige(o.tiges[0], V(0,0,0), p, .075);
       else {
-        let n = u.clone().cross(mol.plan); if(n.lengthSq()<1e-4) n = u.clone().cross(Y); n.normalize().multiplyScalar(.11);
-        placerTige(o.tiges[0], n.clone(), p.clone().add(n), .055);
-        placerTige(o.tiges[1], n.clone().negate(), p.clone().sub(n), .055);
+        let n = u.clone().cross(mol.plan); if(n.lengthSq()<1e-4) n = u.clone().cross(Y); n.normalize();
+        const ecarts = o.tiges.length===2 ? [.11,-.11] : [.15,0,-.15], r = o.tiges.length===2 ? .055 : .045;
+        o.tiges.forEach((t,k)=>{ const d = n.clone().multiplyScalar(ecarts[k]); placerTige(t, d, p.clone().add(d), r); });
       }
     } else {
       o.lobe.position.copy(u.clone().multiplyScalar(.78));
@@ -252,7 +427,24 @@ function majPositions(){
       o.e[1].position.copy(u.clone().multiplyScalar(.95).addScaledVector(n,-.1));
     }
   }
+  /* centres des charges partielles, pour la position actuelle */
+  mol.courant = centres(i=>dirs[i]);
+  if(mol.courant && !mol.courant.confondus){
+    ligneGG.geometry.setFromPoints([mol.courant.gp, mol.courant.gm]); ligneGG.computeLineDistances();
+  }
+  const charges = signe => {
+    const L = []; if(Math.sign(qCentre)===signe) L.push(V(0,0,0));
+    mol.dom.forEach((d,i)=>{ if(d.type==='at' && Math.sign(d.q)===signe) L.push(dirs[i].clone().multiplyScalar(d.len*ECH)); });
+    return L;
+  };
+  for(const [ligne, signe] of [[consP,1],[consM,-1]]){
+    const L = charges(signe), paires = [];
+    for(let a=0;a<L.length;a++) for(let b=a+1;b<L.length;b++) paires.push(L[a],L[b]);
+    ligne.userData.vide = paires.length===0;
+    if(paires.length){ ligne.geometry.setFromPoints(paires); ligne.computeLineDistances(); }
+  }
   /* arc d'angle */
+  if(!mol.arc) return;
   const [i,j] = mol.arc, a = dirs[i], b = dirs[j];
   const th = Math.acos(Math.max(-1,Math.min(1,a.dot(b))));
   let p = b.clone().sub(a.clone().multiplyScalar(a.dot(b)));
@@ -268,8 +460,47 @@ function majPositions(){
 function majVisibilite(){
   const vd = $('cbDoublets').checked;
   for(const o of objets) if(o.lobe){ o.lobe.visible = vd; o.e.forEach(e=>e.visible=vd); }
-  if(arcLigne) arcLigne.visible = $('cbAngle').checked;
+  const vl = $('cbLiaisons').checked;
+  for(const o of objets) if(o.tiges) o.tiges.forEach(t=>t.material = vl && o.d.pol ? matPol : matLiaison);
+  if(arcLigne) arcLigne.visible = $('cbAngle').checked && !!mol.arc;
 }
+
+/* position écran (px) d'un point du repère de la molécule */
+function ecran(p){
+  const q = groupe.localToWorld(p.clone()).project(camera);
+  return {x:(q.x+1)/2*vue.clientWidth, y:(1-q.y)/2*vue.clientHeight};
+}
+function poser(el, p, dx=0, dy=0){ el.style.display = ''; el.style.left = (p.x+dx)+'px'; el.style.top = (p.y+dy)+'px'; }
+
+function majPolarite(){
+  const vl = $('cbLiaisons').checked, vg = $('cbG').checked, vp = $('cbPolaire').checked;
+  /* δ+ / δ− */
+  if(lblCentre){ if(vl) poser(lblCentre, ecran(V(0,0,0)), 22, -28); else lblCentre.style.display = 'none'; }
+  objets.forEach((o,i)=>{
+    if(!o.lbl) return;
+    if(!vl){ o.lbl.style.display = 'none'; return; }
+    poser(o.lbl, ecran(dirs[i].clone().multiplyScalar(o.d.len*ECH + RAY[o.d.el] + .32)));
+  });
+  /* G+ et G− */
+  const c = mol.courant;
+  [lblGp,lblGm,lblGG].forEach(e=>e.style.display = 'none');
+  ligneGG.visible = false;
+  consP.visible = vg && !!c && !consP.userData.vide;
+  consM.visible = vg && !!c && !consM.userData.vide;
+  if(vg && c){
+    if(c.confondus) poser(lblGG, ecran(c.gp));
+    else { poser(lblGp, ecran(c.gp)); poser(lblGm, ecran(c.gm)); ligneGG.visible = true; }
+  }
+  /* verdict */
+  const b = $('badge');
+  b.hidden = !vp;
+  if(vp){
+    if(s < .999){ b.className = 'badge'; b.textContent = 'Polarité : à conclure sur la forme 3D'; }
+    else if($('cbMasquer').checked){ b.className = 'badge'; b.textContent = 'Polaire ou apolaire ?'; }
+    else { const pol = estPolaire(mol); b.className = 'badge '+(pol?'polaire':'apolaire'); b.textContent = 'Molécule '+(pol?'polaire':'apolaire'); }
+  }
+}
+const estPolaire = m => !!(m.final && !m.final.confondus);
 
 /* ---------- rotation à la souris / au doigt ---------- */
 let glisse = null;
@@ -298,7 +529,11 @@ function legende(){
     if(t < T_PLAT+T_MORPH) return L.innerHTML = '<b>Les doublets se repoussent</b> (ils sont tous chargés négativement) : ils s\'éloignent les uns des autres…';
   }
   if(s < .999 && s > 0) { L.innerHTML = 'Les doublets s\'écartent les uns des autres…'; return; }
-  if(s === 0) { L.innerHTML = '<b>Schéma de Lewis :</b> tout est dessiné à plat, dans le plan de la feuille.'; return; }
+  if(s === 0) {
+    L.innerHTML = '<b>Schéma de Lewis :</b> tout est dessiné à plat, dans le plan de la feuille.'
+      + ($('cbG').checked && mol.final ? ' <i>Attention : G⁺ et G⁻ se placent sur la vraie forme 3D, pas sur le schéma à plat.</i>' : '');
+    return;
+  }
   L.innerHTML = $('cbMasquer').checked
     ? '<b>Position d\'équilibre :</b> les directions sont le plus éloignées possible. Quelle est la géométrie ?'
     : `<b>Position d'équilibre :</b> ${mol.lies+mol.nl} directions le plus éloignées possible → molécule <b>${mol.geo}</b>.`;
@@ -325,13 +560,12 @@ function boucle(now){
     groupe.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(Y, dt*0.0004));
   }
   majPositions();
+  groupe.updateMatrixWorld();
   legende();
+  majPolarite();
   const et = $('etiqAngle');
-  if($('cbAngle').checked){
-    const p = arcLigne.userData.milieu.clone().applyQuaternion(groupe.quaternion).project(camera);
-    et.style.display = '';
-    et.style.left = ((p.x+1)/2*vue.clientWidth)+'px';
-    et.style.top = ((1-p.y)/2*vue.clientHeight)+'px';
+  if($('cbAngle').checked && mol.arc){
+    poser(et, ecran(arcLigne.userData.milieu));
     et.textContent = Math.round(arcLigne.userData.angle*10)/10 + '°';
     et.textContent = et.textContent.replace('.',',');
   } else et.style.display = 'none';
@@ -340,8 +574,30 @@ function boucle(now){
 }
 
 /* ---------- fiche ---------- */
+function polariteHTML(m, cache){
+  const types = [];
+  for(const d of m.dom) if(d.type==='at' && !types.some(t=>t.el===d.el && t.ordre===d.ordre)) types.push(d);
+  const lignes = types.map(d=>{
+    const a = CHI[m.centre], b = CHI[d.el], hi = Math.max(a,b), lo = Math.min(a,b);
+    return `<li>${m.centre}${['','–','=','≡'][d.ordre]}${d.el} : |Δχ| = ${virg(hi.toFixed(2))} − ${virg(lo.toFixed(2))} = ${virg(d.dchi.toFixed(2))} `
+      + (d.pol ? `≥ 0,4 → <b class="oui">polarisée</b>` : `&lt; 0,4 → non polarisée`) + '</li>';
+  }).join('');
+  const f = m.final, pol = estPolaire(m);
+  const g = !f ? 'Aucune liaison polarisée : pas de charges partielles.'
+    : f.confondus ? 'G⁺ et G⁻ sont <b>confondus</b> : les effets des liaisons polarisées se compensent.'
+    : 'G⁺ et G⁻ sont <b>distincts</b>.';
+  return `<div class="pol reponse${cache}">
+      <div class="nom" style="margin-bottom:4px">Polarité</div>
+      <ul>${lignes}</ul>
+      <div class="g">${g}</div>
+      <div class="geo">${pol?'polaire':'apolaire'}</div>
+    </div>`;
+}
 function lien(m){
+  if(m.lienTxt) return m.lienTxt;
   const n = m.lies+m.nl;
+  if(m.lies===1) return (m.nl ? `Sur ces ${n} directions, ${m.nl>1 ? m.nl+' sont occupées par des <b>doublets non liants</b>' : '1 est occupée par un <b>doublet non liant</b>'}. ` : '')
+    + 'Il n\'y a qu\'<b>un seul atome lié</b> : deux atomes sont forcément alignés ↓';
   if(m.nl===0) return `Aucun <b>doublet non liant</b> sur l'atome central : les ${n} directions portent toutes un atome. `
     + `Les atomes occupent tout le ${m.figure} ↓`;
   const un = m.nl===1;
@@ -364,11 +620,13 @@ function fiche(){
       <div class="nom" style="margin-bottom:2px">Géométrie</div>
       <div class="geo">${m.geo}</div>
       <div class="nom">Angle : ${m.angleTxt}</div>
-    </div>`;
+    </div>
+    ${['cbLiaisons','cbG','cbPolaire'].some(id=>$(id).checked) ? polariteHTML(m, cache) : ''}`;
 }
 
 function choisir(m, animer=true){
   document.querySelectorAll('#choix button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.id===m.id));
+  $('constructeur').hidden = !m.perso;
   construire(m); fiche();
   if(animer) lancerAnimation(); else { s = 1; groupe.quaternion.setFromAxisAngle(Y,-.55); }
   try{ history.replaceState(null,'','#'+m.id); }catch(e){}
@@ -380,16 +638,53 @@ for(const m of MOLS){
   b.addEventListener('click', ()=>choisir(m));
   $('choix').appendChild(b);
 }
+
+/* ---------- panneau « Construire ta molécule » ---------- */
+{
+  const b = document.createElement('button');
+  b.dataset.id = 'perso'; b.className = 'construire';
+  b.innerHTML = '✚ Construire<small>ta molécule</small>';
+  b.addEventListener('click', ()=>majConstructeur(true, true));
+  $('choix').appendChild(b);
+  $('ctrCentre').innerHTML = CENTRES.map(c=>`<option value="${c}">${c} (forme ${VAL[c]} liaison${VAL[c]>1?'s':''})</option>`).join('');
+  const opts = '<option value="">—</option>' + LIGANDS.map(l=>`<option value="${l}">${l} (liaison ${NOM_LIAISON[VAL[l]]})</option>`).join('');
+  for(let i=0;i<4;i++){
+    const s = document.createElement('select'); s.innerHTML = opts; s.value = 'H';
+    s.setAttribute('aria-label', 'Atome lié n° '+(i+1));
+    s.addEventListener('change', ()=>majConstructeur(true));
+    $('ctrLigs').appendChild(s);
+  }
+  $('ctrCentre').addEventListener('change', ()=>majConstructeur(true));
+}
+function majConstructeur(animer, ouvrir=false){
+  const c = $('ctrCentre').value, ligs = [...$('ctrLigs').querySelectorAll('select')].map(s=>s.value).filter(Boolean);
+  const m = fabriquer(c, ligs), etat = $('ctrEtat');
+  $('constructeur').hidden = false;
+  if(m.err){
+    etat.className = 'etat ko'; etat.innerHTML = '✗ ' + m.err;
+    if(ouvrir || !mol.perso) document.querySelectorAll('#choix button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.id==='perso'));
+    return;
+  }
+  etat.className = 'etat ok';
+  etat.innerHTML = `✓ L'atome ${c} forme <b>${m.liaisons} liaison${m.liaisons>1?'s':''}</b> : `
+    + (m.nl===0 ? 'il est entouré de 4 doublets liants (octet complet).'
+      : `avec ${m.nl===1 ? 'son doublet non liant' : 'ses '+m.nl+' doublets non liants'}, il est entouré de 4 doublets (octet complet).`);
+  choisir(m, animer);
+}
+
 $('btnAnim').addEventListener('click', lancerAnimation);
 $('btnFace').addEventListener('click', ()=>{ groupe.quaternion.identity(); $('cbRotation').checked = false; });
 $('morph').addEventListener('input', e=>{ anim = null; s = e.target.value/1000; if(s<1) groupe.quaternion.identity(); });
 $('cbDoublets').addEventListener('change', majVisibilite);
 $('cbAngle').addEventListener('change', majVisibilite);
 $('cbMasquer').addEventListener('change', fiche);
+['cbLiaisons','cbG','cbPolaire'].forEach(id=>$(id).addEventListener('change', ()=>{ majVisibilite(); fiche(); }));
+if(/[?&]polarite/.test(location.search)) ['cbLiaisons','cbG','cbPolaire'].forEach(id=>$(id).checked = true);
 if(/[?&]eleve/.test(location.search)) $('cbMasquer').checked = true;
 
 const depart = MOLS.find(m=>'#'+m.id===location.hash) || MOLS[0];
 choisir(depart);
+if(location.hash==='#perso') majConstructeur(true);
 window.addEventListener('hashchange', ()=>{ const m = MOLS.find(m=>'#'+m.id===location.hash); if(m && m!==mol) choisir(m); });
 taille();
 requestAnimationFrame(boucle);
